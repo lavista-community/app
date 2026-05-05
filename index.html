@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Vista Guest Portal</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 400px; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
+    h2 { color: #1a73e8; margin-bottom: 20px; }
+    input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
+    button { width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+    .btn-primary { background: #1a73e8; color: white; }
+    .btn-secondary { background: #34a853; color: white; }
+    .hidden { display: none !important; }
+    #reader { width: 100%; border-radius: 15px; overflow: hidden; margin-top: 15px; background: #fafafa; }
+    .status-box { padding: 15px; border-radius: 10px; margin-top: 15px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="title">La Vista Portal</h2>
+
+    <!-- LOGIN SECTION -->
+    <div id="loginUI">
+      <p>Enter your registered email to continue</p>
+      <input type="email" id="emailInput" placeholder="name@example.com">
+      <button class="btn-primary" onclick="attemptLogin()">Login</button>
+    </div>
+
+    <!-- MAIN APP SECTION -->
+    <div id="mainApp" class="hidden">
+      <div id="residentSection" class="hidden">
+        <h3>Pre-register Guest</h3>
+        <input type="text" id="gName" placeholder="Guest Full Name">
+        <input type="date" id="gDate">
+        <button class="btn-secondary" onclick="sendGuest()">Generate QR Code</button>
+      </div>
+
+      <div id="guardSection" class="hidden">
+        <h3>Security Scanner</h3>
+        <div id="reader"></div>
+        <button id="scanBtn" class="btn-primary" onclick="startScanner()">Open Camera</button>
+        <div id="checkInBox" class="hidden">
+          <input type="text" id="pNo" placeholder="Plate Number">
+          <button class="btn-secondary" onclick="confirmCheckIn()">Confirm Entry</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULT SECTION -->
+    <div id="resultUI" class="hidden">
+      <div id="qrDisplay"></div>
+      <p id="qrIdText"></p>
+      <button class="btn-primary" onclick="location.reload()">Return Home</button>
+    </div>
+  </div>
+
+  <script>
+    // PASTE YOUR GOOGLE WEB APP URL HERE
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyB1osVwHGMiOgGxDFlbw35lzurJpQXxQ-MWCecH5V5AT9jPwDReN0KMbAV1BKBAsI5/exec";
+
+    let currentUser = null;
+    let scannedQrId = null;
+    let html5QrCode = null;
+
+    function attemptLogin() {
+      const email = document.getElementById('emailInput').value;
+      if(!email) return alert("Please enter your email");
+
+      document.getElementById('loginUI').innerHTML = "<p>Verifying...</p>";
+      
+      fetch(`${scriptUrl}?action=getUserData&email=${encodeURIComponent(email)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.role === "NOT_FOUND") {
+            alert("Email not recognized. Contact Admin.");
+            location.reload();
+            return;
+          }
+          
+          currentUser = data;
+          showUI(data.role);
+        })
+        .catch(err => alert("Connection error. Try again."));
+    }
+
+    function showUI(role) {
+      document.getElementById('loginUI').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('title').innerText = "Hello, " + currentUser.info.firstName;
+
+      if (role === "ADMIN") {
+        document.getElementById('residentSection').classList.remove('hidden');
+        document.getElementById('guardSection').classList.remove('hidden');
+      } else if (role === "RESIDENT") {
+        document.getElementById('residentSection').classList.remove('hidden');
+      } else if (role === "GUARD") {
+        document.getElementById('guardSection').classList.remove('hidden');
+      }
+    }
+
+    function startScanner() {
+      document.getElementById('scanBtn').classList.add('hidden');
+      html5QrCode = new Html5Qrcode("reader");
+      html5QrCode.start(
+        { facingMode: "environment" }, 
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          scannedQrId = decodedText;
+          html5QrCode.stop().then(() => {
+            document.getElementById('reader').classList.add('hidden');
+            document.getElementById('checkInBox').classList.remove('hidden');
+          });
+        }
+      ).catch(err => alert("Camera error: Ensure you allowed permissions."));
+    }
+
+    function sendGuest() {
+      const payload = JSON.stringify({
+        firstName: currentUser.info.firstName,
+        surname: currentUser.info.surname,
+        address: currentUser.info.address,
+        guestName: document.getElementById('gName').value,
+        dateExpected: document.getElementById('gDate').value
+      });
+
+      fetch(`${scriptUrl}?action=submitGuest&payload=${encodeURIComponent(payload)}`)
+        .then(res => res.json())
+        .then(res => {
+          document.getElementById('mainApp').classList.add('hidden');
+          document.getElementById('resultUI').classList.remove('hidden');
+          const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${res.qrId}`;
+          document.getElementById('qrDisplay').innerHTML = `<img src="${qrUrl}">`;
+          document.getElementById('qrIdText').innerText = "Guest ID: " + res.qrId;
+        });
+    }
+
+    function confirmCheckIn() {
+      const plate = document.getElementById('pNo').value;
+      fetch(`${scriptUrl}?action=logArrival&qrId=${scannedQrId}&plate=${encodeURIComponent(plate)}`)
+        .then(res => res.json())
+        .then(res => {
+          if(res.success) {
+            alert("Arrival Logged Successfully!");
+            location.reload();
+          }
+        });
+    }
+  </script>
+</body>
+</html>
