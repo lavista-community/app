@@ -12,150 +12,96 @@
         :root { --primary-blue: #007aff; --bg-gray: #f2f2f7; --card-shadow: 0 8px 30px rgba(0,0,0,0.06); }
         body { background-color: var(--bg-gray); font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
         .hidden { display: none !important; }
-        
-        /* Premium Login Styling */
-        .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .login-card { background: white; border-radius: 28px; padding: 40px 30px; width: 100%; max-width: 400px; box-shadow: var(--card-shadow); text-align: center; }
-        .login-logo { width: 80px; margin-bottom: 20px; }
-        
-        /* Dashboard Styling */
-        .app-header { background: white; padding: 30px 20px; border-bottom: 1px solid #e5e5ea; text-align: left; }
-        .welcome-text { color: var(--primary-blue); font-weight: 800; font-size: 1.8rem; letter-spacing: -0.5px; }
-        .sub-header { color: #8e8e93; font-size: 0.95rem; font-weight: 500; }
-        
+        .app-header { background: white; padding: 30px 20px; border-bottom: 1px solid #e5e5ea; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
         .menu-tile { 
             background: white; border-radius: 24px; padding: 25px 15px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; border: none; box-shadow: var(--card-shadow);
-            aspect-ratio: 1 / 1.1; color: #1c1c1e; text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            aspect-ratio: 1 / 1.1; color: #1c1c1e; text-decoration: none; font-weight: 600;
         }
-        .menu-tile img { width: 50px; height: 50px; margin-bottom: 15px; }
-        
-        .form-control { border-radius: 14px; padding: 14px; background: #f2f2f7; border: 2px solid transparent; transition: 0.3s; }
-        .form-control:focus { background: white; border-color: var(--primary-blue); box-shadow: none; }
-        .btn-primary { border-radius: 14px; padding: 14px; font-weight: 700; background: var(--primary-blue); border: none; margin-top: 10px; }
+        .menu-tile img { width: 45px; height: 45px; margin-bottom: 12px; }
+        .form-control { border-radius: 14px; padding: 14px; background: #e5e5ea; border: 2px solid transparent; margin-bottom: 15px; }
+        .btn-primary { border-radius: 14px; padding: 14px; font-weight: 700; background: var(--primary-blue); border: none; }
     </style>
 </head>
 <body>
 
-<!-- LOGIN VIEW -->
-<div id="loginUI" class="login-container">
+<div id="loginUI" class="container min-vh-100 d-flex align-items-center justify-content-center">
     <div class="login-card">
-        <img src="https://cdn-icons-png.flaticon.com/512/1162/1162280.png" class="login-logo">
-        <h2 class="fw-bold mb-1" style="letter-spacing: -1px;">La Vista</h2>
-        <p class="text-muted small mb-4">Community Digital Portal</p>
-        <div class="text-start mb-4">
-            <label class="small fw-bold text-muted ms-2">RESIDENT EMAIL</label>
-            <input type="email" id="emailInput" class="form-control" placeholder="name@email.com">
-        </div>
+        <h2 class="fw-bold mb-1">La Vista</h2>
+        <p class="text-muted small mb-4">Resident Portal</p>
+        <input type="email" id="emailInput" class="form-control text-center" placeholder="Resident Email">
         <button onclick="attemptLogin()" id="loginBtn" class="btn btn-primary w-100">Sign In</button>
     </div>
 </div>
 
-<!-- DASHBOARD VIEW -->
 <div id="dashboardUI" class="hidden">
     <div class="app-header">
-        <div id="welcomeMsg" class="welcome-text">Hello!</div>
-        <div class="sub-header">La Vista Community Services</div>
+        <div id="welcomeMsg" class="h3 fw-bold text-primary">Hello!</div>
+        <div class="text-muted small">La Vista Community Services</div>
     </div>
-    
     <div class="menu-grid">
-        <div class="menu-tile">
-            <img src="https://cdn-icons-png.flaticon.com/512/3602/3602145.png">Announcements
-        </div>
-        <div class="menu-tile">
-            <img src="https://cdn-icons-png.flaticon.com/512/3652/3652191.png">Calendar
-        </div>
-        <div class="menu-tile">
-            <img src="https://cdn-icons-png.flaticon.com/512/2763/2763065.png">Courts
-        </div>
-        <div class="menu-tile" onclick="showSection('registerSection')">
-            <img src="https://cdn-icons-png.flaticon.com/512/3500/3500091.png">Guest Registration
-        </div>
-        <div class="menu-tile">
-            <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png">Deliveries
-        </div>
-        <div class="menu-tile">
-            <img src="https://cdn-icons-png.flaticon.com/512/2912/2912292.png">Staff Pass
-        </div>
+        <div class="menu-tile"><img src="https://cdn-icons-png.flaticon.com/512/3602/3602145.png">Announcements</div>
+        <div class="menu-tile"><img src="https://cdn-icons-png.flaticon.com/512/3652/3652191.png">Calendar</div>
+        <div class="menu-tile" onclick="showSection('registerSection')"><img src="https://cdn-icons-png.flaticon.com/512/3500/3500091.png">My Guests</div>
         <div id="securityTile" class="menu-tile hidden" onclick="showSection('scannerSection')" style="background: #1c1c1e; color: white;">
-            <img src="https://cdn-icons-png.flaticon.com/512/2567/2567844.png" style="filter: invert(1);">Security Scanner
-        </div>
-        <div class="menu-tile">
-            <img src="https://cdn-icons-png.flaticon.com/512/2143/2143150.png">My Window
-        </div>
+            <img src="https://cdn-icons-png.flaticon.com/512/2567/2567844.png" style="filter: invert(1);">Scanner</div>
+        <div class="menu-tile"><img src="https://cdn-icons-png.flaticon.com/512/2143/2143150.png">My Window</div>
     </div>
-    
-    <div class="text-center pb-5">
-        <button class="btn btn-link text-danger text-decoration-none fw-bold" onclick="location.reload()">Log Out</button>
-    </div>
+    <div class="text-center py-4"><button class="btn btn-link text-danger text-decoration-none" onclick="location.reload()">Logout</button></div>
 </div>
 
-<!-- GUEST REGISTRATION -->
 <div id="registerSection" class="hidden container py-4">
     <div class="bg-white p-4 rounded-5 shadow-sm">
-        <h4 class="fw-bold mb-4">New Guest Pass</h4>
+        <h4 class="fw-bold mb-4">Guest Registration</h4>
         <input type="text" id="guestName" class="form-control" placeholder="Guest Full Name">
         <input type="date" id="visitDate" class="form-control">
-        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-primary w-100">Create QR Code</button>
-        
+        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-primary w-100">Generate Pass</button>
         <div id="qrResult" class="text-center mt-4 hidden">
             <div id="qrDisplay" class="d-flex justify-content-center mb-3"></div>
-            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 border-0 fw-bold">Back to Home</button>
+            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back</button>
         </div>
     </div>
 </div>
 
-<!-- SCANNER SECTION -->
 <div id="scannerSection" class="hidden container py-4">
     <div class="bg-white p-4 rounded-5 shadow-sm">
-        <h4 class="text-center fw-bold mb-4">Scanner</h4>
+        <h4 class="text-center fw-bold mb-4">Security Scanner</h4>
         <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden;"></div>
         <div id="scannedActionUI" class="hidden mt-3">
-            <input type="text" id="plateNumber" class="form-control" placeholder="Vehicle Plate Number">
-            <button onclick="confirmArrival()" class="btn btn-success btn-primary w-100">Confirm Arrival</button>
+            <input type="text" id="plateNumber" class="form-control" placeholder="Plate Number">
+            <button onclick="confirmArrival()" class="btn btn-success btn-primary w-100">Confirm Entry</button>
         </div>
-        <button onclick="showDashboard()" class="btn btn-link text-muted w-100 mt-3 text-decoration-none">Cancel</button>
+        <button onclick="showDashboard()" class="btn btn-link text-muted w-100 mt-2">Cancel</button>
     </div>
 </div>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbyF69vGmDVkLm5Su6tXUkmMPO8mMY5xabhk3bHmxRbRgDPrMZ_gbKIB2DdeUa3h2fIj/exec";
+    const scriptUrl = "https://script.google.com/macros/s/AKfycbyIyQHs3f4J5EPO4KPoDz1tLgYgXUaqX81_reOvBmzJlP4Bc-nJ_Psgcmj1jtuWf99f/exec";
     let currentUser = null;
     let html5QrCode = null;
 
     function attemptLogin() {
         const email = document.getElementById('emailInput').value;
-        if (!email) return alert("Please enter your email");
-        document.getElementById('loginBtn').innerText = "Authenticating...";
-        
+        if (!email) return;
+        document.getElementById('loginBtn').innerText = "Connecting...";
         fetch(`${scriptUrl}?action=getUserData&email=${encodeURIComponent(email)}`)
         .then(res => res.json())
         .then(data => {
-            if (data.result === "success") {
-                currentUser = data;
-                showDashboard();
-            } else {
-                alert("Login Error: " + data.message);
-                document.getElementById('loginBtn').innerText = "Sign In";
-            }
-        }).catch(err => {
-            alert("Connection Error. Refresh and try again.");
-            document.getElementById('loginBtn').innerText = "Sign In";
-        });
+            if (data.result === "success") { currentUser = data; showDashboard(); }
+            else { alert(data.message); document.getElementById('loginBtn').innerText = "Sign In"; }
+        }).catch(err => alert("Connection error. Check script deployment settings."));
     }
 
     function showDashboard() {
-        if(html5QrCode) { html5QrCode.stop().catch(()=>{}); }
+        if(html5QrCode) html5QrCode.stop().catch(()=>{});
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
-        
         const role = String(currentUser.role).toUpperCase().trim();
-        if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
-            document.getElementById('securityTile').classList.remove('hidden');
-        }
+        if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) document.getElementById('securityTile').classList.remove('hidden');
     }
 
     function showSection(id) {
@@ -167,11 +113,7 @@
     function generateGuestQR() {
         const name = document.getElementById('guestName').value;
         const date = document.getElementById('visitDate').value;
-        if(!name || !date) return alert("Please fill all fields");
-        
-        document.getElementById('genBtn').innerText = "Processing...";
         const url = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${date}&surname=${encodeURIComponent(currentUser.info.surname)}&firstName=${encodeURIComponent(currentUser.info.firstName)}&address=${encodeURIComponent(currentUser.info.address)}`;
-
         fetch(url).then(res => res.json()).then(data => {
             if (data.result === "success") {
                 document.getElementById('qrResult').classList.remove('hidden');
@@ -184,17 +126,15 @@
     function startScanner() {
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            html5QrCode.stop();
-            window.lastScannedId = text;
+            html5QrCode.stop(); window.lastScannedId = text;
             document.getElementById('scannedActionUI').classList.remove('hidden');
         });
     }
 
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value;
-        if(!plate) return alert("Please enter plate number");
         fetch(`${scriptUrl}?action=confirmArrival&qrId=${window.lastScannedId}&plate=${encodeURIComponent(plate)}`)
-        .then(() => { alert("Guest Access Granted!"); showDashboard(); });
+        .then(() => { alert("Entry Logged!"); showDashboard(); });
     }
 </script>
 </body>
