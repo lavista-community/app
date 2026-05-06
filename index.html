@@ -27,7 +27,6 @@
         .section-card { background: white; border-radius: 20px; padding: 25px; margin: 10px; min-height: 60vh; }
         .logout-btn { color: #dc3545; font-size: 0.85rem; margin-top: 20px; margin-bottom: 40px; display: inline-block; cursor: pointer; text-decoration: underline; }
 
-        /* Date Input Styling */
         .input-group-custom { position: relative; margin-bottom: 20px; }
         .date-label { position: absolute; top: -10px; left: 12px; background: white; padding: 0 5px; font-size: 0.75rem; color: #666; z-index: 5; }
         .date-input-container { position: relative; display: flex; align-items: center; }
@@ -38,7 +37,6 @@
 </head>
 <body>
 
-<!-- 1. LOGIN SCREEN -->
 <div id="loginUI" class="container py-5">
     <div class="row justify-content-center">
         <div class="col-11 col-md-5 card p-4 text-center border-0 shadow-sm" style="border-radius: 20px;">
@@ -50,7 +48,6 @@
     </div>
 </div>
 
-<!-- 2. MAIN DASHBOARD -->
 <div id="dashboardUI" class="hidden">
     <div class="app-header text-center shadow-sm">
         <h5 id="welcomeMsg" class="mb-0 fw-bold text-primary">Hello!</h5>
@@ -82,7 +79,6 @@
     </div>
 </div>
 
-<!-- FEATURE: GUEST REGISTRATION -->
 <div id="registerSection" class="container hidden">
     <div class="section-card shadow-sm">
         <h4 class="text-center mb-4 fw-bold">Guest Registration</h4>
@@ -117,7 +113,6 @@
     </div>
 </div>
 
-<!-- OTHER VIEWS -->
 <div id="featureView" class="container hidden">
     <div class="section-card shadow-sm text-center">
         <h3 id="featureTitle" class="text-primary mb-4">Feature</h3>
@@ -157,7 +152,7 @@
         if (!email) return;
         document.getElementById('loginBtn').innerText = "Logging in...";
 
-        fetch(`${scriptUrl}?action=getUserData&email=${email}`)
+        fetch(`${scriptUrl}?action=getUserData&email=${encodeURIComponent(email)}`)
         .then(res => res.json())
         .then(data => {
             if (data.result === "error") {
@@ -170,7 +165,7 @@
             localStorage.setItem('laVistaEmail', email);
             showDashboard();
         }).catch(() => { 
-            alert("Connection error to Google Sheets. Check your internet."); 
+            alert("Connection error. Ensure your internet is active."); 
             document.getElementById('loginBtn').innerText = "Login";
         });
     }
@@ -193,43 +188,43 @@
             document.getElementById('qrResult').classList.add('hidden');
             document.getElementById('qrStatus').classList.add('hidden');
             document.getElementById('genBtn').classList.remove('hidden');
-            document.getElementById('guestName').value = "";
-            document.getElementById('visitDate').value = "";
         }
         if (id === 'scannerSection') startScanner();
     }
 
-    async function generateGuestQR(retries = 3) {
+    async function generateGuestQR(retries = 2) {
         const name = document.getElementById('guestName').value;
         const date = document.getElementById('visitDate').value;
-        if(!name || !date) return alert("Please enter both Name and Date.");
+        if(!name || !date) return alert("Please enter Name and Date.");
         
         document.getElementById('genBtn').classList.add('hidden');
         document.getElementById('qrStatus').classList.remove('hidden');
-        document.getElementById('statusText').innerText = retries < 3 ? `Retrying (${3 - retries})...` : "Generating secure pass...";
+        document.getElementById('statusText').innerText = "Processing...";
 
         const requestUrl = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}&t=${Date.now()}`;
         
         try {
-            const res = await fetch(requestUrl);
-            if (!res.ok) throw new Error('Server responded with ' + res.status);
-            const data = await res.json();
+            // Using redirect: 'follow' is key for Google Apps Script Web Apps
+            const response = await fetch(requestUrl, { method: 'GET', mode: 'cors', redirect: 'follow' });
             
+            if (!response.ok) throw new Error('Network status: ' + response.status);
+            
+            const data = await response.json();
             document.getElementById('qrStatus').classList.add('hidden');
-            if(data.result === "success" || data.id) {
+            
+            if(data.id || data.result === "success") {
                 document.getElementById('qrResult').classList.remove('hidden');
                 const qrBox = document.getElementById('qrDisplay');
                 qrBox.innerHTML = "";
                 new QRCode(qrBox, { text: data.id, width: 220, height: 220 });
             } else {
-                throw new Error(data.message || "Spreadsheet processing error");
+                throw new Error(data.message || "Spreadsheet Error");
             }
         } catch (err) {
-            if (retries > 1) {
-                console.log("Fetch failed, retrying...", err);
-                return generateGuestQR(retries - 1);
+            if (retries > 0) {
+                return setTimeout(() => generateGuestQR(retries - 1), 1000);
             }
-            alert("Technical Detail: " + err.message + ". Your connection might be too weak.");
+            alert("Error: " + err.message + ". Please verify your Google Script deployment is set to 'Anyone'.");
             document.getElementById('qrStatus').classList.add('hidden');
             document.getElementById('genBtn').classList.remove('hidden');
         }
