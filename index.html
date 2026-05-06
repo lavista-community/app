@@ -1,106 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="notranslate">
 <head>
     <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>La Vista Portal</title>
+    <title>La Vista Subd</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root { --primary-blue: #1a73e8; --bg-gray: #f8f9fa; }
-        body { background-color: var(--bg-gray); font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
+        body { background-color: var(--bg-gray); font-family: sans-serif; }
         .hidden { display: none !important; }
-        .app-header { background: white; padding: 15px; border-bottom: 1px solid #ddd; margin-bottom: 10px; }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px; }
-        .menu-tile { 
-            background: white; border-radius: 15px; padding: 15px 5px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; border: 1px solid #eee; transition: all 0.1s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: #333; text-decoration: none;
-            aspect-ratio: 1 / 1; font-weight: 600; font-size: 0.85rem; cursor: pointer;
-        }
-        .menu-tile i { font-size: 1.8rem; margin-bottom: 8px; font-style: normal; }
-        .section-card { background: white; border-radius: 20px; padding: 25px; margin: 10px; min-height: 60vh; }
-        #qrDisplay img, #qrDisplay canvas { margin: 0 auto; border: 10px solid white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card { border-radius: 20px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
     </style>
 </head>
 <body>
 
-<!-- LOGIN SECTION -->
 <div id="loginUI" class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-11 col-md-5 card p-4 text-center border-0 shadow-sm" style="border-radius: 20px;">
-            <h2 class="text-primary fw-bold mb-2">La Vista</h2>
-            <p class="text-muted mb-4">Community Portal</p>
-            <input type="email" id="emailInput" class="form-control form-control-lg mb-3 text-center" placeholder="email@example.com" style="border-radius: 12px;">
-            <button onclick="attemptLogin()" id="loginBtn" class="btn btn-primary btn-lg w-100" style="border-radius: 12px;">Login</button>
+        <div class="col-11 col-md-5 card p-4 text-center">
+            <h2 class="text-primary fw-bold notranslate">La Vista Subd</h2>
+            <p class="text-muted small">Community Portal</p>
+            <input type="email" id="emailInput" class="form-control mb-3 text-center" placeholder="email@example.com">
+            <button onclick="attemptLogin()" id="loginBtn" class="btn btn-primary w-100">Login</button>
         </div>
     </div>
 </div>
 
-<!-- DASHBOARD SECTION -->
 <div id="dashboardUI" class="hidden">
-    <div class="app-header text-center shadow-sm">
-        <h5 id="welcomeMsg" class="mb-0 fw-bold text-primary">Hello!</h5>
-        <small class="text-muted">La Vista Community Services</small>
+    <div class="bg-white p-3 border-bottom text-center">
+        <h5 id="welcomeMsg" class="mb-0 fw-bold text-primary notranslate"></h5>
     </div>
-    <div class="container">
-        <div id="residentGrid" class="menu-grid">
-            <div class="menu-tile" onclick="showSection('registerSection')"><i>📝</i>Guest Registration</div>
-            <div class="menu-tile"><i>📢</i>Announcements</div>
+    <div class="p-3">
+        <button class="btn btn-outline-primary w-100 mb-2" onclick="showSection('registerSection')">📝 Register Guest</button>
+        <div id="securityTile" class="hidden">
+            <button class="btn btn-dark w-100 mb-2" onclick="showSection('scannerSection')">📷 Security Scanner</button>
         </div>
-        <div id="securityGrid" class="hidden mt-3">
-            <h6 class="ps-3 text-uppercase small fw-bold text-muted mb-2">Security Operations</h6>
-            <div class="menu-grid">
-                <div class="menu-tile" onclick="showSection('scannerSection')"><i>📷</i>Scanner</div>
-            </div>
-        </div>
-        <div class="text-center mt-4">
-            <a href="#" onclick="location.reload()" class="text-danger small">Logout / Switch Account</a>
-        </div>
+        <button class="btn btn-link w-100 text-danger mt-4" onclick="location.reload()">Logout</button>
     </div>
 </div>
 
-<!-- REGISTRATION SECTION -->
-<div id="registerSection" class="container hidden">
-    <div class="section-card shadow-sm">
-        <h4 class="text-center mb-4 fw-bold">Guest Registration</h4>
-        <input type="text" id="guestName" class="form-control mb-3" placeholder="Guest Full Name">
-        <input type="date" id="visitDate" class="form-control mb-4">
-        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-success btn-lg w-100">Generate QR Code</button>
-        <button onclick="showDashboard()" class="btn btn-link w-100 text-muted mt-2">Cancel</button>
-        
-        <div id="qrResult" class="text-center mt-4 hidden">
+<!-- Guest Registration -->
+<div id="registerSection" class="container hidden py-4">
+    <div class="card p-4">
+        <h4>New Guest</h4>
+        <input type="text" id="guestName" class="form-control mb-2" placeholder="Guest Name">
+        <input type="date" id="visitDate" class="form-control mb-3">
+        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-success w-100">Create Pass</button>
+        <div id="qrResult" class="text-center mt-3 hidden">
             <div id="qrDisplay" class="d-flex justify-content-center mb-3"></div>
-            <button onclick="showDashboard()" class="btn btn-primary w-100">Back to Dashboard</button>
+            <button onclick="showDashboard()" class="btn btn-secondary btn-sm">Back</button>
         </div>
     </div>
 </div>
 
-<!-- SCANNER SECTION -->
-<div id="scannerSection" class="container hidden">
-    <div class="section-card shadow-sm">
-        <h4 class="text-center mb-4">Security Scanner</h4>
-        <div id="reader" style="width: 100%; border-radius: 15px; overflow: hidden;"></div>
-        <div id="scannedActionUI" class="hidden mt-3 text-center">
-            <input type="text" id="plateNumber" class="form-control mb-3" placeholder="Enter Plate Number">
-            <button onclick="confirmArrival()" class="btn btn-success btn-lg w-100">Confirm Entry</button>
-        </div>
-        <button onclick="stopScanner(); showDashboard()" class="btn btn-outline-secondary w-100 mt-4">Back</button>
+<!-- Scanner -->
+<div id="scannerSection" class="container hidden py-4">
+    <div id="reader" style="width:100%"></div>
+    <div id="scannedActionUI" class="hidden mt-3">
+        <input type="text" id="plateNumber" class="form-control mb-2" placeholder="Plate Number">
+        <button onclick="confirmArrival()" class="btn btn-primary w-100">Confirm Entry</button>
     </div>
+    <button onclick="showDashboard()" class="btn btn-link w-100">Cancel</button>
 </div>
 
 <script>
     const scriptUrl = "https://script.google.com/macros/s/AKfycbyB1osVwHGMiOgGxDFlbw35lzurJpQXxQ-MWCecH5V5AT9jPwDReN0KMbAV1BKBAsI5/exec";
     let currentUser = null;
-    let html5QrCode = null;
 
     function attemptLogin() {
         const email = document.getElementById('emailInput').value;
-        if (!email) return alert("Please enter email");
-        document.getElementById('loginBtn').innerText = "Logging in...";
-
+        if (!email) return;
+        document.getElementById('loginBtn').innerText = "Checking...";
+        
         fetch(`${scriptUrl}?action=getUserData&email=${encodeURIComponent(email)}`)
         .then(res => res.json())
         .then(data => {
@@ -108,10 +81,10 @@
                 currentUser = data;
                 showDashboard();
             } else {
-                alert(data.message);
-                location.reload();
+                alert("Email not registered in the ROLES tab.");
+                document.getElementById('loginBtn').innerText = "Login";
             }
-        });
+        }).catch(err => alert("Error: " + err));
     }
 
     function showDashboard() {
@@ -119,9 +92,8 @@
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
         
-        const role = String(currentUser.role).toUpperCase();
-        if (["SUPER ADMIN", "GUARD", "SECURITY"].includes(role)) {
-            document.getElementById('securityGrid').classList.remove('hidden');
+        if (["SUPER ADMIN", "GUARD"].includes(currentUser.role.toUpperCase())) {
+            document.getElementById('securityTile').classList.remove('hidden');
         }
     }
 
@@ -134,32 +106,28 @@
     async function generateGuestQR() {
         const name = document.getElementById('guestName').value;
         const date = document.getElementById('visitDate').value;
-        if(!name || !date) return alert("Missing details");
+        const btn = document.getElementById('genBtn');
+        btn.innerText = "Saving...";
 
-        document.getElementById('genBtn').innerText = "Saving...";
         const url = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${date}&surname=${encodeURIComponent(currentUser.info.surname)}&firstName=${encodeURIComponent(currentUser.info.firstName)}&address=${encodeURIComponent(currentUser.info.address)}`;
 
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            if (data.result === "success") {
-                document.getElementById('qrResult').classList.remove('hidden');
-                document.getElementById('genBtn').classList.add('hidden');
-                new QRCode(document.getElementById('qrDisplay'), { text: data.id, width: 220, height: 220 });
-            }
-        } catch (e) { alert("Error saving registration."); }
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.result === "success") {
+            document.getElementById('qrResult').classList.remove('hidden');
+            btn.classList.add('hidden');
+            new QRCode(document.getElementById('qrDisplay'), { text: data.id, width: 180, height: 180 });
+        }
     }
 
     function startScanner() {
-        html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            html5QrCode.stop();
+        const scanner = new Html5Qrcode("reader");
+        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+            scanner.stop();
             window.lastScannedId = text;
             document.getElementById('scannedActionUI').classList.remove('hidden');
         });
     }
-
-    function stopScanner() { if(html5QrCode) html5QrCode.stop().catch(()=>{}); }
 
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value;
