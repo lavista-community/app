@@ -61,7 +61,7 @@
             <div class="menu-tile" onclick="openFeature('My Window')"><i>🪟</i>My Window</div>
         </div>
 
-        <!-- Security Tools Grid (Hidden by Default) -->
+        <!-- Security Tools Grid -->
         <div id="securityGrid" class="hidden mt-3">
             <h6 class="ps-3 text-uppercase small fw-bold text-muted mb-2">Security Operations</h6>
             <div class="menu-grid">
@@ -150,12 +150,12 @@
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
 
-        // Default: Show Resident Grid
+        // Force Resident Grid to show for everyone
         document.getElementById('residentGrid').classList.remove('hidden');
 
-        // Optional: Show Security Grid only if role matches
-        const role = currentUser.role ? currentUser.role.toUpperCase() : "";
-        if (role === "SECURITY" || role === "GUARD" || role === "SUPER ADMIN") {
+        // Check role and remove extra spaces/casing issues
+        const role = currentUser.role ? currentUser.role.toUpperCase().trim() : "";
+        if (role === "SUPER ADMIN" || role === "SECURITY" || role === "GUARD") {
             document.getElementById('securityGrid').classList.remove('hidden');
         }
     }
