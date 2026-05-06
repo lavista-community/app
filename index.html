@@ -54,7 +54,7 @@
         <div id="residentGrid" class="menu-grid">
             <div class="menu-tile" onclick="openFeature('Announcements')"><i>📢</i>Announcements</div>
             <div class="menu-tile" onclick="openFeature('Calendar')"><i>📅</i>Calendar</div>
-            <div class="menu-tile" onclick="openFeature('Courts')"><i>🎾</i>Courts</div>
+            <div class="menu-tile" onclick="openFeature('Courts')"><i>🎾</i>Court Reservations</div>
             <div class="menu-tile" onclick="showSection('registerSection')"><i>📝</i>Guest Registration</div>
             <div class="menu-tile" onclick="openFeature('Deliveries')"><i>📦</i>Deliveries</div>
             <div class="menu-tile" onclick="openFeature('Staff')"><i>🆔</i>Staff Pass</div>
@@ -137,10 +137,6 @@
                 return;
             }
             currentUser = data;
-            
-            // DEBUG ALERT: This will tell us what the spreadsheet is sending back
-            alert("Login Successful! Role detected: [" + (data.role || "NO ROLE FOUND") + "]");
-            
             localStorage.setItem('laVistaEmail', email);
             showDashboard();
         }).catch(() => { 
@@ -154,13 +150,13 @@
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
 
-        // Force Resident Grid to show
+        // Everyone logged in sees Resident Grid
         document.getElementById('residentGrid').classList.remove('hidden');
 
-        // AGGRESSIVE ROLE CHECK
+        // Check role (Casing-proof and space-proof)
         const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "";
         
-        // If the role contains "ADMIN", "SECURITY", "GUARD", or "SUPER", show the tools
+        // Match against ADMIN (what your script is currently sending) or SECURITY roles
         if (role.includes("ADMIN") || role.includes("SECURITY") || role.includes("GUARD")) {
             document.getElementById('securityGrid').classList.remove('hidden');
         }
