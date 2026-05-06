@@ -207,24 +207,27 @@
         document.getElementById('genBtn').classList.add('hidden');
         document.getElementById('qrStatus').classList.remove('hidden');
 
-        const requestUrl = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}`;
+        const requestUrl = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}&t=${Date.now()}`;
         
         fetch(requestUrl)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error('Server responded with ' + res.status);
+            return res.json();
+        })
         .then(data => {
             document.getElementById('qrStatus').classList.add('hidden');
-            if(data.id) {
+            if(data.result === "success" || data.id) {
                 document.getElementById('qrResult').classList.remove('hidden');
                 const qrBox = document.getElementById('qrDisplay');
                 qrBox.innerHTML = "";
-                new QRCode(qrBox, { text: data.id, width: 220, height: 220, colorDark: "#000000", colorLight: "#ffffff" });
+                new QRCode(qrBox, { text: data.id, width: 220, height: 220 });
             } else {
-                alert("Error generating ID from Google Sheets.");
+                alert("Script Error: " + (data.message || "Unknown error from Google Sheets"));
                 document.getElementById('genBtn').classList.remove('hidden');
             }
         })
         .catch(err => {
-            alert("Network error. Please try again.");
+            alert("Technical Detail: " + err.message);
             document.getElementById('qrStatus').classList.add('hidden');
             document.getElementById('genBtn').classList.remove('hidden');
         });
