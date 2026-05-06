@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { --primary-blue: #1a73e8; --bg-gray: #f8f9fa; }
+        :root { --primary-blue: #1a73e8; --bg-gray: #f8f9fa; --success-green: #198754; }
         body { background-color: var(--bg-gray); font-family: 'Segoe UI', Roboto, sans-serif; overflow-x: hidden; }
         .hidden { display: none !important; }
         
@@ -24,8 +24,16 @@
         .menu-tile:active { transform: scale(0.96); background: #f0f0f0; }
         .menu-tile i { font-size: 1.8rem; margin-bottom: 8px; font-style: normal; }
         
-        .section-card { background: white; border-radius: 20px; padding: 25px; margin: 10px; min-height: 70vh; }
+        .section-card { background: white; border-radius: 20px; padding: 25px; margin: 10px; min-height: 60vh; }
         .logout-btn { color: #dc3545; font-size: 0.85rem; margin-top: 20px; margin-bottom: 40px; display: inline-block; cursor: pointer; text-decoration: underline; }
+
+        /* Date Input Styling */
+        .input-group-custom { position: relative; margin-bottom: 20px; }
+        .date-label { position: absolute; top: -10px; left: 12px; background: white; padding: 0 5px; font-size: 0.75rem; color: #666; z-index: 5; }
+        .date-input-container { position: relative; display: flex; align-items: center; }
+        .date-input-container i { position: absolute; right: 15px; pointer-events: none; color: #1a73e8; }
+        
+        #qrDisplay img { margin: 0 auto; border: 10px solid white; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -50,7 +58,6 @@
     </div>
 
     <div class="container">
-        <!-- Resident Tools Grid -->
         <div id="residentGrid" class="menu-grid">
             <div class="menu-tile" onclick="openFeature('Announcements')"><i>📢</i>Announcements</div>
             <div class="menu-tile" onclick="openFeature('Calendar')"><i>📅</i>Calendar</div>
@@ -61,7 +68,6 @@
             <div class="menu-tile" onclick="openFeature('My Window')"><i>🪟</i>My Window</div>
         </div>
 
-        <!-- Security Tools Grid -->
         <div id="securityGrid" class="hidden mt-3">
             <h6 class="ps-3 text-uppercase small fw-bold text-muted mb-2">Security Operations</h6>
             <div class="menu-grid">
@@ -76,23 +82,47 @@
     </div>
 </div>
 
-<!-- FEATURE VIEWS -->
-<div id="featureView" class="container hidden">
-    <div class="section-card shadow-sm text-center">
-        <h3 id="featureTitle" class="text-primary mb-4">Feature</h3>
-        <div id="featureContent" class="py-4 text-muted">This module is coming soon.</div>
-        <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 py-3 mt-4" style="border-radius: 12px;">Back to Dashboard</button>
+<!-- FEATURE: GUEST REGISTRATION -->
+<div id="registerSection" class="container hidden">
+    <div class="section-card shadow-sm">
+        <h4 class="text-center mb-4 fw-bold">Guest Registration</h4>
+        
+        <div class="mb-3">
+            <label class="small text-muted mb-1 ms-2">Guest Name</label>
+            <input type="text" id="guestName" class="form-control py-3" placeholder="Enter Full Name" style="border-radius: 12px;">
+        </div>
+
+        <div class="input-group-custom">
+            <span class="date-label">Visit Date</span>
+            <div class="date-input-container" onclick="document.getElementById('visitDate').showPicker()">
+                <input type="date" id="visitDate" class="form-control py-3" style="border-radius: 12px;">
+                <i>📅</i>
+            </div>
+        </div>
+
+        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-success btn-lg w-100 py-3 mb-3" style="border-radius: 12px; background-color: var(--success-green);">Generate QR Code</button>
+        <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 py-3" style="border-radius: 12px;">Cancel</button>
+        
+        <div id="qrStatus" class="text-center mt-4 hidden">
+            <div class="spinner-border text-primary mb-2" role="status"></div>
+            <p class="text-muted">Generating secure pass...</p>
+        </div>
+
+        <div id="qrResult" class="text-center mt-4 hidden">
+            <h6 class="text-success fw-bold">Registration Successful!</h6>
+            <p class="small text-muted mb-3">Please ask your guest to present this QR at the gate.</p>
+            <div id="qrDisplay" class="d-flex justify-content-center mb-4"></div>
+            <button onclick="showDashboard()" class="btn btn-primary w-100 py-3" style="border-radius: 12px;">Back to Dashboard</button>
+        </div>
     </div>
 </div>
 
-<div id="registerSection" class="container hidden">
-    <div class="section-card shadow-sm">
-        <h4 class="text-center mb-4">Guest Registration</h4>
-        <input type="text" id="guestName" class="form-control mb-3 py-3" placeholder="Guest Full Name">
-        <input type="date" id="visitDate" class="form-control mb-4 py-3">
-        <button onclick="generateGuestQR()" class="btn btn-success btn-lg w-100 py-3 mb-3">Generate QR Code</button>
-        <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 py-3">Cancel</button>
-        <div id="qrDisplay" class="text-center mt-4"></div>
+<!-- OTHER VIEWS -->
+<div id="featureView" class="container hidden">
+    <div class="section-card shadow-sm text-center">
+        <h3 id="featureTitle" class="text-primary mb-4">Feature</h3>
+        <div id="featureContent" class="py-4 text-muted">This module is currently in development.</div>
+        <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 py-3 mt-4" style="border-radius: 12px;">Back to Dashboard</button>
     </div>
 </div>
 
@@ -149,14 +179,8 @@
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
-
-        // Everyone logged in sees Resident Grid
         document.getElementById('residentGrid').classList.remove('hidden');
-
-        // Check role (Casing-proof and space-proof)
         const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "";
-        
-        // Match against ADMIN (what your script is currently sending) or SECURITY roles
         if (role.includes("ADMIN") || role.includes("SECURITY") || role.includes("GUARD")) {
             document.getElementById('securityGrid').classList.remove('hidden');
         }
@@ -165,31 +189,54 @@
     function showSection(id) {
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
+        if (id === 'registerSection') {
+            document.getElementById('qrResult').classList.add('hidden');
+            document.getElementById('qrStatus').classList.add('hidden');
+            document.getElementById('genBtn').classList.remove('hidden');
+            document.getElementById('guestName').value = "";
+            document.getElementById('visitDate').value = "";
+        }
         if (id === 'scannerSection') startScanner();
+    }
+
+    function generateGuestQR() {
+        const name = document.getElementById('guestName').value;
+        const date = document.getElementById('visitDate').value;
+        if(!name || !date) return alert("Please enter both the Guest Name and Visit Date.");
+        
+        document.getElementById('genBtn').classList.add('hidden');
+        document.getElementById('qrStatus').classList.remove('hidden');
+
+        const requestUrl = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}`;
+        
+        fetch(requestUrl)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('qrStatus').classList.add('hidden');
+            if(data.id) {
+                document.getElementById('qrResult').classList.remove('hidden');
+                const qrBox = document.getElementById('qrDisplay');
+                qrBox.innerHTML = "";
+                new QRCode(qrBox, { text: data.id, width: 220, height: 220, colorDark: "#000000", colorLight: "#ffffff" });
+            } else {
+                alert("Error generating ID from Google Sheets.");
+                document.getElementById('genBtn').classList.remove('hidden');
+            }
+        })
+        .catch(err => {
+            alert("Network error. Please try again.");
+            document.getElementById('qrStatus').classList.add('hidden');
+            document.getElementById('genBtn').classList.remove('hidden');
+        });
     }
 
     function openFeature(name) {
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('featureView').classList.remove('hidden');
         document.getElementById('featureTitle').innerText = name;
-        document.getElementById('featureContent').innerText = `${name} feature is currently in development.`;
     }
 
     function logout() { localStorage.removeItem('laVistaEmail'); location.reload(); }
-
-    function generateGuestQR() {
-        const name = document.getElementById('guestName').value;
-        const date = document.getElementById('visitDate').value;
-        if(!name || !date) return alert("Fill all fields");
-        const qrBox = document.getElementById('qrDisplay');
-        qrBox.innerHTML = "Generating...";
-        fetch(`${scriptUrl}?action=registerGuest&email=${currentUser.info.email}&guestName=${name}&date=${date}`)
-        .then(res => res.json()).then(data => {
-            qrBox.innerHTML = "";
-            new QRCode(qrBox, { text: data.id, width: 200, height: 200 });
-        });
-    }
-
     function startScanner() {
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
@@ -199,14 +246,11 @@
             window.lastId = text;
         });
     }
-
     function stopScanner() { if(html5QrCode) html5QrCode.stop().catch(()=>{}); }
-
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value;
         if(!plate) return alert("Plate Required");
-        fetch(`${scriptUrl}?action=confirmArrival&qrId=${window.lastId}&plate=${plate}`)
-        .then(() => { alert("Welcome to La Vista!"); showDashboard(); });
+        fetch(`${scriptUrl}?action=confirmArrival&qrId=${window.lastId}&plate=${plate}`).then(() => { alert("Welcome to La Vista!"); showDashboard(); });
     }
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
