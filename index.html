@@ -105,7 +105,7 @@
         
         <div id="qrStatus" class="text-center mt-4 hidden">
             <div class="spinner-border text-primary mb-2" role="status"></div>
-            <p class="text-muted">Generating secure pass...</p>
+            <p id="statusText" class="text-muted">Generating secure pass...</p>
         </div>
 
         <div id="qrResult" class="text-center mt-4 hidden">
@@ -170,7 +170,7 @@
             localStorage.setItem('laVistaEmail', email);
             showDashboard();
         }).catch(() => { 
-            alert("Connection error to Google Sheets."); 
+            alert("Connection error to Google Sheets. Check your internet."); 
             document.getElementById('loginBtn').innerText = "Login";
         });
     }
@@ -178,9 +178,9 @@
     function showDashboard() {
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
-        document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
+        document.getElementById('welcomeMsg').innerText = "Hello, " + (currentUser?.info?.firstName || "Resident");
         document.getElementById('residentGrid').classList.remove('hidden');
-        const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "";
+        const role = currentUser?.role ? String(currentUser.role).toUpperCase().trim() : "";
         if (role.includes("ADMIN") || role.includes("SECURITY") || role.includes("GUARD")) {
             document.getElementById('securityGrid').classList.remove('hidden');
         }
@@ -199,22 +199,22 @@
         if (id === 'scannerSection') startScanner();
     }
 
-    function generateGuestQR() {
+    async function generateGuestQR(retries = 3) {
         const name = document.getElementById('guestName').value;
         const date = document.getElementById('visitDate').value;
-        if(!name || !date) return alert("Please enter both the Guest Name and Visit Date.");
+        if(!name || !date) return alert("Please enter both Name and Date.");
         
         document.getElementById('genBtn').classList.add('hidden');
         document.getElementById('qrStatus').classList.remove('hidden');
+        document.getElementById('statusText').innerText = retries < 3 ? `Retrying (${3 - retries})...` : "Generating secure pass...";
 
         const requestUrl = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${encodeURIComponent(date)}&t=${Date.now()}`;
         
-        fetch(requestUrl)
-        .then(res => {
+        try {
+            const res = await fetch(requestUrl);
             if (!res.ok) throw new Error('Server responded with ' + res.status);
-            return res.json();
-        })
-        .then(data => {
+            const data = await res.json();
+            
             document.getElementById('qrStatus').classList.add('hidden');
             if(data.result === "success" || data.id) {
                 document.getElementById('qrResult').classList.remove('hidden');
@@ -222,15 +222,17 @@
                 qrBox.innerHTML = "";
                 new QRCode(qrBox, { text: data.id, width: 220, height: 220 });
             } else {
-                alert("Script Error: " + (data.message || "Unknown error from Google Sheets"));
-                document.getElementById('genBtn').classList.remove('hidden');
+                throw new Error(data.message || "Spreadsheet processing error");
             }
-        })
-        .catch(err => {
-            alert("Technical Detail: " + err.message);
+        } catch (err) {
+            if (retries > 1) {
+                console.log("Fetch failed, retrying...", err);
+                return generateGuestQR(retries - 1);
+            }
+            alert("Technical Detail: " + err.message + ". Your connection might be too weak.");
             document.getElementById('qrStatus').classList.add('hidden');
             document.getElementById('genBtn').classList.remove('hidden');
-        });
+        }
     }
 
     function openFeature(name) {
