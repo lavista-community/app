@@ -137,6 +137,10 @@
                 return;
             }
             currentUser = data;
+            
+            // DEBUG ALERT: This will tell us what the spreadsheet is sending back
+            alert("Login Successful! Role detected: [" + (data.role || "NO ROLE FOUND") + "]");
+            
             localStorage.setItem('laVistaEmail', email);
             showDashboard();
         }).catch(() => { 
@@ -150,12 +154,14 @@
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
 
-        // Force Resident Grid to show for everyone
+        // Force Resident Grid to show
         document.getElementById('residentGrid').classList.remove('hidden');
 
-        // Check role and remove extra spaces/casing issues
-        const role = currentUser.role ? currentUser.role.toUpperCase().trim() : "";
-        if (role === "SUPER ADMIN" || role === "SECURITY" || role === "GUARD") {
+        // AGGRESSIVE ROLE CHECK
+        const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "";
+        
+        // If the role contains "ADMIN", "SECURITY", "GUARD", or "SUPER", show the tools
+        if (role.includes("ADMIN") || role.includes("SECURITY") || role.includes("GUARD")) {
             document.getElementById('securityGrid').classList.remove('hidden');
         }
     }
