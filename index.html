@@ -4,75 +4,91 @@
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>La Vista Subd</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>La Vista Portal</title>
+    <link href="[https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css](https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css)" rel="stylesheet">
+    <script src="[https://unpkg.com/html5-qrcode](https://unpkg.com/html5-qrcode)"></script>
+    <script src="[https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)"></script>
     <style>
         :root { --primary-blue: #1a73e8; --bg-gray: #f8f9fa; }
-        body { background-color: var(--bg-gray); font-family: sans-serif; }
+        body { background-color: var(--bg-gray); font-family: sans-serif; overflow-x: hidden; }
         .hidden { display: none !important; }
         .card { border-radius: 20px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .menu-tile { 
+            background: white; border-radius: 15px; padding: 20px;
+            display: flex; flex-direction: column; align-items: center; border: 1px solid #eee;
+            aspect-ratio: 1/1; font-weight: 600; cursor: pointer; text-decoration: none; color: #333;
+        }
+        .menu-tile i { font-size: 2.2rem; margin-bottom: 10px; font-style: normal; }
     </style>
 </head>
 <body>
 
+<!-- LOGIN VIEW -->
 <div id="loginUI" class="container py-5">
     <div class="row justify-content-center">
         <div class="col-11 col-md-5 card p-4 text-center">
-            <h2 class="text-primary fw-bold notranslate">La Vista Subd</h2>
-            <p class="text-muted small">Community Portal</p>
+            <h2 class="text-primary fw-bold notranslate">La Vista Portal</h2>
+            <p class="text-muted small">Community Access</p>
             <input type="email" id="emailInput" class="form-control mb-3 text-center" placeholder="email@example.com">
             <button onclick="attemptLogin()" id="loginBtn" class="btn btn-primary w-100">Login</button>
         </div>
     </div>
 </div>
 
+<!-- DASHBOARD VIEW -->
 <div id="dashboardUI" class="hidden">
     <div class="bg-white p-3 border-bottom text-center">
         <h5 id="welcomeMsg" class="mb-0 fw-bold text-primary notranslate"></h5>
     </div>
-    <div class="p-3">
-        <button class="btn btn-outline-primary w-100 mb-2" onclick="showSection('registerSection')">📝 Register Guest</button>
-        <div id="securityTile" class="hidden">
-            <button class="btn btn-dark w-100 mb-2" onclick="showSection('scannerSection')">📷 Security Scanner</button>
-        </div>
-        <button class="btn btn-link w-100 text-danger mt-4" onclick="location.reload()">Logout</button>
+    <div class="menu-grid">
+        <div class="menu-tile" onclick="showSection('registerSection')"><i>📝</i>Guest Registration</div>
+        <div id="securityTile" class="menu-tile hidden" onclick="showSection('scannerSection')"><i>📷</i>Scanner</div>
+        <div class="menu-tile"><i>📢</i>Announcements</div>
+        <div class="menu-tile"><i>📅</i>Calendar</div>
     </div>
+    <div class="text-center mt-4"><button class="btn btn-link text-danger small" onclick="location.reload()">Logout</button></div>
 </div>
 
-<!-- Guest Registration -->
+<!-- GUEST REGISTRATION VIEW -->
 <div id="registerSection" class="container hidden py-4">
     <div class="card p-4">
-        <h4>New Guest</h4>
-        <input type="text" id="guestName" class="form-control mb-2" placeholder="Guest Name">
+        <h4 class="fw-bold mb-3">Register Guest</h4>
+        input type="text" id="guestName" class="form-control mb-2" placeholder="Guest Full Name">
         <input type="date" id="visitDate" class="form-control mb-3">
-        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-success w-100">Create Pass</button>
-        <div id="qrResult" class="text-center mt-3 hidden">
+        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-success w-100">Generate Pass</button>
+        
+        <div id="qrResult" class="text-center mt-4 hidden">
             <div id="qrDisplay" class="d-flex justify-content-center mb-3"></div>
-            <button onclick="showDashboard()" class="btn btn-secondary btn-sm">Back</button>
+            <p class="text-success fw-bold">Pass Created Successfully!</p>
+            <button onclick="showDashboard()" class="btn btn-primary w-100">Return Home</button>
         </div>
     </div>
 </div>
 
-<!-- Scanner -->
+<!-- SECURITY SCANNER VIEW -->
 <div id="scannerSection" class="container hidden py-4">
-    <div id="reader" style="width:100%"></div>
-    <div id="scannedActionUI" class="hidden mt-3">
-        <input type="text" id="plateNumber" class="form-control mb-2" placeholder="Plate Number">
-        <button onclick="confirmArrival()" class="btn btn-primary w-100">Confirm Entry</button>
+    <div class="card p-3">
+        <h4 class="text-center mb-3">Security Scanner</h4>
+        <div id="reader" style="width:100%; border-radius:10px; overflow:hidden;"></div>
+        <div id="scannedActionUI" class="hidden mt-3 text-center">
+            <p id="scannedInfo" class="fw-bold text-primary"></p>
+            <input type="text" id="plateNumber" class="form-control mb-3" placeholder="Enter< Plate Number">
+            <button onclick="confirmArrival()" class="btn btn-success btn-lg w-100">Confirm Entry</button>
+        </div>
+        <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 mt-3">Cancel</button>
     </div>
-    <button onclick="showDashboard()" class="btn btn-link w-100">Cancel</button>
 </div>
 
 <script>
-    const scriptUrl = "https://script.google.com/macros/s/AKfycbyB1osVwHGMiOgGxDFlbw35lzurJpQXxQ-MWCecH5V5AT9jPwDReN0KMbAV1BKBAsI5/exec";
+    const scriptUrl = "[https://script.google.com/macros/s/AKfycbzcz8s5I1E9oT5Og9QZRwDSsnaSm_vvoMsKoYo54FJlQCSCMPW5PiBbjiUWkdwCyLm-/exec](https://script.google.com/macros/s/AKfycbzcz8s5I1E9oT5Og9QZRwDSsnaSm_vvoMsKoYo54FJlQCSCMPW5PiBbjiUWkdwCyLm-/exec)";
     let currentUser = null;
+    let html5QrCode = null;
 
     function attemptLogin() {
         const email = document.getElementById('emailInput').value;
-        if (!email) return;
-        document.getElementById('loginBtn').innerText = "Checking...";
+        if (!email) return alert("Please enter email");
+        document.getElementById('loginBtn').innerText = "Verifying...";
         
         fetch(`${scriptUrl}?action=getUserData&email=${encodeURIComponent(email)}`)
         .then(res => res.json())
@@ -81,18 +97,20 @@
                 currentUser = data;
                 showDashboard();
             } else {
-                alert("Email not registered in the ROLES tab.");
+                alert(data.message);
                 document.getElementById('loginBtn').innerText = "Login";
             }
-        }).catch(err => alert("Error: " + err));
+        }).catch(err => alert("Connection error. Check script deployment."));
     }
 
     function showDashboard() {
+        if(html5QrCode) html5QrCode.stop().catch(()=>{});
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
         
-        if (["SUPER ADMIN", "GUARD"].includes(currentUser.role.toUpperCase())) {
+        const role = String(currentUser.role).toUpperCase().trim();
+        if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
             document.getElementById('securityTile').classList.remove('hidden');
         }
     }
@@ -106,33 +124,39 @@
     async function generateGuestQR() {
         const name = document.getElementById('guestName').value;
         const date = document.getElementById('visitDate').value;
+        if(!name || !date) return alert("Missing Guest Details");
+
         const btn = document.getElementById('genBtn');
-        btn.innerText = "Saving...";
+        btn.disabled = true; btn.innerText = "Saving...";
 
         const url = `${scriptUrl}?action=registerGuest&email=${encodeURIComponent(currentUser.info.email)}&guestName=${encodeURIComponent(name)}&date=${date}&surname=${encodeURIComponent(currentUser.info.surname)}&firstName=${encodeURIComponent(currentUser.info.firstName)}&address=${encodeURIComponent(currentUser.info.address)}`;
 
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.result === "success") {
-            document.getElementById('qrResult').classList.remove('hidden');
-            btn.classList.add('hidden');
-            new QRCode(document.getElementById('qrDisplay'), { text: data.id, width: 180, height: 180 });
-        }
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data.result === "success") {
+                document.getElementById('qrResult').classList.remove('hidden');
+                btn.classList.add('hidden');
+                new QRCode(document.getElementById('qrDisplay'), { text: data.id, width: 200, height: 200 });
+            }
+        } catch (e) { alert("Error connecting to sheet."); btn.disabled = false; btn.innerText = "Generate Pass"; }
     }
 
     function startScanner() {
-        const scanner = new Html5Qrcode("reader");
-        scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            scanner.stop();
+        html5QrCode = new Html5Qrcode("reader");
+        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+            html5QrCode.stop();
             window.lastScannedId = text;
             document.getElementById('scannedActionUI').classList.remove('hidden');
+            document.getElementById('scannedInfo').innerText = "Guest ID: " + text;
         });
     }
 
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value;
+        if(!plate) return alert("Plate Number Required");
         fetch(`${scriptUrl}?action=confirmArrival&qrId=${window.lastScannedId}&plate=${encodeURIComponent(plate)}`)
-        .then(() => { alert("Entry Logged!"); showDashboard(); });
+        .then(() => { alert("Welcome to La Vista!"); showDashboard(); });
     }
 </script>
 </body>
