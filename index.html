@@ -132,14 +132,17 @@
             <label class="form-label" for="plateNumber">Plate Number</label>
             <input type="text" id="plateNumber" class="form-control" placeholder="Plate Number">
             
-            <button onclick="confirmArrival()" id="confirmEntryBtn" class="btn btn-success w-100">Confirm Entry</button>
-            <div id="scannerStatusFlash" class="flash-badge hidden">Plate Number logged!</div>
+            <button onclick="confirmArrival()" id="confirmEntryBtn" class="btn btn-success w-100 mb-3">Confirm Entry</button>
+            
+            <div id="scannerStatusFlash" class="flash-badge hidden mb-3">Plate Number logged!</div>
+            
+            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Main Menu</button>
         </div>
     </div>
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVWZVUMSLN0izz7kgUcWCJl3HyX-YiISB92yPfDyF0TIjtWAJrf3ATBDliCGtYWlok/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxft2QngLpGGTHeRwBh1Y5anoGieHg56UK8NIdhgBCrLVcHiwXmbqCT0lLTfXsgCbPj/exec"; 
 
     let currentUser = null;
     let html5QrCode = null;
@@ -281,7 +284,6 @@
         }, (data) => {
             document.getElementById('partyGenBtn').innerText = "Generate Pass";
             if (data.result === "success") {
-                // Pass a clear structural flag code format string to the scanner
                 var structuralPayload = "BPP-" + data.id;
                 document.getElementById('partyQrMetaDisplay').innerText = "Host: " + currentUser.info.firstName + " " + currentUser.info.surname + " | Event Date: " + date;
                 document.getElementById('partyQrResult').classList.remove('hidden');
@@ -299,7 +301,6 @@
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             html5QrCode.stop().then(() => {
-                // Read text payload structural layout pattern
                 if (text.indexOf("BPP-") === 0) {
                     window.lastScannedId = text.replace("BPP-", "");
                     window.isBigPartyPass = true;
@@ -329,7 +330,8 @@
             action: "confirmArrival", 
             qrId: window.lastScannedId, 
             plate: plate,
-            guestSurname: gSurname
+            guestSurname: gSurname,
+            isBppUI: window.isBigPartyPass ? "true" : "false" // Sent to force sheet matching rule overrides
         }, (data) => {
             document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
             
@@ -338,9 +340,9 @@
                 statusFlash.innerText = window.isBigPartyPass ? "Guest Entry logged!" : "Plate Number logged!";
                 statusFlash.classList.remove('hidden');
                 
-                setTimeout(() => {
-                    showDashboard();
-                }, 3000);
+                // Clear inputs to prevent lingering text issues on subsequent scans
+                document.getElementById('plateNumber').value = "";
+                document.getElementById('scannedGuestSurname').value = "";
             } else {
                 alert(data.message || "An error occurred.");
                 showDashboard();
