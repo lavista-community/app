@@ -142,6 +142,7 @@
 </div>
 
 <script>
+    // Your updated production Web App URL
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxft2QngLpGGTHeRwBh1Y5anoGieHg56UK8NIdhgBCrLVcHiwXmbqCT0lLTfXsgCbPj/exec"; 
 
     let currentUser = null;
@@ -204,8 +205,18 @@
     }
 
     function showDashboard() {
-        if(html5QrCode) html5QrCode.stop().catch(()=>{});
-        
+        if (html5QrCode && html5QrCode.isScanning) {
+            html5QrCode.stop().then(() => {
+                proceedToDashboardLayout();
+            }).catch(() => {
+                proceedToDashboardLayout();
+            });
+        } else {
+            proceedToDashboardLayout();
+        }
+    }
+
+    function proceedToDashboardLayout() {
         resetGuestForm();
         
         document.getElementById('scannedActionUI').classList.add('hidden');
@@ -297,8 +308,10 @@
     }
 
     function startScanner() {
-        if (html5QrCode) html5QrCode.stop().catch(() => {});
-        html5QrCode = new Html5Qrcode("reader");
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader");
+        }
+        
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             html5QrCode.stop().then(() => {
                 if (text.indexOf("BPP-") === 0) {
@@ -331,7 +344,7 @@
             qrId: window.lastScannedId, 
             plate: plate,
             guestSurname: gSurname,
-            isBppUI: window.isBigPartyPass ? "true" : "false" // Sent to force sheet matching rule overrides
+            isBppUI: window.isBigPartyPass ? "true" : "false"
         }, (data) => {
             document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
             
@@ -340,7 +353,6 @@
                 statusFlash.innerText = window.isBigPartyPass ? "Guest Entry logged!" : "Plate Number logged!";
                 statusFlash.classList.remove('hidden');
                 
-                // Clear inputs to prevent lingering text issues on subsequent scans
                 document.getElementById('plateNumber').value = "";
                 document.getElementById('scannedGuestSurname').value = "";
             } else {
