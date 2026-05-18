@@ -17,6 +17,8 @@
         .menu-tile img { width: 45px; height: 45px; margin-bottom: 12px; }
         .form-control { border-radius: 12px; padding: 12px; background: #e5e5ea; border: none; margin-bottom: 15px; }
         .btn-primary { border-radius: 12px; padding: 12px; font-weight: 700; background: var(--primary-blue); border: none; }
+        .btn-secondary-custom { border-radius: 12px; padding: 12px; font-weight: 700; background: #5856d6; color: white; border: none; }
+        .form-label { font-weight: 600; color: #48484a; font-size: 14px; margin-left: 4px; margin-bottom: 6px; display: block; }
     </style>
 </head>
 <body>
@@ -73,12 +75,44 @@
 <div id="registerSection" class="hidden container py-4">
     <div class="bg-white p-4 rounded-5 shadow-sm">
         <h4 class="fw-bold mb-4">Guest Registration</h4>
-        <input type="text" id="guestName" class="form-control" placeholder="Guest Full Name">
+        
+        <label class="form-label" for="guestName">Guest Full Name</label>
+        <input type="text" id="guestName" class="form-control" placeholder="Enter full name">
+        
+        <label class="form-label" for="visitDate">Date Expected</label>
         <input type="date" id="visitDate" class="form-control">
-        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-primary w-100">Generate Pass</button>
+        
+        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-primary w-100 mt-2">Generate Pass</button>
+        
         <div id="qrResult" class="text-center mt-4 hidden">
-            <div id="qrDisplay" class="d-flex justify-content-center mb-3"></div>
+            <div id="qrMetaDisplay" class="fw-bold text-dark mb-2 small"></div>
+            <div id="qrDisplay" class="d-flex justify-content-center mb-4"></div>
+            <button onclick="resetGuestForm()" class="btn btn-primary w-100 mb-2">Register Another Guest</button>
             <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back</button>
+        </div>
+
+        <div id="bigPartyEntryOption" class="mt-5 pt-3 border-top text-center">
+            <p class="text-muted small mb-2">Throwing a large event with nameless invitations?</p>
+            <button onclick="showSection('bigPartySection')" class="btn btn-secondary-custom w-100">🎉 Big Party Pass</button>
+            <button onclick="showDashboard()" class="btn btn-link text-muted mt-2 text-decoration-none d-block mx-auto">Back to Main Menu</button>
+        </div>
+    </div>
+</div>
+
+<div id="bigPartySection" class="hidden container py-4">
+    <div class="bg-white p-4 rounded-5 shadow-sm">
+        <h4 class="fw-bold mb-1 text-purple" style="color: #5856d6;">Big Party Pass</h4>
+        <p class="text-muted small mb-4">Generates a reusable event pass sharing only your name and address.</p>
+        
+        <label class="form-label" for="partyDate">Date of Event</label>
+        <input type="date" id="partyDate" class="form-control">
+        
+        <button onclick="generatePartyQR()" id="partyGenBtn" class="btn btn-secondary-custom w-100 mt-2">Generate Pass</button>
+        
+        <div id="partyQrResult" class="text-center mt-4 hidden">
+            <div id="partyQrMetaDisplay" class="fw-bold text-dark mb-2 small"></div>
+            <div id="partyQrDisplay" class="d-flex justify-content-center mb-4"></div>
+            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Dashboard</button>
         </div>
     </div>
 </div>
@@ -142,8 +176,28 @@
         location.reload();
     }
 
+    function resetGuestForm() {
+        // Clear standard forms
+        document.getElementById('guestName').value = "";
+        document.getElementById('visitDate').value = "";
+        document.getElementById('genBtn').classList.remove('hidden');
+        document.getElementById('qrResult').classList.add('hidden');
+        document.getElementById('qrDisplay').innerHTML = ""; 
+        document.getElementById('qrMetaDisplay').innerText = "";
+        
+        // Clear Big Party forms
+        document.getElementById('partyDate').value = "";
+        document.getElementById('partyGenBtn').classList.remove('hidden');
+        document.getElementById('partyQrResult').classList.add('hidden');
+        document.getElementById('partyQrDisplay').innerHTML = "";
+        document.getElementById('partyQrMetaDisplay').innerText = "";
+    }
+
     function showDashboard() {
         if(html5QrCode) html5QrCode.stop().catch(()=>{});
+        
+        resetGuestForm();
+        
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
@@ -163,6 +217,14 @@
     function generateGuestQR() {
         const name = document.getElementById('guestName').value;
         const date = document.getElementById('visitDate').value;
+        
+        if (!name || !date) {
+            alert("Please fill out both fields.");
+            return;
+        }
+
+        document.getElementById('genBtn').innerText = "Generating...";
+
         callBackend({ 
             action: "registerGuest", 
             email: currentUser.info.email, 
@@ -172,11 +234,48 @@
             firstName: currentUser.info.firstName, 
             address: currentUser.info.address 
         }, (data) => {
+            document.getElementById('genBtn').innerText = "Generate Pass";
             if (data.result === "success") {
+                document.getElementById('qrMetaDisplay').innerText = "Guest: " + name + " | Date: " + date;
                 document.getElementById('qrResult').classList.remove('hidden');
-                document.getElementById('genBtn').classList.add('hidden');
+                document.getElementById('genBtn').className = "btn btn-primary w-100 mt-2 hidden";
                 document.getElementById('qrDisplay').innerHTML = ""; 
                 new QRCode(document.getElementById('qrDisplay'), { text: data.id, width: 200, height: 200 });
+            } else {
+                alert("Failed to register guest. Please try again.");
+            }
+        });
+    }
+
+    // NEW FUNCTION: Handles generating the open invitation QR pass
+    function generatePartyQR() {
+        const date = document.getElementById('partyDate').value;
+        
+        if (!date) {
+            alert("Please select the date of your event.");
+            return;
+        }
+
+        document.getElementById('partyGenBtn').innerText = "Generating...";
+
+        callBackend({ 
+            action: "registerGuest", 
+            email: currentUser.info.email, 
+            guestName: "Big Party / Open Invitation", 
+            date: date, 
+            surname: currentUser.info.surname, 
+            firstName: currentUser.info.firstName, 
+            address: currentUser.info.address 
+        }, (data) => {
+            document.getElementById('partyGenBtn').innerText = "Generate Pass";
+            if (data.result === "success") {
+                document.getElementById('partyQrMetaDisplay').innerText = "Host: " + currentUser.info.firstName + " " + currentUser.info.surname + " | Event Date: " + date;
+                document.getElementById('partyQrResult').classList.remove('hidden');
+                document.getElementById('partyGenBtn').classList.add('hidden');
+                document.getElementById('partyQrDisplay').innerHTML = ""; 
+                new QRCode(document.getElementById('partyQrDisplay'), { text: data.id, width: 200, height: 200 });
+            } else {
+                alert("Failed to create event pass. Please try again.");
             }
         });
     }
