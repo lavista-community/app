@@ -19,6 +19,7 @@
         .btn-primary { border-radius: 12px; padding: 12px; font-weight: 700; background: var(--primary-blue); border: none; }
         .btn-secondary-custom { border-radius: 12px; padding: 12px; font-weight: 700; background: #5856d6; color: white; border: none; }
         .form-label { font-weight: 600; color: #48484a; font-size: 14px; margin-left: 4px; margin-bottom: 6px; display: block; }
+        .flash-badge { background: #34c759; color: white; border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; margin-top: 15px; box-shadow: 0 4px 12px rgba(52,199,89,0.2); }
     </style>
 </head>
 <body>
@@ -121,11 +122,19 @@
     <div class="bg-white p-4 rounded-5 shadow-sm">
         <h4 class="text-center fw-bold mb-4">QR Scanner</h4>
         <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden;"></div>
+        
         <div id="scannedActionUI" class="hidden mt-3">
+            <div id="surnameInputBlock" class="hidden">
+                <label class="form-label" for="scannedGuestSurname">Guest Surname</label>
+                <input type="text" id="scannedGuestSurname" class="form-control" placeholder="Enter guest's last name">
+            </div>
+
+            <label class="form-label" for="plateNumber">Plate Number</label>
             <input type="text" id="plateNumber" class="form-control" placeholder="Plate Number">
-            <button onclick="confirmArrival()" class="btn btn-success w-100">Confirm Entry</button>
+            
+            <button onclick="confirmArrival()" id="confirmEntryBtn" class="btn btn-success w-100">Confirm Entry</button>
+            <div id="scannerStatusFlash" class="flash-badge hidden">Plate Number logged!</div>
         </div>
-        <button onclick="showDashboard()" class="btn btn-link text-muted w-100 mt-2">Cancel</button>
     </div>
 </div>
 
@@ -177,7 +186,6 @@
     }
 
     function resetGuestForm() {
-        // Clear standard forms
         document.getElementById('guestName').value = "";
         document.getElementById('visitDate').value = "";
         document.getElementById('genBtn').classList.remove('hidden');
@@ -185,7 +193,6 @@
         document.getElementById('qrDisplay').innerHTML = ""; 
         document.getElementById('qrMetaDisplay').innerText = "";
         
-        // Clear Big Party forms
         document.getElementById('partyDate').value = "";
         document.getElementById('partyGenBtn').classList.remove('hidden');
         document.getElementById('partyQrResult').classList.add('hidden');
@@ -197,6 +204,12 @@
         if(html5QrCode) html5QrCode.stop().catch(()=>{});
         
         resetGuestForm();
+        
+        document.getElementById('scannedActionUI').classList.add('hidden');
+        document.getElementById('surnameInputBlock').classList.add('hidden');
+        document.getElementById('scannerStatusFlash').classList.add('hidden');
+        document.getElementById('plateNumber').value = "";
+        document.getElementById('scannedGuestSurname').value = "";
         
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
@@ -247,7 +260,6 @@
         });
     }
 
-    // NEW FUNCTION: Handles generating the open invitation QR pass
     function generatePartyQR() {
         const date = document.getElementById('partyDate').value;
         
@@ -269,11 +281,13 @@
         }, (data) => {
             document.getElementById('partyGenBtn').innerText = "Generate Pass";
             if (data.result === "success") {
+                // Pass a clear structural flag code format string to the scanner
+                var structuralPayload = "BPP-" + data.id;
                 document.getElementById('partyQrMetaDisplay').innerText = "Host: " + currentUser.info.firstName + " " + currentUser.info.surname + " | Event Date: " + date;
                 document.getElementById('partyQrResult').classList.remove('hidden');
                 document.getElementById('partyGenBtn').classList.add('hidden');
                 document.getElementById('partyQrDisplay').innerHTML = ""; 
-                new QRCode(document.getElementById('partyQrDisplay'), { text: data.id, width: 200, height: 200 });
+                new QRCode(document.getElementById('partyQrDisplay'), { text: structuralPayload, width: 200, height: 200 });
             } else {
                 alert("Failed to create event pass. Please try again.");
             }
@@ -285,7 +299,16 @@
         html5QrCode = new Html5Qrcode("reader");
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             html5QrCode.stop().then(() => {
-                window.lastScannedId = text;
+                // Read text payload structural layout pattern
+                if (text.indexOf("BPP-") === 0) {
+                    window.lastScannedId = text.replace("BPP-", "");
+                    window.isBigPartyPass = true;
+                    document.getElementById('surnameInputBlock').classList.remove('hidden');
+                } else {
+                    window.lastScannedId = text;
+                    window.isBigPartyPass = false;
+                    document.getElementById('surnameInputBlock').classList.add('hidden');
+                }
                 document.getElementById('scannedActionUI').classList.remove('hidden');
             });
         }).catch(err => alert("Camera Error. Please ensure you are using HTTPS."));
@@ -293,9 +316,35 @@
 
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value;
-        callBackend({ action: "confirmArrival", qrId: window.lastScannedId, plate: plate }, () => {
-            alert("Entry Logged!");
-            showDashboard();
+        const gSurname = document.getElementById('scannedGuestSurname').value;
+        
+        if (window.isBigPartyPass && !gSurname) {
+            alert("Please enter the guest's surname.");
+            return;
+        }
+
+        document.getElementById('confirmEntryBtn').innerText = "Logging Entry...";
+        
+        callBackend({ 
+            action: "confirmArrival", 
+            qrId: window.lastScannedId, 
+            plate: plate,
+            guestSurname: gSurname
+        }, (data) => {
+            document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
+            
+            if(data.result === "success") {
+                const statusFlash = document.getElementById('scannerStatusFlash');
+                statusFlash.innerText = window.isBigPartyPass ? "Guest Entry logged!" : "Plate Number logged!";
+                statusFlash.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    showDashboard();
+                }, 3000);
+            } else {
+                alert(data.message || "An error occurred.");
+                showDashboard();
+            }
         });
     }
 </script>
