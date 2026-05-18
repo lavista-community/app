@@ -20,6 +20,8 @@
         .btn-secondary-custom { border-radius: 12px; padding: 12px; font-weight: 700; background: #5856d6; color: white; border: none; }
         .form-label { font-weight: 600; color: #48484a; font-size: 14px; margin-left: 4px; margin-bottom: 6px; display: block; }
         .flash-badge { background: #34c759; color: white; border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; margin-top: 15px; box-shadow: 0 4px 12px rgba(52,199,89,0.2); }
+        .border-bottom-dashed { border-bottom: 1px dashed #e5e5ea; }
+        .xs-micro-text { font-size: 11px; }
     </style>
 </head>
 <body>
@@ -61,7 +63,7 @@
             <img src="https://cdn-icons-png.flaticon.com/512/2912/2912761.png">Staff Pass
         </div>
 
-        <div class="menu-tile">
+        <div class="menu-tile" onclick="showSection('myWindowSection')">
             <img src="https://cdn-icons-png.flaticon.com/512/2146/2146115.png">My Window
         </div>
 
@@ -141,8 +143,38 @@
     </div>
 </div>
 
+<div id="myWindowSection" class="hidden container py-4">
+    <div class="bg-white p-4 rounded-5 shadow-sm">
+        <h4 class="fw-bold mb-1" style="color: var(--primary-blue);">My Window</h4>
+        <p class="text-muted small mb-3">Daily Household Manifest</p>
+        
+        <div class="mb-4">
+            <label class="form-label" for="manifestDate">Select Date</label>
+            <input type="date" id="manifestDate" class="form-control" onchange="loadMyWindow()">
+        </div>
+
+        <div class="mb-4">
+            <h6 class="fw-bold text-dark border-bottom pb-2">📋 1. Guests (Individual & Party)</h6>
+            <div id="myWindowGuestsList" class="small">
+                <div class="text-muted text-center py-2">Loading today's guests...</div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="fw-bold text-muted border-bottom pb-2">📦 2. Deliveries</h6>
+            <div class="text-muted small italic px-2">Feature coming soon...</div>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="fw-bold text-muted border-bottom pb-2">🪪 3. Staff Pass</h6>
+            <div class="text-muted small italic px-2">Feature coming soon...</div>
+        </div>
+
+        <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 mt-3">Back to Main Menu</button>
+    </div>
+</div>
+
 <script>
-    // Your updated production Web App URL
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxft2QngLpGGTHeRwBh1Y5anoGieHg56UK8NIdhgBCrLVcHiwXmbqCT0lLTfXsgCbPj/exec"; 
 
     let currentUser = null;
@@ -238,7 +270,22 @@
     function showSection(id) {
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
-        if (id === 'scannerSection') startScanner();
+        
+        if (id === 'scannerSection') {
+            startScanner();
+        }
+        
+        if (id === 'myWindowSection') {
+            const dateInput = document.getElementById('manifestDate');
+            if (!dateInput.value) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
+            }
+            loadMyWindow();
+        }
     }
 
     function generateGuestQR() {
@@ -359,6 +406,53 @@
                 alert(data.message || "An error occurred.");
                 showDashboard();
             }
+        });
+    }
+
+    function loadMyWindow() {
+        const selectedDate = document.getElementById('manifestDate').value;
+        const guestContainer = document.getElementById('myWindowGuestsList');
+        
+        guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching updates...</div>';
+
+        callBackend({ 
+            action: "getMyWindowData", 
+            email: currentUser.info.email, 
+            date: selectedDate 
+        }, (data) => {
+            if (data.result !== "success") {
+                guestContainer.innerHTML = '<div class="text-danger text-center py-2">Failed to load entries.</div>';
+                return;
+            }
+
+            if (data.records.length === 0) {
+                guestContainer.innerHTML = '<div class="text-muted text-center py-2">No entries logged for this date.</div>';
+                return;
+            }
+
+            let htmlContent = '<div class="list-group list-group-flush">';
+            
+            data.records.forEach(item => {
+                let statusBadge = '';
+                if (item.status === "PENDING") {
+                    statusBadge = '<span class="badge bg-warning text-dark text-uppercase p-2">Pending</span>';
+                } else {
+                    statusBadge = `<span class="badge bg-success p-2">Arrived (${item.status})</span>`;
+                }
+
+                htmlContent += `
+                    <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
+                        <div>
+                            <div class="fw-bold text-dark">${item.name}</div>
+                            <div class="text-muted xs-micro-text">${item.type}</div>
+                        </div>
+                        <div>${statusBadge}</div>
+                    </div>
+                `;
+            });
+
+            htmlContent += '</div>';
+            guestContainer.innerHTML = htmlContent;
         });
     }
 </script>
