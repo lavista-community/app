@@ -175,7 +175,7 @@
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby8fqMoDz503poeKSB6Xcy6q5vKnobSHTHiZSbkjRe1xLxh78bExlSUk0G5bj8i5xof/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxL2dl007yZqHC8kmc5fSG8KZ04fd_3kKywZThiVEdhZ_8QiVm3jr3zDarizXlRnOVA/exec"; 
 
     let currentUser = null;
     let html5QrCode = null;
@@ -197,17 +197,12 @@
     };
 
     function callBackend(params, callback) {
-        const dynamicCallbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-        const url = APPS_SCRIPT_URL + "?callback=" + dynamicCallbackName + "&" + new URLSearchParams(params).toString();
+        const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
-        script.id = dynamicCallbackName;
-        
-        window[dynamicCallbackName] = (data) => {
-            document.getElementById(dynamicCallbackName).remove();
-            delete window[dynamicCallbackName];
+        window.loadData = (data) => {
+            document.body.removeChild(script);
             callback(data);
         };
-        
         script.src = url;
         document.body.appendChild(script);
     }
@@ -237,14 +232,12 @@
     function resetGuestForm() {
         document.getElementById('guestName').value = "";
         document.getElementById('visitDate').value = "";
-        document.getElementById('genBtn').innerText = "Generate Pass";
-        document.getElementById('genBtn').className = "btn btn-primary w-100 mt-2";
+        document.getElementById('genBtn').classList.remove('hidden');
         document.getElementById('qrResult').classList.add('hidden');
         document.getElementById('qrDisplay').innerHTML = ""; 
         document.getElementById('qrMetaDisplay').innerText = "";
         
         document.getElementById('partyDate').value = "";
-        document.getElementById('partyGenBtn').innerText = "Generate Pass";
         document.getElementById('partyGenBtn').classList.remove('hidden');
         document.getElementById('partyQrResult').classList.add('hidden');
         document.getElementById('partyQrDisplay').innerHTML = "";
@@ -275,19 +268,15 @@
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
         
-        // Direct safe initialization protection block
         if (currentUser && currentUser.info) {
-            document.getElementById('welcomeMsg').innerText = "Hello, " + (currentUser.info.firstName || "Resident");
+            document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
             
-            // Decoupled Structural Role Security Evaluator 
             const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "RESIDENT";
             if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
                 document.getElementById('securityTile').classList.remove('hidden');
             } else {
                 document.getElementById('securityTile').classList.add('hidden');
             }
-        } else {
-            document.getElementById('securityTile').classList.add('hidden');
         }
     }
 
@@ -345,6 +334,7 @@
         });
     }
 
+    // 🎉 Big Party Pass Generator
     function generatePartyQR() {
         const date = document.getElementById('partyDate').value;
         
@@ -397,10 +387,8 @@
                     document.getElementById('surnameInputBlock').classList.add('hidden');
                 }
                 document.getElementById('scannedActionUI').classList.remove('hidden');
-            }).catch(err => {
-                console.error("Scanner close error structural exception catch:", err);
             });
-        }).catch(err => alert("Camera Error. Scanner requires an active secure container network layout context (HTTPS) to stream device cameras."));
+        }).catch(err => alert("Camera Error. Please ensure you are using HTTPS."));
     }
 
     function confirmArrival() {
@@ -430,8 +418,6 @@
                 
                 document.getElementById('plateNumber').value = "";
                 document.getElementById('scannedGuestSurname').value = "";
-                
-                setTimeout(() => { showDashboard(); }, 1500);
             } else {
                 alert(data.message || "An error occurred.");
                 showDashboard();
@@ -447,15 +433,13 @@
         
         guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching updates...</div>';
 
-        // Custom multi-sheet fallback target schema to bypass script runtime failures
         callBackend({ 
             action: "getMyWindowData", 
             email: currentUser.info.email, 
-            date: selectedDate,
-            targetSheetFallback: "GUESTLIST"
+            date: selectedDate 
         }, (data) => {
             if (data.result !== "success") {
-                guestContainer.innerHTML = `<div class="text-danger text-center py-2">Failed to load entries: ${data.message}</div>`;
+                guestContainer.innerHTML = `<div class="text-danger text-center py-2">Error: ${data.message}</div>`;
                 return;
             }
 
@@ -467,20 +451,14 @@
             let htmlContent = '<div class="list-group list-group-flush">';
             
             data.records.forEach(item => {
-                let statusBadge = '';
-                if (item.status === "PENDING") {
-                    statusBadge = '<span class="badge bg-warning text-dark text-uppercase p-2">Pending</span>';
-                } else {
-                    statusBadge = `<span class="badge bg-success p-2">Arrived (${item.status})</span>`;
-                }
-
+                let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
                 htmlContent += `
                     <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
                         <div>
                             <div class="fw-bold text-dark">${item.name}</div>
                             <div class="text-muted xs-micro-text">${item.type}</div>
                         </div>
-                        <div>${statusBadge}</div>
+                        <div><span class="badge ${badgeClass} text-uppercase p-2">${item.status}</span></div>
                     </div>
                 `;
             });
