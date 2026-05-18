@@ -176,7 +176,7 @@
 
 <script>
     // PASTE YOUR NEW APP SCRIPT URL LINK HERE:
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybyQUy0QcSWzNR2ZS0V8hSdfCGVu3U1WKHDna-iHFOSgnAPV_FDnOK6nEiQUNRaEJ2/exec"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
 
     let currentUser = null;
     let html5QrCode = null;
@@ -372,7 +372,7 @@
         
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             html5QrCode.stop().then(() => {
-                if (text.indexOf("BPP-") === 0) {
+                if (text.indexOf("BPP-") === 0 || text.indexOf("BPP") !== -1) {
                     window.lastScannedId = text.replace("BPP-", "");
                     window.isBigPartyPass = true;
                     document.getElementById('surnameInputBlock').classList.remove('hidden');
@@ -448,7 +448,6 @@
             data.records.forEach(item => {
                 let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
                 
-                // Formats titles dynamically to strip prefix layout garbage safely from BPP passes
                 let cleanDisplayName = item.name;
                 if (cleanDisplayName.indexOf("BPP / ") === 0) {
                     cleanDisplayName = cleanDisplayName.replace("BPP / ", "").trim();
