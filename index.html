@@ -175,7 +175,8 @@
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxL2dl007yZqHC8kmc5fSG8KZ04fd_3kKywZThiVEdhZ_8QiVm3jr3zDarizXlRnOVA/exec"; 
+    // PASTE YOUR NEW APP SCRIPT URL LINK HERE:
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbybyQUy0QcSWzNR2ZS0V8hSdfCGVu3U1WKHDna-iHFOSgnAPV_FDnOK6nEiQUNRaEJ2/exec"; 
 
     let currentUser = null;
     let html5QrCode = null;
@@ -267,16 +268,13 @@
         
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
+        document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
         
-        if (currentUser && currentUser.info) {
-            document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
-            
-            const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "RESIDENT";
-            if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
-                document.getElementById('securityTile').classList.remove('hidden');
-            } else {
-                document.getElementById('securityTile').classList.add('hidden');
-            }
+        const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "RESIDENT";
+        if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
+            document.getElementById('securityTile').classList.remove('hidden');
+        } else {
+            document.getElementById('securityTile').classList.add('hidden');
         }
     }
 
@@ -334,7 +332,6 @@
         });
     }
 
-    // 🎉 Big Party Pass Generator
     function generatePartyQR() {
         const date = document.getElementById('partyDate').value;
         
@@ -372,8 +369,6 @@
         if (!html5QrCode) {
             html5QrCode = new Html5Qrcode("reader");
         }
-        
-        document.getElementById('scannedActionUI').classList.add('hidden');
         
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             html5QrCode.stop().then(() => {
@@ -452,10 +447,19 @@
             
             data.records.forEach(item => {
                 let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
+                
+                // Formats titles dynamically to strip prefix layout garbage safely from BPP passes
+                let cleanDisplayName = item.name;
+                if (cleanDisplayName.indexOf("BPP / ") === 0) {
+                    cleanDisplayName = cleanDisplayName.replace("BPP / ", "").trim();
+                } else if (cleanDisplayName.indexOf("Party Guest: ") === 0) {
+                    cleanDisplayName = cleanDisplayName.replace("Party Guest: ", "").trim();
+                }
+
                 htmlContent += `
                     <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
                         <div>
-                            <div class="fw-bold text-dark">${item.name}</div>
+                            <div class="fw-bold text-dark">${cleanDisplayName}</div>
                             <div class="text-muted xs-micro-text">${item.type}</div>
                         </div>
                         <div><span class="badge ${badgeClass} text-uppercase p-2">${item.status}</span></div>
