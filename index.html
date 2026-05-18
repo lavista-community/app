@@ -196,11 +196,8 @@
         }
     };
 
-    // Dynamic Callback Handler (Fixes JSONP Cross-Talk structural engine issues)
     function callBackend(params, callback) {
         const dynamicCallbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-        
-        // Formulate a clean dynamic execution payload bundle URL
         const url = APPS_SCRIPT_URL + "?callback=" + dynamicCallbackName + "&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
         script.id = dynamicCallbackName;
@@ -277,12 +274,18 @@
         
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
-        document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
         
-        // Protected Admin Role Routing Evaluation
-        const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "RESIDENT";
-        if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
-            document.getElementById('securityTile').classList.remove('hidden');
+        // Direct safe initialization protection block
+        if (currentUser && currentUser.info) {
+            document.getElementById('welcomeMsg').innerText = "Hello, " + (currentUser.info.firstName || "Resident");
+            
+            // Decoupled Structural Role Security Evaluator 
+            const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "RESIDENT";
+            if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
+                document.getElementById('securityTile').classList.remove('hidden');
+            } else {
+                document.getElementById('securityTile').classList.add('hidden');
+            }
         } else {
             document.getElementById('securityTile').classList.add('hidden');
         }
@@ -444,10 +447,12 @@
         
         guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching updates...</div>';
 
+        // Custom multi-sheet fallback target schema to bypass script runtime failures
         callBackend({ 
             action: "getMyWindowData", 
             email: currentUser.info.email, 
-            date: selectedDate 
+            date: selectedDate,
+            targetSheetFallback: "GUESTLIST"
         }, (data) => {
             if (data.result !== "success") {
                 guestContainer.innerHTML = `<div class="text-danger text-center py-2">Failed to load entries: ${data.message}</div>`;
