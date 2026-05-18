@@ -13,8 +13,8 @@
         .hidden { display: none !important; }
         .login-card { background: white; border-radius: 28px; padding: 40px 30px; width: 100%; max-width: 400px; box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
-        .menu-tile { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); aspect-ratio: 1/1; font-weight: 600; font-size: 14px; cursor: pointer; }
-        .menu-tile img { width: 50px; height: 50px; margin-bottom: 12px; }
+        .menu-tile { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); aspect-ratio: 1/1; font-weight: 600; font-size: 14px; cursor: pointer; color: #1c1c1e; text-decoration: none; }
+        .menu-tile img { width: 45px; height: 45px; margin-bottom: 12px; }
         .form-control { border-radius: 12px; padding: 12px; background: #e5e5ea; border: none; margin-bottom: 15px; }
         .btn-primary { border-radius: 12px; padding: 12px; font-weight: 700; background: var(--primary-blue); border: none; }
     </style>
@@ -35,13 +35,38 @@
         <div id="welcomeMsg" class="h3 fw-bold text-primary mb-1">Hello!</div>
         <div class="text-muted small">La Vista Community Services</div>
     </div>
+    
     <div class="menu-grid">
-        <div class="menu-tile"><img src="https://cdn-icons-png.flaticon.com/512/1997/1997888.png">Announcements</div>
-        <div class="menu-tile" onclick="showSection('registerSection')"><img src="https://cdn-icons-png.flaticon.com/512/3500/3500091.png">Guest Registration</div>
+        <div class="menu-tile">
+            <img src="https://cdn-icons-png.flaticon.com/512/1997/1997888.png">Announcements
+        </div>
+        <div class="menu-tile">
+            <img src="https://cdn-icons-png.flaticon.com/512/3652/3652191.png">Calendar
+        </div>
+        
+        <div class="menu-tile">
+            <img src="https://cdn-icons-png.flaticon.com/512/4469/4469115.png">Courts
+        </div>
+        <div class="menu-tile" onclick="showSection('registerSection')">
+            <img src="https://cdn-icons-png.flaticon.com/512/3500/3500091.png">Guest Registration
+        </div>
+
+        <div class="menu-tile">
+            <img src="https://cdn-icons-png.flaticon.com/512/2311/2311915.png">Deliveries
+        </div>
+        <div class="menu-tile">
+            <img src="https://cdn-icons-png.flaticon.com/512/2912/2912761.png">Staff Pass
+        </div>
+
+        <div class="menu-tile">
+            <img src="https://cdn-icons-png.flaticon.com/512/2146/2146115.png">My Window
+        </div>
+
         <div id="securityTile" class="menu-tile hidden" onclick="showSection('scannerSection')" style="background: #1c1c1e; color: white;">
             <img src="https://cdn-icons-png.flaticon.com/512/2567/2567844.png" style="filter: invert(1);">QR Scanner
         </div>
     </div>
+    
     <div class="text-center py-4"><button class="btn btn-link text-danger text-decoration-none" onclick="logout()">Logout</button></div>
 </div>
 
@@ -71,7 +96,6 @@
 </div>
 
 <script>
-    // ⚠️ REPLACE THIS WITH YOUR WEB APP URL FROM GOOGLE APPS SCRIPT
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxVWZVUMSLN0izz7kgUcWCJl3HyX-YiISB92yPfDyF0TIjtWAJrf3ATBDliCGtYWlok/exec"; 
 
     let currentUser = null;
