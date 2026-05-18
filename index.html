@@ -183,18 +183,34 @@
     window.onload = function() {
         const savedUser = localStorage.getItem('lavista_user');
         if (savedUser) {
-            currentUser = JSON.parse(savedUser);
-            showDashboard();
+            try {
+                currentUser = JSON.parse(savedUser);
+                if (currentUser && currentUser.info) {
+                    showDashboard();
+                } else {
+                    localStorage.removeItem('lavista_user');
+                }
+            } catch(e) {
+                localStorage.removeItem('lavista_user');
+            }
         }
     };
 
+    // Dynamic Callback Handler (Fixes JSONP Cross-Talk structural engine issues)
     function callBackend(params, callback) {
-        const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
+        const dynamicCallbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        
+        // Formulate a clean dynamic execution payload bundle URL
+        const url = APPS_SCRIPT_URL + "?callback=" + dynamicCallbackName + "&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
-        window.loadData = (data) => {
-            document.body.removeChild(script);
+        script.id = dynamicCallbackName;
+        
+        window[dynamicCallbackName] = (data) => {
+            document.getElementById(dynamicCallbackName).remove();
+            delete window[dynamicCallbackName];
             callback(data);
         };
+        
         script.src = url;
         document.body.appendChild(script);
     }
@@ -224,12 +240,14 @@
     function resetGuestForm() {
         document.getElementById('guestName').value = "";
         document.getElementById('visitDate').value = "";
-        document.getElementById('genBtn').classList.remove('hidden');
+        document.getElementById('genBtn').innerText = "Generate Pass";
+        document.getElementById('genBtn').className = "btn btn-primary w-100 mt-2";
         document.getElementById('qrResult').classList.add('hidden');
         document.getElementById('qrDisplay').innerHTML = ""; 
         document.getElementById('qrMetaDisplay').innerText = "";
         
         document.getElementById('partyDate').value = "";
+        document.getElementById('partyGenBtn').innerText = "Generate Pass";
         document.getElementById('partyGenBtn').classList.remove('hidden');
         document.getElementById('partyQrResult').classList.add('hidden');
         document.getElementById('partyQrDisplay').innerHTML = "";
@@ -261,8 +279,8 @@
         document.getElementById('dashboardUI').classList.remove('hidden');
         document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
         
-        // Fixed context extraction lookup validation rules
-        const role = String(currentUser.role).toUpperCase().trim();
+        // Protected Admin Role Routing Evaluation
+        const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "RESIDENT";
         if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
             document.getElementById('securityTile').classList.remove('hidden');
         } else {
@@ -362,6 +380,8 @@
             html5QrCode = new Html5Qrcode("reader");
         }
         
+        document.getElementById('scannedActionUI').classList.add('hidden');
+        
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             html5QrCode.stop().then(() => {
                 if (text.indexOf("BPP-") === 0) {
@@ -374,8 +394,10 @@
                     document.getElementById('surnameInputBlock').classList.add('hidden');
                 }
                 document.getElementById('scannedActionUI').classList.remove('hidden');
+            }).catch(err => {
+                console.error("Scanner close error structural exception catch:", err);
             });
-        }).catch(err => alert("Camera Error. Please ensure you are using HTTPS."));
+        }).catch(err => alert("Camera Error. Scanner requires an active secure container network layout context (HTTPS) to stream device cameras."));
     }
 
     function confirmArrival() {
@@ -405,6 +427,8 @@
                 
                 document.getElementById('plateNumber').value = "";
                 document.getElementById('scannedGuestSurname').value = "";
+                
+                setTimeout(() => { showDashboard(); }, 1500);
             } else {
                 alert(data.message || "An error occurred.");
                 showDashboard();
@@ -416,6 +440,8 @@
         const selectedDate = document.getElementById('manifestDate').value;
         const guestContainer = document.getElementById('myWindowGuestsList');
         
+        if (!currentUser || !currentUser.info) return;
+        
         guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching updates...</div>';
 
         callBackend({ 
@@ -424,11 +450,11 @@
             date: selectedDate 
         }, (data) => {
             if (data.result !== "success") {
-                guestContainer.innerHTML = '<div class="text-danger text-center py-2">Failed to load entries.</div>';
+                guestContainer.innerHTML = `<div class="text-danger text-center py-2">Failed to load entries: ${data.message}</div>`;
                 return;
             }
 
-            if (data.records.length === 0) {
+            if (!data.records || data.records.length === 0) {
                 guestContainer.innerHTML = '<div class="text-muted text-center py-2">No entries logged for this date.</div>';
                 return;
             }
