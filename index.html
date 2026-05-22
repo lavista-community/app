@@ -1,588 +1,583 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>La Vista Portal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        :root { --primary-blue: #007aff; --bg-gray: #f2f2f7; }
-        body { background-color: var(--bg-gray); font-family: -apple-system, sans-serif; }
-        .hidden { display: none !important; }
-        .login-card { background: white; border-radius: 28px; padding: 40px 30px; width: 100%; max-width: 400px; box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
-        .menu-tile { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); aspect-ratio: 1/1; font-weight: 600; font-size: 14px; cursor: pointer; color: #1c1c1e; text-decoration: none; }
-        
-        .menu-tile i { font-size: 42px; margin-bottom: 12px; display: block; }
-        .icon-blue { color: #007aff; }
-        .icon-red { color: #ff3b30; }
-        .icon-orange { color: #ff9500; }
-        .icon-green { color: #34c759; }
-        .icon-indigo { color: #5856d6; }
-        .icon-teal { color: #5ac8fa; }
-        .icon-purple { color: #af52de; }
-
-        .form-control, .form-select { border-radius: 12px; padding: 12px; background: #e5e5ea; border: none; margin-bottom: 15px; }
-        .btn-primary { border-radius: 12px; padding: 12px; font-weight: 700; background: var(--primary-blue); border: none; }
-        .btn-secondary-custom { border-radius: 12px; padding: 12px; font-weight: 700; background: #5856d6; color: white; border: none; }
-        .form-label { font-weight: 600; color: #48484a; font-size: 14px; margin-left: 4px; margin-bottom: 6px; display: block; }
-        .flash-badge { background: #34c759; color: white; border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; margin-top: 15px; box-shadow: 0 4px 12px rgba(52,199,89,0.2); }
-        .border-bottom-dashed { border-bottom: 1px dashed #e5e5ea; }
-        .xs-micro-text { font-size: 11px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>La Vista Portal App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    }
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+      min-height: 100vh;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+  </style>
 </head>
-<body>
+<body class="text-slate-800 antialiased font-sans">
 
-<div id="loginUI" class="container min-vh-100 d-flex align-items-center justify-content-center">
-    <div class="login-card text-center">
-        <h2 class="fw-bold mb-1" style="color: var(--primary-blue);">La Vista</h2>
-        <p class="text-muted small mb-4">Resident Portal</p>
-        <input type="email" id="emailInput" class="form-control text-center" placeholder="Enter Email">
-        <button onclick="attemptLogin()" id="loginBtn" class="btn btn-primary w-100">Sign In</button>
+  <div id="loginScreen" class="flex flex-col items-center justify-center min-h-screen px-4">
+    <div class="glass-card w-full max-w-md p-8 rounded-2xl border border-white/50 text-center">
+      <div class="w-20 h-20 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-indigo-200 mb-6">
+        <i class="fa-solid fa-gated-community text-white text-3xl"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">La Vista Community Portal</h1>
+      <p class="text-slate-500 mt-2 text-sm">Please verify your email address to access your dashboard.</p>
+      
+      <div class="mt-8 text-left">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email Address</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+            <i class="fa-regular fa-envelope"></i>
+          </span>
+          <input type="email" id="emailInput" placeholder="name@domain.com" 
+                 class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 placeholder-slate-400 text-sm transition-all">
+        </div>
+        <button onclick="handleLogin()" id="loginBtn"
+                class="w-full mt-5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-xl shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2">
+          <span>Verify & Proceed</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
     </div>
-</div>
+  </div>
 
-<div id="dashboardUI" class="hidden">
-    <div class="bg-white p-4 text-center border-bottom">
-        <div id="welcomeMsg" class="h3 fw-bold text-primary mb-1">Hello!</div>
-        <div class="text-muted small">La Vista Community Services</div>
-    </div>
+  <div id="appInterface" class="hidden max-w-md mx-auto px-4 pt-6 pb-24">
     
-    <div class="menu-grid">
-        <div class="menu-tile"><i class="bi bi-megaphone icon-blue"></i>Announcements</div>
-        <div class="menu-tile"><i class="bi bi-calendar3 icon-red"></i>Calendar</div>
-        <div class="menu-tile"><i class="bi bi-dribbble icon-orange"></i>Courts</div>
-        <div class="menu-tile" onclick="showSection('registerSection')"><i class="bi bi-journal-check icon-green"></i>Guest Registration</div>
-        <div class="menu-tile"><i class="bi bi-scooter icon-indigo"></i>Deliveries</div>
-        
-        <div class="menu-tile" onclick="showSection('staffPassSection')">
-            <i class="bi bi-door-open icon-teal"></i>Staff Pass
+    <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-bold" id="userAvatar">U</div>
+        <div>
+          <h4 class="font-bold text-slate-900 text-sm leading-tight" id="userNameDisplay">Loading Account...</h4>
+          <span class="inline-block px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-extrabold rounded mt-0.5" id="userRoleBadge">RESIDENT</span>
         </div>
-
-        <div class="menu-tile" onclick="showSection('myWindowSection')">
-            <i class="bi bi-window icon-purple"></i>My Window
-        </div>
-
-        <div id="securityTile" class="menu-tile hidden" onclick="showSection('scannerSection')" style="background: #1c1c1e; color: white;">
-            <i class="bi bi-qr-code-scan text-white"></i>QR Scanner
-        </div>
+      </div>
+      <button onclick="logout()" class="text-slate-400 hover:text-rose-500 transition-colors p-2">
+        <i class="fa-solid fa-power-off text-lg"></i>
+      </button>
     </div>
+
+    <div id="residentDashboard" class="hidden space-y-6">
+      
+      <div class="grid grid-cols-2 gap-2 bg-slate-200/60 p-1 rounded-xl">
+        <button onclick="switchResidentTab('create')" id="tabBtnCreate" class="py-2.5 text-xs font-bold rounded-lg transition-all bg-white text-indigo-600 shadow-sm">
+          <i class="fa-solid fa-plus-circle mr-1.5"></i>Create Passes
+        </button>
+        <button onclick="switchResidentTab('window')" id="tabBtnWindow" class="py-2.5 text-xs font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">
+          <i class="fa-solid fa-calendar-day mr-1.5"></i>My Window
+        </button>
+      </div>
+
+      <div id="residentTabCreate" class="space-y-6">
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+          <h3 class="font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-user-plus text-indigo-500"></i>Single Guest Pass</h3>
+          <p class="text-xs text-slate-400 mt-1">Generate a single-use entry QR code for short-term visitors.</p>
+          <div class="mt-4 space-y-3">
+            <input type="text" id="guestNameInput" placeholder="Complete Guest Name" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input type="date" id="guestDateInput" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <button onclick="processGuestPass()" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm hover:bg-indigo-700 shadow-sm transition-colors">Generate Guest Pass</button>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+          <h3 class="font-bold text-slate-900 flex items-center gap-2"><i class="fa-solid fa-id-card text-emerald-500"></i>Domestic Staff Pass</h3>
+          <p class="text-xs text-slate-400 mt-1">Issue cyclical transit passes for maids, drivers, or gardeners.</p>
+          <div class="mt-4 space-y-3">
+            <input type="text" id="staffNameInput" placeholder="Complete Staff Member Name" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Exit Date</label>
+                <input type="date" id="staffExitDateInput" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Return Date</label>
+                <input type="date" id="staffReturnDateInput" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+              </div>
+            </div>
+            <button onclick="processStaffPass()" class="w-full bg-emerald-600 text-white font-semibold py-2.5 rounded-xl text-sm hover:bg-emerald-700 shadow-sm transition-colors">Generate Staff Pass</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="residentTabWindow" class="hidden space-y-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3">
+          <i class="fa-regular fa-calendar-check text-indigo-500 text-lg"></i>
+          <div class="flex-1">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase">Target Manifest Date</label>
+            <input type="date" id="windowDateSelector" onchange="fetchMyWindowData()" class="w-full bg-transparent font-bold text-slate-800 focus:outline-none text-sm mt-0.5">
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Scheduled Active Log</span>
+            <span id="windowCountBadge" class="bg-indigo-100 text-indigo-700 font-extrabold text-xs px-2 py-0.5 rounded-full">0 Entries</span>
+          </div>
+          <div id="windowListContainer" class="p-2 max-h-[380px] overflow-y-auto custom-scrollbar divide-y divide-slate-100">
+            <p class="text-center text-sm text-slate-400 py-8">Select a date above to display transit configurations.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="guardDashboard" class="hidden space-y-6">
+      
+      <div class="bg-slate-950 rounded-2xl shadow-xl overflow-hidden relative border border-slate-800">
+        <video id="scannerVideo" class="w-full h-[280px] object-cover bg-black"></video>
+        <div class="absolute inset-0 border-2 border-dashed border-indigo-400/40 m-8 rounded-lg pointer-events-none flex items-center justify-center">
+          <div class="w-48 h-48 border-2 border-indigo-400 rounded animate-pulse opacity-40"></div>
+        </div>
+        <div class="absolute bottom-3 left-3 right-3 flex justify-between items-center bg-black/60 backdrop-blur-md px-3 py-2 rounded-xl border border-white/10">
+          <span class="text-[11px] text-slate-300 font-medium"><i class="fa-solid fa-camera mr-1.5 text-indigo-400"></i>Camera Scanning Active</span>
+          <button onclick="toggleCameraCycle()" class="text-xs text-white bg-indigo-600 hover:bg-indigo-500 font-bold px-3 py-1 rounded-lg transition-colors">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i>Switch
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Transit Configuration Mode</label>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="modePedestrianBtn" onclick="selectTransitMode('Pedestrian')" 
+                    class="py-2 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition-all flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-walking text-sm"></i> Pedestrian
+            </button>
+            <button type="button" id="modeVehicleBtn" onclick="selectTransitMode('Vehicle')" 
+                    class="py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-car text-sm"></i> Vehicle
+            </button>
+          </div>
+        </div>
+
+        <div id="vehicleInputRow" class="hidden animate-fadeIn">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vehicle Plate Number / Identification</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-credit-card"></i></span>
+            <input type="text" id="guardPlateInput" placeholder="e.g., ABC 1234" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none uppercase font-bold text-slate-800 placeholder-slate-400">
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Manual Action Key Processing</label>
+          <div class="flex gap-2">
+            <input type="text" id="manualQrInput" placeholder="Paste Token Text (QR-****** / STF-******)" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none">
+            <button onclick="processManualGuardScan()" class="bg-slate-900 text-white font-bold text-xs px-4 rounded-xl hover:bg-slate-800 transition-colors">Process</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="superadminDashboard" class="hidden space-y-4">
+      <div class="bg-indigo-900 p-5 rounded-2xl text-white shadow-xl relative overflow-hidden">
+        <div class="absolute -right-6 -bottom-6 text-indigo-800/40 text-8xl font-black pointer-events-none"><i class="fa-solid fa-shield-halved"></i></div>
+        <span class="bg-white/20 text-white text-[10px] font-extrabold px-2 py-0.5 rounded tracking-wide uppercase">Core Terminal</span>
+        <h2 class="text-xl font-black mt-2">Super Admin Space</h2>
+        <p class="text-indigo-200 text-xs mt-1">Universal dashboard override mechanics for the community infrastructure system.</p>
+      </div>
+      
+      <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center py-10">
+        <div class="w-12 h-12 bg-slate-100 rounded-full mx-auto flex items-center justify-center text-slate-400 text-xl mb-3"><i class="fa-solid fa-chart-line"></i></div>
+        <h4 class="font-bold text-slate-800 text-sm">System Logs & Metrics</h4>
+        <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Database telemetry streams and global application states are fully operational.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="qrModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-sm rounded-2xl overflow-hidden border border-white/40 shadow-2xl animate-scaleUp">
+      <div id="modalHeaderBg" class="p-4 text-center text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2">
+        <i id="modalHeaderIcon" class="fa-solid fa-circle-check"></i>
+        <span id="modalHeaderTitle">PASS CREATED SUCCESSFULLY</span>
+      </div>
+      <div class="p-6 flex flex-col items-center text-center">
+        <div id="qrcode" class="p-3 bg-white rounded-xl shadow-inner border border-slate-100"></div>
+        <h3 id="modalNameDisplay" class="font-extrabold text-slate-900 text-lg mt-4 leading-tight">Loading Name...</h3>
+        <p id="modalIdDisplay" class="font-mono text-xs text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full font-bold mt-1.5">ID: STF-000000</p>
+        
+        <div class="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl mt-4 text-left space-y-1 text-xs text-slate-500">
+          <div class="flex justify-between"><span class="font-medium">Pass Class:</span><span id="modalClassDisplay" class="font-bold text-slate-700">Staff Transit</span></div>
+          <div id="modalDateRow" class="flex justify-between"><span class="font-medium">Window Schedule:</span><span id="modalDateDisplay" class="font-bold text-slate-700">May 24 - May 28</span></div>
+        </div>
+
+        <button onclick="closeQrModal()" class="w-full mt-5 bg-slate-900 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-slate-800 transition-colors shadow-md">
+          Dismiss & Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // CORE SCRIPT CONFIGURATION COORD
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
     
-    <div class="text-center py-4"><button class="btn btn-link text-danger text-decoration-none" onclick="logout()">Logout</button></div>
-</div>
-
-<div id="registerSection" class="hidden container py-4">
-    <div class="bg-white p-4 rounded-5 shadow-sm">
-        <h4 class="fw-bold mb-4">Guest Registration</h4>
-        <label class="form-label" for="guestName">Guest Full Name</label>
-        <input type="text" id="guestName" class="form-control" placeholder="Enter full name">
-        <label class="form-label" for="visitDate">Date Expected</label>
-        <input type="date" id="visitDate" class="form-control">
-        <button onclick="generateGuestQR()" id="genBtn" class="btn btn-primary w-100 mt-2">Generate Pass</button>
-        
-        <div id="qrResult" class="text-center mt-4 hidden">
-            <div id="qrMetaDisplay" class="fw-bold text-dark mb-2 small"></div>
-            <div id="qrDisplay" class="d-flex justify-content-center mb-4"></div>
-            <button onclick="resetGuestForm()" class="btn btn-primary w-100 mb-2">Register Another Guest</button>
-            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back</button>
-        </div>
-        <div class="mt-5 pt-3 border-top text-center">
-            <button onclick="showSection('bigPartySection')" class="btn btn-secondary-custom w-100">🎉 Big Party Pass</button>
-            <button onclick="showDashboard()" class="btn btn-link text-muted mt-2 text-decoration-none d-block mx-auto">Back to Main Menu</button>
-        </div>
-    </div>
-</div>
-
-<div id="bigPartySection" class="hidden container py-4">
-    <div class="bg-white p-4 rounded-5 shadow-sm">
-        <h4 class="fw-bold mb-1 text-purple" style="color: #5856d6;">Big Party Pass</h4>
-        <p class="text-muted small mb-4">Generates a reusable event pass sharing only your name and address.</p>
-        <label class="form-label" for="partyDate">Date of Event</label>
-        <input type="date" id="partyDate" class="form-control">
-        <button onclick="generatePartyQR()" id="partyGenBtn" class="btn btn-secondary-custom w-100 mt-2">Generate Pass</button>
-        <div id="partyQrResult" class="text-center mt-4 hidden">
-            <div id="partyQrMetaDisplay" class="fw-bold text-dark mb-2 small"></div>
-            <div id="partyQrDisplay" class="d-flex justify-content-center mb-4"></div>
-            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Dashboard</button>
-        </div>
-    </div>
-</div>
-
-<div id="staffPassSection" class="hidden container py-4">
-    <div class="bg-white p-4 rounded-5 shadow-sm">
-        <h4 class="fw-bold mb-1 text-teal">Staff Pass Registration</h4>
-        <p class="text-muted small mb-4">Issue an outbound exit & entry permission tracker for household staff.</p>
-        
-        <label class="form-label" for="staffNameInput">Staff Member Full Name</label>
-        <input type="text" id="staffNameInput" class="form-control" placeholder="Enter staff name">
-        
-        <label class="form-label" for="staffExitDateInput">Leave Exit Date</label>
-        <input type="date" id="staffExitDateInput" class="form-control">
-        
-        <label class="form-label" for="staffReturnDateInput">Expected Return Date</label>
-        <input type="date" id="staffReturnDateInput" class="form-control">
-        
-        <button onclick="generateStaffQR()" id="staffGenBtn" class="btn btn-info text-white w-100 mt-2 fw-bold" style="background: #5ac8fa; border:none; border-radius:12px; padding:12px;">Generate Staff Pass</button>
-        
-        <div id="staffQrResult" class="text-center mt-4 hidden">
-            <div class="alert alert-success small py-2">📸 Screenshot & send this card to your staff member.</div>
-            <div id="staffQrMetaDisplay" class="fw-bold text-dark mb-2 small border-bottom pb-2"></div>
-            <div id="staffQrDisplay" class="d-flex justify-content-center mb-4"></div>
-            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Main Menu</button>
-        </div>
-        <button id="staffBackBtn" onclick="showDashboard()" class="btn btn-link text-muted mt-3 text-decoration-none d-block mx-auto small">Back</button>
-    </div>
-</div>
-
-<div id="scannerSection" class="hidden container py-4">
-    <div class="bg-white p-4 rounded-5 shadow-sm">
-        <h4 class="text-center fw-bold mb-4">QR Scanner</h4>
-        <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden;"></div>
-        
-        <div id="scannedActionUI" class="hidden mt-3">
-            <div id="staffMovementBlock" class="hidden mb-3">
-                <label class="form-label" for="movementTypeSelect">Movement Classification</label>
-                <select id="movementTypeSelect" class="form-select" onchange="toggleMovementFields()">
-                    <option value="Pedestrian">🚶 Pedestrian</option>
-                    <option value="Vehicle">🚗 Vehicle</option>
-                </select>
-            </div>
-
-            <div id="surnameInputBlock" class="hidden">
-                <label class="form-label" for="scannedGuestSurname">Guest Surname</label>
-                <input type="text" id="scannedGuestSurname" class="form-control" placeholder="Enter guest's last name">
-            </div>
-
-            <div id="plateNumberBlock">
-                <label class="form-label" id="plateLabel" for="plateNumber">Plate Number</label>
-                <input type="text" id="plateNumber" class="form-control" placeholder="Plate Number">
-            </div>
-            
-            <button onclick="confirmArrival()" id="confirmEntryBtn" class="btn btn-success w-100 mb-3">Confirm Entry</button>
-            <div id="scannerStatusFlash" class="flash-badge hidden mb-3">Logs verified!</div>
-            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Main Menu</button>
-        </div>
-    </div>
-</div>
-
-<div id="myWindowSection" class="hidden container py-4">
-    <div class="bg-white p-4 rounded-5 shadow-sm">
-        <h4 class="fw-bold mb-1" style="color: var(--primary-blue);">My Window</h4>
-        <p class="text-muted small mb-3">Daily Household Manifest</p>
-        
-        <div class="mb-4">
-            <label class="form-label" for="manifestDate">Select Date</label>
-            <input type="date" id="manifestDate" class="form-control" onchange="loadMyWindow()">
-        </div>
-
-        <div class="mb-4">
-            <h6 class="fw-bold text-dark border-bottom pb-2">📋 1. Guests (Individual & Party)</h6>
-            <div id="myWindowGuestsList" class="small">
-                <div class="text-muted text-center py-2">No entries logged.</div>
-            </div>
-        </div>
-
-        <div class="mb-4">
-            <h6 class="fw-bold text-muted border-bottom pb-2">📦 2. Deliveries</h6>
-            <div class="text-muted small italic px-2">Feature coming soon...</div>
-        </div>
-
-        <div class="mb-4">
-            <h6 class="fw-bold text-dark border-bottom pb-2">🪪 3. Staff Pass</h6>
-            <div id="myWindowStaffList" class="small">
-                <div class="text-muted text-center py-2">No active staff leave logs.</div>
-            </div>
-        </div>
-
-        <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 mt-3">Back to Main Menu</button>
-    </div>
-</div>
-
-<script>
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
-
+    // Global Application State Matrix Variables
     let currentUser = null;
-    let html5QrCode = null;
+    let scannerInstance = null;
+    let availableCameras = [];
+    let currentCameraIndex = 0;
+    let selectedTransitMode = "Pedestrian"; // Default tracking mode
 
-    window.onload = function() {
-        const savedUser = localStorage.getItem('lavista_user');
-        if (savedUser) {
-            try {
-                currentUser = JSON.parse(savedUser);
-                if (currentUser && currentUser.info) {
-                    showDashboard();
-                } else {
-                    localStorage.removeItem('lavista_user');
-                }
-            } catch(e) {
-                localStorage.removeItem('lavista_user');
-            }
+    // Initialize configuration constraints on window initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      const todayString = new Date().toISOString().split('T')[0];
+      if(document.getElementById('guestDateInput')) document.getElementById('guestDateInput').value = todayString;
+      if(document.getElementById('staffExitDateInput')) document.getElementById('staffExitDateInput').value = todayString;
+      if(document.getElementById('staffReturnDateInput')) document.getElementById('staffReturnDateInput').value = todayString;
+      if(document.getElementById('windowDateSelector')) document.getElementById('windowDateSelector').value = todayString;
+    });
+
+    // ==========================================
+    // AUTHENTICATION ROUTINES
+    // ==========================================
+    function handleLogin() {
+      const email = document.getElementById('emailInput').value.trim();
+      if (!email) { alert('Please insert a registered system email.'); return; }
+      
+      toggleButtonLoading('loginBtn', true, 'Verifying...');
+      
+      executeJsonpRequest({ action: 'getUserData', email: email }, (response) => {
+        toggleButtonLoading('loginBtn', false, 'Verify & Proceed');
+        if (response.result === 'success') {
+          currentUser = response.info;
+          currentUser.role = response.role;
+          bootstrapUserSession();
+        } else {
+          alert(response.message || 'Verification rejected.');
         }
-    };
-
-    function callBackend(params, callback) {
-        const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
-        const script = document.createElement('script');
-        window.loadData = (data) => {
-            document.body.removeChild(script);
-            callback(data);
-        };
-        script.src = url;
-        document.body.appendChild(script);
+      });
     }
 
-    function attemptLogin() {
-        const email = document.getElementById('emailInput').value;
-        if (!email) return;
-        document.getElementById('loginBtn').innerText = "Connecting...";
+    function bootstrapUserSession() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('appInterface').classList.remove('hidden');
+      
+      document.getElementById('userNameDisplay').innerText = `${currentUser.firstName} ${currentUser.surname}`;
+      document.getElementById('userRoleBadge').innerText = currentUser.role;
+      document.getElementById('userAvatar').innerText = currentUser.firstName.charAt(0).toUpperCase();
 
-        callBackend({ action: "getUserData", email: email }, (data) => {
-            if (data.result === "success") { 
-                currentUser = data; 
-                localStorage.setItem('lavista_user', JSON.stringify(data));
-                showDashboard(); 
-            } else { 
-                alert(data.message); 
-                document.getElementById('loginBtn').innerText = "Sign In"; 
-            }
-        });
+      // Configure Dashboard Visibility Rules Based on Role String Values
+      document.getElementById('residentDashboard').classList.add('hidden');
+      document.getElementById('guardDashboard').classList.add('hidden');
+      document.getElementById('superadminDashboard').classList.add('hidden');
+
+      if (currentUser.role === 'GUARD') {
+        document.getElementById('guardDashboard').classList.remove('hidden');
+        initializeCameraSystem();
+      } else if (currentUser.role === 'SUPER ADMIN') {
+        document.getElementById('superadminDashboard').classList.remove('hidden');
+      } else {
+        document.getElementById('residentDashboard').classList.remove('hidden');
+        fetchMyWindowData();
+      }
     }
 
     function logout() {
-        localStorage.removeItem('lavista_user');
-        location.reload();
+      if (scannerInstance) { try { scannerInstance.stop(); } catch(e){} }
+      currentUser = null;
+      document.getElementById('emailInput').value = '';
+      document.getElementById('appInterface').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
     }
 
-    function resetGuestForm() {
-        document.getElementById('guestName').value = "";
-        document.getElementById('visitDate').value = "";
-        document.getElementById('genBtn').classList.remove('hidden');
-        document.getElementById('qrResult').classList.add('hidden');
-        document.getElementById('qrDisplay').innerHTML = ""; 
-        document.getElementById('qrMetaDisplay').innerText = "";
-        
-        document.getElementById('partyDate').value = "";
-        document.getElementById('partyGenBtn').classList.remove('hidden');
-        document.getElementById('partyQrResult').classList.add('hidden');
-        document.getElementById('partyQrDisplay').innerHTML = "";
-        document.getElementById('partyQrMetaDisplay').innerText = "";
-
-        // Reset Staff Controls
-        document.getElementById('staffNameInput').value = "";
-        document.getElementById('staffExitDateInput').value = "";
-        document.getElementById('staffReturnDateInput').value = "";
-        document.getElementById('staffGenBtn').classList.remove('hidden');
-        document.getElementById('staffQrResult').classList.add('hidden');
-        document.getElementById('staffQrDisplay').innerHTML = "";
-        document.getElementById('staffQrMetaDisplay').innerText = "";
-        document.getElementById('staffBackBtn').classList.remove('hidden');
+    // ==========================================
+    // NAVIGATION ROUTINES
+    // ==========================================
+    function switchResidentTab(targetTab) {
+      if (targetTab === 'create') {
+        document.getElementById('residentTabCreate').classList.remove('hidden');
+        document.getElementById('residentTabWindow').classList.add('hidden');
+        document.getElementById('tabBtnCreate').className = "py-2.5 text-xs font-bold rounded-lg transition-all bg-white text-indigo-600 shadow-sm";
+        document.getElementById('tabBtnWindow').className = "py-2.5 text-xs font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+      } else {
+        document.getElementById('residentTabCreate').classList.add('hidden');
+        document.getElementById('residentTabWindow').classList.remove('hidden');
+        document.getElementById('tabBtnCreate').className = "py-2.5 text-xs font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900";
+        document.getElementById('tabBtnWindow').className = "py-2.5 text-xs font-bold rounded-lg transition-all bg-white text-indigo-600 shadow-sm";
+        fetchMyWindowData();
+      }
     }
 
-    function showDashboard() {
-        if (html5QrCode && html5QrCode.isScanning) {
-            html5QrCode.stop().then(() => {
-                proceedToDashboardLayout();
-            }).catch(() => {
-                proceedToDashboardLayout();
-            });
+    // ==========================================
+    // RESIDENT ENGINE: REGISTRATION & MANIFESTS
+    // ==========================================
+    function processGuestPass() {
+      const name = document.getElementById('guestNameInput').value.trim();
+      const date = document.getElementById('guestDateInput').value;
+      if (!name || !date) { alert('Fill out complete name and targeted arrival calendar date.'); return; }
+
+      const params = {
+        action: 'registerGuest',
+        surname: currentUser.surname,
+        firstName: currentUser.firstName,
+        address: currentUser.address,
+        guestName: name,
+        date: date
+      };
+
+      executeJsonpRequest(params, (res) => {
+        if (res.result === 'success') {
+          triggerQrModal(res.id, name, 'GUEST', `${date}`);
+          document.getElementById('guestNameInput').value = '';
         } else {
-            proceedToDashboardLayout();
+          alert('Error logging visitor: ' + res.message);
         }
+      });
     }
 
-    function proceedToDashboardLayout() {
-        resetGuestForm();
-        
-        document.getElementById('scannedActionUI').classList.add('hidden');
-        document.getElementById('surnameInputBlock').classList.add('hidden');
-        document.getElementById('staffMovementBlock').classList.add('hidden');
-        document.getElementById('plateNumberBlock').style.display = "block";
-        document.getElementById('scannerStatusFlash').classList.add('hidden');
-        document.getElementById('plateNumber').value = "";
-        document.getElementById('scannedGuestSurname').value = "";
-        document.getElementById('movementTypeSelect').value = "Pedestrian";
-        
-        document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
-        document.getElementById('dashboardUI').classList.remove('hidden');
-        document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.info.firstName;
-        
-        const role = currentUser.role ? String(currentUser.role).toUpperCase().trim() : "RESIDENT";
-        if (["SUPER ADMIN", "GUARD", "ADMIN"].includes(role)) {
-            document.getElementById('securityTile').classList.remove('hidden');
+    function processStaffPass() {
+      const name = document.getElementById('staffNameInput').value.trim();
+      const exitDate = document.getElementById('staffExitDateInput').value;
+      const returnDate = document.getElementById('staffReturnDateInput').value;
+      if (!name || !exitDate || !returnDate) { alert('Please provide the employee name and complete structural date bounds.'); return; }
+
+      const params = {
+        action: 'registerStaffPass',
+        surname: currentUser.surname,
+        firstName: currentUser.firstName,
+        address: currentUser.address,
+        staffName: name,
+        exitDate: exitDate,
+        returnDate: returnDate
+      };
+
+      executeJsonpRequest(params, (res) => {
+        if (res.result === 'success') {
+          triggerQrModal(res.id, name, 'STAFF', `${formatDisplayFriendlyDate(exitDate)} - ${formatDisplayFriendlyDate(returnDate)}`);
+          document.getElementById('staffNameInput').value = '';
         } else {
-            document.getElementById('securityTile').classList.add('hidden');
+          alert('Error logging staff identity token string: ' + res.message);
         }
+      });
     }
 
-    function showSection(id) {
-        document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
-        document.getElementById(id).classList.remove('hidden');
-        
-        if (id === 'scannerSection') {
-            startScanner();
-        }
-        
-        if (id === 'myWindowSection') {
-            const dateInput = document.getElementById('manifestDate');
-            if (!dateInput.value) {
-                const today = new Date();
-                const yyyy = today.getFullYear();
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const dd = String(today.getDate()).padStart(2, '0');
-                dateInput.value = `${yyyy}-${mm}-${dd}`;
-            }
-            loadMyWindow();
-        }
-    }
+    function fetchMyWindowData() {
+      const targetDate = document.getElementById('windowDateSelector').value;
+      const container = document.getElementById('windowListContainer');
+      container.innerHTML = '<div class="text-center py-6 text-xs text-slate-400"><i class="fa-solid fa-circle-notch animate-spin mr-1"></i> Syncing manifest streams...</div>';
 
-    function generateGuestQR() {
-        const name = document.getElementById('guestName').value;
-        const date = document.getElementById('visitDate').value;
-        if (!name || !date) { alert("Please fill out all fields."); return; }
-        document.getElementById('genBtn').innerText = "Generating...";
-
-        callBackend({ 
-            action: "registerGuest", 
-            email: currentUser.info.email, 
-            guestName: name, 
-            date: date, 
-            surname: currentUser.info.surname, 
-            firstName: currentUser.info.firstName, 
-            address: currentUser.info.address 
-        }, (data) => {
-            document.getElementById('genBtn').innerText = "Generate Pass";
-            if (data.result === "success") {
-                document.getElementById('qrMetaDisplay').innerText = "Guest: " + name + " | Date: " + date;
-                document.getElementById('qrResult').classList.remove('hidden');
-                document.getElementById('genBtn').className = "btn btn-primary w-100 mt-2 hidden";
-                document.getElementById('qrDisplay').innerHTML = ""; 
-                new QRCode(document.getElementById('qrDisplay'), { text: data.id, width: 200, height: 200 });
-            }
-        });
-    }
-
-    function generatePartyQR() {
-        const date = document.getElementById('partyDate').value;
-        if (!date) { alert("Please select a date."); return; }
-        document.getElementById('partyGenBtn').innerText = "Generating...";
-
-        callBackend({ 
-            action: "registerGuest", 
-            email: currentUser.info.email, 
-            guestName: "Big Party / Open Invitation", 
-            date: date, 
-            surname: currentUser.info.surname, 
-            firstName: currentUser.info.firstName, 
-            address: currentUser.info.address 
-        }, (data) => {
-            document.getElementById('partyGenBtn').innerText = "Generate Pass";
-            if (data.result === "success") {
-                var structuralPayload = "BPP-" + data.id;
-                document.getElementById('partyQrMetaDisplay').innerText = "Host: " + currentUser.info.firstName + " | Event Date: " + date;
-                document.getElementById('partyQrResult').classList.remove('hidden');
-                document.getElementById('partyGenBtn').classList.add('hidden');
-                document.getElementById('partyQrDisplay').innerHTML = ""; 
-                new QRCode(document.getElementById('partyQrDisplay'), { text: structuralPayload, width: 200, height: 200 });
-            }
-        });
-    }
-
-    function generateStaffQR() {
-        const name = document.getElementById('staffNameInput').value;
-        const outDate = document.getElementById('staffExitDateInput').value;
-        const inDate = document.getElementById('staffReturnDateInput').value;
-        
-        if (!name || !outDate || !inDate) { alert("Please fill in all staff fields."); return; }
-        document.getElementById('staffGenBtn').innerText = "Saving to Ledger...";
-
-        callBackend({
-            action: "registerStaffPass",
-            email: currentUser.info.email,
-            staffName: name,
-            exitDate: outDate,
-            returnDate: inDate,
-            surname: currentUser.info.surname,
-            firstName: currentUser.info.firstName,
-            address: currentUser.info.address
-        }, (data) => {
-            document.getElementById('staffGenBtn').innerText = "Generate Staff Pass";
-            if (data.result === "success") {
-                // Prepend token descriptor identifier securely
-                let tokenPayload = data.id; 
-                
-                document.getElementById('staffQrMetaDisplay').innerHTML = `
-                    <div class="text-uppercase tracking-wider small fw-bold text-muted">La Vista Staff Leave Pass</div>
-                    <div class="h5 fw-bold text-dark my-1">${name}</div>
-                    <div class="text-muted xs-micro-text">Exit: ${outDate} &bull; Return: ${inDate}</div>
-                    <div class="xs-micro-text text-primary mt-1">Employer: ${currentUser.info.firstName} ${currentUser.info.surname} (${currentUser.info.address})</div>
-                `;
-                document.getElementById('staffQrResult').classList.remove('hidden');
-                document.getElementById('staffGenBtn').classList.add('hidden');
-                document.getElementById('staffBackBtn').classList.add('hidden');
-                document.getElementById('staffQrDisplay').innerHTML = ""; 
-                new QRCode(document.getElementById('staffQrDisplay'), { text: tokenPayload, width: 200, height: 200 });
-            } else {
-                alert("Error registering Staff Pass.");
-            }
-        });
-    }
-
-    function startScanner() {
-        if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-            html5QrCode.stop().then(() => {
-                window.lastScannedId = text;
-                
-                // EVALUATE PREFIX LOGIC STATE
-                if (text.indexOf("STF-") === 0) {
-                    window.isStaffPassMode = true;
-                    window.isBigPartyPass = false;
-                    document.getElementById('staffMovementBlock').classList.remove('hidden');
-                    document.getElementById('surnameInputBlock').classList.add('hidden');
-                    toggleMovementFields(); // Initialize visibility states
-                } else if (text.indexOf("BPP-") === 0 || text.indexOf("BPP") !== -1) {
-                    window.lastScannedId = text.replace("BPP-", "");
-                    window.isBigPartyPass = true;
-                    window.isStaffPassMode = false;
-                    document.getElementById('surnameInputBlock').classList.remove('hidden');
-                    document.getElementById('staffMovementBlock').classList.add('hidden');
-                    document.getElementById('plateNumberBlock').style.display = "block";
-                } else {
-                    window.isBigPartyPass = false;
-                    window.isStaffPassMode = false;
-                    document.getElementById('surnameInputBlock').classList.add('hidden');
-                    document.getElementById('staffMovementBlock').classList.add('hidden');
-                    document.getElementById('plateNumberBlock').style.display = "block";
-                }
-                document.getElementById('scannedActionUI').classList.remove('hidden');
-            });
-        }).catch(err => alert("Camera Error. Switch to HTTPS mode."));
-    }
-
-    function toggleMovementFields() {
-        if (!window.isStaffPassMode) return;
-        const type = document.getElementById('movementTypeSelect').value;
-        const plateBlock = document.getElementById('plateNumberBlock');
-        if (type === "Vehicle") {
-            plateBlock.style.display = "block";
+      executeJsonpRequest({ action: 'getMyWindowData', email: currentUser.email, date: targetDate }, (res) => {
+        if (res.result === 'success') {
+          document.getElementById('windowCountBadge').innerText = `${res.records.length} Entries`;
+          if (res.records.length === 0) {
+            container.innerHTML = '<p class="text-center text-xs text-slate-400 py-8">No tracked transits listed for this date block.</p>';
+            return;
+          }
+          container.innerHTML = res.records.map(record => {
+            let badgeStyle = "bg-slate-100 text-slate-700";
+            if (record.status === "ARRIVED" || record.status === "ENTERED") badgeStyle = "bg-emerald-100 text-emerald-800";
+            if (record.status === "EXITED") badgeStyle = "bg-amber-100 text-amber-800";
+            
+            return `
+              <div class="flex items-center justify-between p-3 hover:bg-slate-50/80 transition-colors">
+                <div class="pr-2">
+                  <h5 class="font-bold text-slate-900 text-sm leading-tight">${record.name}</h5>
+                  <span class="text-[11px] text-slate-400 block mt-0.5">${record.type}</span>
+                </div>
+                <span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider shrink-0 ${badgeStyle}">${record.status}</span>
+              </div>
+            `;
+          }).join('');
         } else {
-            plateBlock.style.display = "none";
-            document.getElementById('plateNumber').value = ""; // Clear out stale data
+          container.innerHTML = `<p class="text-center text-xs text-rose-500 font-medium py-6">Synchronization error: ${res.message}</p>`;
         }
+      });
     }
 
-    function confirmArrival() {
-        const plate = document.getElementById('plateNumber').value;
-        const gSurname = document.getElementById('scannedGuestSurname').value;
-        const mType = document.getElementById('movementTypeSelect').value;
-        
-        if (window.isBigPartyPass && !gSurname) { alert("Please enter the guest's surname."); return; }
-        if (window.isStaffPassMode && mType === "Vehicle" && !plate) { alert("Please enter the vehicle plate number."); return; }
-
-        document.getElementById('confirmEntryBtn').innerText = "Updating Guard Ledger...";
-        
-        callBackend({ 
-            action: "confirmArrival", 
-            qrId: window.lastScannedId, 
-            plate: plate,
-            guestSurname: gSurname,
-            movementType: mType,
-            isBppUI: window.isBigPartyPass ? "true" : "false"
-        }, (data) => {
-            document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
-            if(data.result === "success") {
-                const statusFlash = document.getElementById('scannerStatusFlash');
-                
-                if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
-                else if (data.mode === "STAFF_ENTER") statusFlash.innerText = "Staff Pass Verified: ENTERED!";
-                else if (data.mode === "GUEST_BPP") statusFlash.innerText = "Party Guest entry logged!";
-                else statusFlash.innerText = "Plate number validated!";
-                
-                statusFlash.classList.remove('hidden');
-                document.getElementById('plateNumber').value = "";
-                document.getElementById('scannedGuestSurname').value = "";
-            } else {
-                alert(data.message || "An error occurred.");
-                showDashboard();
-            }
-        });
+    // ==========================================
+    // GUARD ENGINE: HARDWARE CONTROLS & SCANNERS
+    // ==========================================
+    function initializeCameraSystem() {
+      Instascan.Camera.getCameras().then(cameras => {
+        availableCameras = cameras;
+        if (cameras.length > 0) {
+          scannerInstance = new Instascan.Scanner({ video: document.getElementById('scannerVideo'), mirror: false });
+          scannerInstance.addListener('scan', (content) => { if(content) evaluateScannedToken(content); });
+          startCameraByIndex(0);
+        } else {
+          alert('No live system imaging hardware discovered across local stream.');
+        }
+      }).catch(err => { console.error(err); alert('Camera validation protocol error.'); });
     }
 
-    function loadMyWindow() {
-        const selectedDate = document.getElementById('manifestDate').value;
-        const guestContainer = document.getElementById('myWindowGuestsList');
-        const staffContainer = document.getElementById('myWindowStaffList');
-        
-        if (!currentUser || !currentUser.info) return;
-        
-        guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching entries...</div>';
-        staffContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching entries...</div>';
-
-        callBackend({ 
-            action: "getMyWindowData", 
-            email: currentUser.info.email, 
-            date: selectedDate 
-        }, (data) => {
-            if (data.result !== "success") {
-                guestContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
-                staffContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
-                return;
-            }
-
-            // Segregate records via internal model category
-            let guestRecords = data.records.filter(r => r.category === "GUEST");
-            let staffRecords = data.records.filter(r => r.category === "STAFF");
-
-            // RENDER SEGMENT 1: GUESTS
-            if (guestRecords.length === 0) {
-                guestContainer.innerHTML = '<div class="text-muted text-center py-2">No entries logged for this date.</div>';
-            } else {
-                let gHtml = '<div class="list-group list-group-flush">';
-                guestRecords.forEach(item => {
-                    let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
-                    let cleanName = item.name.replace("BPP / ", "").replace("Party Guest: ", "");
-                    gHtml += `
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
-                            <div>
-                                <div class="fw-bold text-dark">${cleanName}</div>
-                                <div class="text-muted xs-micro-text">${item.type}</div>
-                            </div>
-                            <div><span class="badge ${badgeClass} text-uppercase p-2">${item.status}</span></div>
-                        </div>
-                    `;
-                });
-                gHtml += '</div>';
-                guestContainer.innerHTML = gHtml;
-            }
-
-            // RENDER SEGMENT 2: STAFF PASSES (DYNAMIC LOG DETAILS)
-            if (staffRecords.length === 0) {
-                staffContainer.innerHTML = '<div class="text-muted text-center py-2">No active staff leave logs for this date.</div>';
-            } else {
-                let sHtml = '<div class="list-group list-group-flush">';
-                staffRecords.forEach(item => {
-                    let badgeColor = "bg-warning text-dark"; // Default PENDING (Yellow)
-                    if (item.status === "EXITED") badgeColor = "bg-danger text-white"; // EXITED (Red)
-                    if (item.status === "ENTERED") badgeColor = "bg-success text-white"; // ENTERED (Green)
-                    
-                    sHtml += `
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
-                            <div>
-                                <div class="fw-bold text-dark">${item.name}</div>
-                                <div class="text-muted xs-micro-text" style="font-size:11px;">${item.type}</div>
-                            </div>
-                            <div><span class="badge ${badgeColor} text-uppercase p-2" style="font-size:11px; font-weight:700; border-radius:6px;">${item.status}</span></div>
-                        </div>
-                    `;
-                });
-                sHtml += '</div>';
-                staffContainer.innerHTML = sHtml;
-            }
-        });
+    function startCameraByIndex(index) {
+      if(availableCameras.length === 0) return;
+      currentCameraIndex = index;
+      scannerInstance.start(availableCameras[index]).catch(e => console.error(e));
     }
-</script>
+
+    function toggleCameraCycle() {
+      if(availableCameras.length <= 1) return;
+      let nextIndex = (currentCameraIndex + 1) % availableCameras.length;
+      startCameraByIndex(nextIndex);
+    }
+
+    function selectTransitMode(mode) {
+      selectedTransitMode = mode;
+      const pedBtn = document.getElementById('modePedestrianBtn');
+      const vehBtn = document.getElementById('modeVehicleBtn');
+      const plateRow = document.getElementById('vehicleInputRow');
+
+      if (mode === 'Pedestrian') {
+        pedBtn.className = "py-2 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition-all flex items-center justify-center gap-1.5";
+        vehBtn.className = "py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5";
+        plateRow.classList.add('hidden');
+        document.getElementById('guardPlateInput').value = '';
+      } else {
+        vehBtn.className = "py-2 text-xs font-bold rounded-xl border-2 border-indigo-600 bg-indigo-50 text-indigo-700 transition-all flex items-center justify-center gap-1.5";
+        pedBtn.className = "py-2 text-xs font-bold rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5";
+        plateRow.classList.remove('hidden');
+        setTimeout(() => document.getElementById('guardPlateInput').focus(), 100);
+      }
+    }
+
+    function processManualGuardScan() {
+      const manualInput = document.getElementById('manualQrInput').value.trim();
+      if(!manualInput) { alert('Please specify a tracking payload string.'); return; }
+      evaluateScannedToken(manualInput);
+      document.getElementById('manualQrInput').value = '';
+    }
+
+    function evaluateScannedToken(rawPayload) {
+      // Collect transport configuration states from active UI bindings
+      const plate = document.getElementById('guardPlateInput').value.trim().toUpperCase();
+      
+      if (selectedTransitMode === 'Vehicle' && !plate) {
+        alert('Action Blocked: Please capture or type the vehicle plate identifier before confirming checkpoint transit.');
+        return;
+      }
+
+      const params = {
+        action: 'confirmArrival',
+        qrId: rawPayload,
+        movementType: selectedTransitMode,
+        plate: selectedTransitMode === 'Vehicle' ? plate : 'Pedestrian'
+      };
+
+      // Handle Big Party Pass parameters
+      if (rawPayload.indexOf("BPP-") === 0) {
+        const structuralToken = rawPayload.substring(4); 
+        const visitorLabel = prompt("🎉 BIG PARTY PASS DETECTED.\nEnter individual visitor details or grouping descriptors:");
+        if (visitorLabel === null) return; 
+        params.qrId = structuralToken;
+        params.isBppUI = "true";
+        params.guestSurname = visitorLabel || "Unspecified Attendee";
+      }
+
+      executeJsonpRequest(params, (res) => {
+        if (res.result === 'success') {
+          // Play a native sound check notification if needed
+          alert(`SUCCESS: ${res.message}`);
+          // Clear inputs on successful checkpoint routing
+          document.getElementById('guardPlateInput').value = '';
+          selectTransitMode('Pedestrian');
+        } else {
+          alert(`CHECKPOINT REJECTION:\n${res.message}`);
+        }
+      });
+    }
+
+    // ==========================================
+    // UTILITY HELPER FUNCTIONS
+    // ==========================================
+    function executeJsonpRequest(parametersObject, callbackFunction) {
+      const callbackName = 'jsonp_cb_' + Math.round(Math.random() * 1000000);
+      window[callbackName] = function(data) {
+        delete window[callbackName];
+        document.body.removeChild(scriptTag);
+        callbackFunction(data);
+      };
+
+      parametersObject.callback = callbackName;
+      const queryParams = Object.keys(parametersObject)
+        .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(parametersObject[key]))
+        .join('&');
+
+      const scriptTag = document.createElement('script');
+      scriptTag.src = APPS_SCRIPT_URL + (APPS_SCRIPT_URL.indexOf('?') >= 0 ? '&' : '?') + queryParams;
+      document.body.appendChild(scriptTag);
+    }
+
+    function toggleButtonLoading(buttonId, isLoading, defaultText) {
+      const btn = document.getElementById(buttonId);
+      if (!btn) return;
+      if (isLoading) {
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch animate-spin mr-1.5"></i> processing...`;
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = defaultText;
+      }
+    }
+
+    function formatDisplayFriendlyDate(rawIsoDateString) {
+      if(!rawIsoDateString) return '';
+      const parts = rawIsoDateString.split('-');
+      if(parts.length !== 3) return rawIsoDateString;
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return `${months[parseInt(parts[1],10)-1]} ${parts[2]}`;
+    }
+
+    function triggerQrModal(id, targetName, passType, dateString) {
+      const modal = document.getElementById('qrModal');
+      const qrcodeContainer = document.getElementById('qrcode');
+      const headerBg = document.getElementById('modalHeaderBg');
+      const headerIcon = document.getElementById('modalHeaderIcon');
+      
+      qrcodeContainer.innerHTML = '';
+      
+      // Update theme dynamics according to security profile categories
+      if (passType === 'STAFF') {
+        headerBg.className = "p-4 text-center text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 bg-emerald-600";
+        document.getElementById('modalHeaderTitle').innerText = "DOMESTIC STAFF PASS GENERATED";
+        document.getElementById('modalClassDisplay').innerText = "Employee Transit";
+        document.getElementById('modalIdDisplay').className = "font-mono text-xs text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold mt-1.5";
+      } else {
+        headerBg.className = "p-4 text-center text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 bg-indigo-600";
+        document.getElementById('modalHeaderTitle').innerText = "SINGLE VISITOR PASS GENERATED";
+        document.getElementById('modalClassDisplay').innerText = "Single Entry Guest";
+        document.getElementById('modalIdDisplay').className = "font-mono text-xs text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full font-bold mt-1.5";
+      }
+
+      document.getElementById('modalNameDisplay').innerText = targetName;
+      document.getElementById('modalIdDisplay').innerText = `ID: ${id}`;
+      document.getElementById('modalDateDisplay').innerText = dateString;
+
+      new QRCode(qrcodeContainer, {
+        text: id,
+        width: 180,
+        height: 180,
+        colorDark: "#020617",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+      if(currentUser && currentUser.role === 'RESIDENT') {
+        fetchMyWindowData();
+      }
+    }
+  </script>
 </body>
 </html>
