@@ -16,7 +16,6 @@
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
         .menu-tile { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); aspect-ratio: 1/1; font-weight: 600; font-size: 14px; cursor: pointer; color: #1c1c1e; text-decoration: none; }
         
-        /* Stylized Modern Vector Icon Formatting */
         .menu-tile i { font-size: 42px; margin-bottom: 12px; display: block; }
         .icon-blue { color: #007aff; }
         .icon-red { color: #ff3b30; }
@@ -26,7 +25,7 @@
         .icon-teal { color: #5ac8fa; }
         .icon-purple { color: #af52de; }
 
-        .form-control { border-radius: 12px; padding: 12px; background: #e5e5ea; border: none; margin-bottom: 15px; }
+        .form-control, .form-select { border-radius: 12px; padding: 12px; background: #e5e5ea; border: none; margin-bottom: 15px; }
         .btn-primary { border-radius: 12px; padding: 12px; font-weight: 700; background: var(--primary-blue); border: none; }
         .btn-secondary-custom { border-radius: 12px; padding: 12px; font-weight: 700; background: #5856d6; color: white; border: none; }
         .form-label { font-weight: 600; color: #48484a; font-size: 14px; margin-left: 4px; margin-bottom: 6px; display: block; }
@@ -53,24 +52,13 @@
     </div>
     
     <div class="menu-grid">
-        <div class="menu-tile">
-            <i class="bi bi-megaphone icon-blue"></i>Announcements
-        </div>
-        <div class="menu-tile">
-            <i class="bi bi-calendar3 icon-red"></i>Calendar
-        </div>
+        <div class="menu-tile"><i class="bi bi-megaphone icon-blue"></i>Announcements</div>
+        <div class="menu-tile"><i class="bi bi-calendar3 icon-red"></i>Calendar</div>
+        <div class="menu-tile"><i class="bi bi-dribbble icon-orange"></i>Courts</div>
+        <div class="menu-tile" onclick="showSection('registerSection')"><i class="bi bi-journal-check icon-green"></i>Guest Registration</div>
+        <div class="menu-tile"><i class="bi bi-scooter icon-indigo"></i>Deliveries</div>
         
-        <div class="menu-tile">
-            <i class="bi bi-dribbble icon-orange"></i>Courts
-        </div>
-        <div class="menu-tile" onclick="showSection('registerSection')">
-            <i class="bi bi-journal-check icon-green"></i>Guest Registration
-        </div>
-
-        <div class="menu-tile">
-            <i class="bi bi-scooter icon-indigo"></i>Deliveries
-        </div>
-        <div class="menu-tile">
+        <div class="menu-tile" onclick="showSection('staffPassSection')">
             <i class="bi bi-door-open icon-teal"></i>Staff Pass
         </div>
 
@@ -89,13 +77,10 @@
 <div id="registerSection" class="hidden container py-4">
     <div class="bg-white p-4 rounded-5 shadow-sm">
         <h4 class="fw-bold mb-4">Guest Registration</h4>
-        
         <label class="form-label" for="guestName">Guest Full Name</label>
         <input type="text" id="guestName" class="form-control" placeholder="Enter full name">
-        
         <label class="form-label" for="visitDate">Date Expected</label>
         <input type="date" id="visitDate" class="form-control">
-        
         <button onclick="generateGuestQR()" id="genBtn" class="btn btn-primary w-100 mt-2">Generate Pass</button>
         
         <div id="qrResult" class="text-center mt-4 hidden">
@@ -104,9 +89,7 @@
             <button onclick="resetGuestForm()" class="btn btn-primary w-100 mb-2">Register Another Guest</button>
             <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back</button>
         </div>
-
-        <div id="bigPartyEntryOption" class="mt-5 pt-3 border-top text-center">
-            <p class="text-muted small mb-2">Throwing a large event with nameless invitations?</p>
+        <div class="mt-5 pt-3 border-top text-center">
             <button onclick="showSection('bigPartySection')" class="btn btn-secondary-custom w-100">🎉 Big Party Pass</button>
             <button onclick="showDashboard()" class="btn btn-link text-muted mt-2 text-decoration-none d-block mx-auto">Back to Main Menu</button>
         </div>
@@ -117,17 +100,40 @@
     <div class="bg-white p-4 rounded-5 shadow-sm">
         <h4 class="fw-bold mb-1 text-purple" style="color: #5856d6;">Big Party Pass</h4>
         <p class="text-muted small mb-4">Generates a reusable event pass sharing only your name and address.</p>
-        
         <label class="form-label" for="partyDate">Date of Event</label>
         <input type="date" id="partyDate" class="form-control">
-        
         <button onclick="generatePartyQR()" id="partyGenBtn" class="btn btn-secondary-custom w-100 mt-2">Generate Pass</button>
-        
         <div id="partyQrResult" class="text-center mt-4 hidden">
             <div id="partyQrMetaDisplay" class="fw-bold text-dark mb-2 small"></div>
             <div id="partyQrDisplay" class="d-flex justify-content-center mb-4"></div>
             <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Dashboard</button>
         </div>
+    </div>
+</div>
+
+<div id="staffPassSection" class="hidden container py-4">
+    <div class="bg-white p-4 rounded-5 shadow-sm">
+        <h4 class="fw-bold mb-1 text-teal">Staff Pass Registration</h4>
+        <p class="text-muted small mb-4">Issue an outbound exit & entry permission tracker for household staff.</p>
+        
+        <label class="form-label" for="staffNameInput">Staff Member Full Name</label>
+        <input type="text" id="staffNameInput" class="form-control" placeholder="Enter staff name">
+        
+        <label class="form-label" for="staffExitDateInput">Leave Exit Date</label>
+        <input type="date" id="staffExitDateInput" class="form-control">
+        
+        <label class="form-label" for="staffReturnDateInput">Expected Return Date</label>
+        <input type="date" id="staffReturnDateInput" class="form-control">
+        
+        <button onclick="generateStaffQR()" id="staffGenBtn" class="btn btn-info text-white w-100 mt-2 fw-bold" style="background: #5ac8fa; border:none; border-radius:12px; padding:12px;">Generate Staff Pass</button>
+        
+        <div id="staffQrResult" class="text-center mt-4 hidden">
+            <div class="alert alert-success small py-2">📸 Screenshot & send this card to your staff member.</div>
+            <div id="staffQrMetaDisplay" class="fw-bold text-dark mb-2 small border-bottom pb-2"></div>
+            <div id="staffQrDisplay" class="d-flex justify-content-center mb-4"></div>
+            <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Main Menu</button>
+        </div>
+        <button id="staffBackBtn" onclick="showDashboard()" class="btn btn-link text-muted mt-3 text-decoration-none d-block mx-auto small">Back</button>
     </div>
 </div>
 
@@ -137,18 +143,26 @@
         <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden;"></div>
         
         <div id="scannedActionUI" class="hidden mt-3">
+            <div id="staffMovementBlock" class="hidden mb-3">
+                <label class="form-label" for="movementTypeSelect">Movement Classification</label>
+                <select id="movementTypeSelect" class="form-select" onchange="toggleMovementFields()">
+                    <option value="Pedestrian">🚶 Pedestrian</option>
+                    <option value="Vehicle">🚗 Vehicle</option>
+                </select>
+            </div>
+
             <div id="surnameInputBlock" class="hidden">
                 <label class="form-label" for="scannedGuestSurname">Guest Surname</label>
                 <input type="text" id="scannedGuestSurname" class="form-control" placeholder="Enter guest's last name">
             </div>
 
-            <label class="form-label" for="plateNumber">Plate Number</label>
-            <input type="text" id="plateNumber" class="form-control" placeholder="Plate Number">
+            <div id="plateNumberBlock">
+                <label class="form-label" id="plateLabel" for="plateNumber">Plate Number</label>
+                <input type="text" id="plateNumber" class="form-control" placeholder="Plate Number">
+            </div>
             
             <button onclick="confirmArrival()" id="confirmEntryBtn" class="btn btn-success w-100 mb-3">Confirm Entry</button>
-            
-            <div id="scannerStatusFlash" class="flash-badge hidden mb-3">Plate Number logged!</div>
-            
+            <div id="scannerStatusFlash" class="flash-badge hidden mb-3">Logs verified!</div>
             <button onclick="showDashboard()" class="btn btn-outline-secondary w-100">Back to Main Menu</button>
         </div>
     </div>
@@ -167,7 +181,7 @@
         <div class="mb-4">
             <h6 class="fw-bold text-dark border-bottom pb-2">📋 1. Guests (Individual & Party)</h6>
             <div id="myWindowGuestsList" class="small">
-                <div class="text-muted text-center py-2">Loading today's guests...</div>
+                <div class="text-muted text-center py-2">No entries logged.</div>
             </div>
         </div>
 
@@ -177,8 +191,10 @@
         </div>
 
         <div class="mb-4">
-            <h6 class="fw-bold text-muted border-bottom pb-2">🪪 3. Staff Pass</h6>
-            <div class="text-muted small italic px-2">Feature coming soon...</div>
+            <h6 class="fw-bold text-dark border-bottom pb-2">🪪 3. Staff Pass</h6>
+            <div id="myWindowStaffList" class="small">
+                <div class="text-muted text-center py-2">No active staff leave logs.</div>
+            </div>
         </div>
 
         <button onclick="showDashboard()" class="btn btn-outline-secondary w-100 mt-3">Back to Main Menu</button>
@@ -186,7 +202,6 @@
 </div>
 
 <script>
-    // App Script URL Deployment Link
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxL2dl007yZqHC8kmc5fSG8KZ04fd_3kKywZThiVEdhZ_8QiVm3jr3zDarizXlRnOVA/exec"; 
 
     let currentUser = null;
@@ -254,6 +269,16 @@
         document.getElementById('partyQrResult').classList.add('hidden');
         document.getElementById('partyQrDisplay').innerHTML = "";
         document.getElementById('partyQrMetaDisplay').innerText = "";
+
+        // Reset Staff Controls
+        document.getElementById('staffNameInput').value = "";
+        document.getElementById('staffExitDateInput').value = "";
+        document.getElementById('staffReturnDateInput').value = "";
+        document.getElementById('staffGenBtn').classList.remove('hidden');
+        document.getElementById('staffQrResult').classList.add('hidden');
+        document.getElementById('staffQrDisplay').innerHTML = "";
+        document.getElementById('staffQrMetaDisplay').innerText = "";
+        document.getElementById('staffBackBtn').classList.remove('hidden');
     }
 
     function showDashboard() {
@@ -273,9 +298,12 @@
         
         document.getElementById('scannedActionUI').classList.add('hidden');
         document.getElementById('surnameInputBlock').classList.add('hidden');
+        document.getElementById('staffMovementBlock').classList.add('hidden');
+        document.getElementById('plateNumberBlock').style.display = "block";
         document.getElementById('scannerStatusFlash').classList.add('hidden');
         document.getElementById('plateNumber').value = "";
         document.getElementById('scannedGuestSurname').value = "";
+        document.getElementById('movementTypeSelect').value = "Pedestrian";
         
         document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
         document.getElementById('dashboardUI').classList.remove('hidden');
@@ -313,12 +341,7 @@
     function generateGuestQR() {
         const name = document.getElementById('guestName').value;
         const date = document.getElementById('visitDate').value;
-        
-        if (!name || !date) {
-            alert("Please fill out both fields.");
-            return;
-        }
-
+        if (!name || !date) { alert("Please fill out all fields."); return; }
         document.getElementById('genBtn').innerText = "Generating...";
 
         callBackend({ 
@@ -337,20 +360,13 @@
                 document.getElementById('genBtn').className = "btn btn-primary w-100 mt-2 hidden";
                 document.getElementById('qrDisplay').innerHTML = ""; 
                 new QRCode(document.getElementById('qrDisplay'), { text: data.id, width: 200, height: 200 });
-            } else {
-                alert("Failed to register guest. Please try again.");
             }
         });
     }
 
     function generatePartyQR() {
         const date = document.getElementById('partyDate').value;
-        
-        if (!date) {
-            alert("Please select the date of your event.");
-            return;
-        }
-
+        if (!date) { alert("Please select a date."); return; }
         document.getElementById('partyGenBtn').innerText = "Generating...";
 
         callBackend({ 
@@ -365,63 +381,127 @@
             document.getElementById('partyGenBtn').innerText = "Generate Pass";
             if (data.result === "success") {
                 var structuralPayload = "BPP-" + data.id;
-                document.getElementById('partyQrMetaDisplay').innerText = "Host: " + currentUser.info.firstName + " " + currentUser.info.surname + " | Event Date: " + date;
+                document.getElementById('partyQrMetaDisplay').innerText = "Host: " + currentUser.info.firstName + " | Event Date: " + date;
                 document.getElementById('partyQrResult').classList.remove('hidden');
                 document.getElementById('partyGenBtn').classList.add('hidden');
                 document.getElementById('partyQrDisplay').innerHTML = ""; 
                 new QRCode(document.getElementById('partyQrDisplay'), { text: structuralPayload, width: 200, height: 200 });
+            }
+        });
+    }
+
+    function generateStaffQR() {
+        const name = document.getElementById('staffNameInput').value;
+        const outDate = document.getElementById('staffExitDateInput').value;
+        const inDate = document.getElementById('staffReturnDateInput').value;
+        
+        if (!name || !outDate || !inDate) { alert("Please fill in all staff fields."); return; }
+        document.getElementById('staffGenBtn').innerText = "Saving to Ledger...";
+
+        callBackend({
+            action: "registerStaffPass",
+            email: currentUser.info.email,
+            staffName: name,
+            exitDate: outDate,
+            returnDate: inDate,
+            surname: currentUser.info.surname,
+            firstName: currentUser.info.firstName,
+            address: currentUser.info.address
+        }, (data) => {
+            document.getElementById('staffGenBtn').innerText = "Generate Staff Pass";
+            if (data.result === "success") {
+                // Prepend token descriptor identifier securely
+                let tokenPayload = data.id; 
+                
+                document.getElementById('staffQrMetaDisplay').innerHTML = `
+                    <div class="text-uppercase tracking-wider small fw-bold text-muted">La Vista Staff Leave Pass</div>
+                    <div class="h5 fw-bold text-dark my-1">${name}</div>
+                    <div class="text-muted xs-micro-text">Exit: ${outDate} &bull; Return: ${inDate}</div>
+                    <div class="xs-micro-text text-primary mt-1">Employer: ${currentUser.info.firstName} ${currentUser.info.surname} (${currentUser.info.address})</div>
+                `;
+                document.getElementById('staffQrResult').classList.remove('hidden');
+                document.getElementById('staffGenBtn').classList.add('hidden');
+                document.getElementById('staffBackBtn').classList.add('hidden');
+                document.getElementById('staffQrDisplay').innerHTML = ""; 
+                new QRCode(document.getElementById('staffQrDisplay'), { text: tokenPayload, width: 200, height: 200 });
             } else {
-                alert("Failed to create event pass. Please try again.");
+                alert("Error registering Staff Pass.");
             }
         });
     }
 
     function startScanner() {
-        if (!html5QrCode) {
-            html5QrCode = new Html5Qrcode("reader");
-        }
-        
+        if (!html5QrCode) { html5QrCode = new Html5Qrcode("reader"); }
         html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
             html5QrCode.stop().then(() => {
-                if (text.indexOf("BPP-") === 0 || text.indexOf("BPP") !== -1) {
+                window.lastScannedId = text;
+                
+                // EVALUATE PREFIX LOGIC STATE
+                if (text.indexOf("STF-") === 0) {
+                    window.isStaffPassMode = true;
+                    window.isBigPartyPass = false;
+                    document.getElementById('staffMovementBlock').classList.remove('hidden');
+                    document.getElementById('surnameInputBlock').classList.add('hidden');
+                    toggleMovementFields(); // Initialize visibility states
+                } else if (text.indexOf("BPP-") === 0 || text.indexOf("BPP") !== -1) {
                     window.lastScannedId = text.replace("BPP-", "");
                     window.isBigPartyPass = true;
+                    window.isStaffPassMode = false;
                     document.getElementById('surnameInputBlock').classList.remove('hidden');
+                    document.getElementById('staffMovementBlock').classList.add('hidden');
+                    document.getElementById('plateNumberBlock').style.display = "block";
                 } else {
-                    window.lastScannedId = text;
                     window.isBigPartyPass = false;
+                    window.isStaffPassMode = false;
                     document.getElementById('surnameInputBlock').classList.add('hidden');
+                    document.getElementById('staffMovementBlock').classList.add('hidden');
+                    document.getElementById('plateNumberBlock').style.display = "block";
                 }
                 document.getElementById('scannedActionUI').classList.remove('hidden');
             });
-        }).catch(err => alert("Camera Error. Please ensure you are using HTTPS."));
+        }).catch(err => alert("Camera Error. Switch to HTTPS mode."));
+    }
+
+    function toggleMovementFields() {
+        if (!window.isStaffPassMode) return;
+        const type = document.getElementById('movementTypeSelect').value;
+        const plateBlock = document.getElementById('plateNumberBlock');
+        if (type === "Vehicle") {
+            plateBlock.style.display = "block";
+        } else {
+            plateBlock.style.display = "none";
+            document.getElementById('plateNumber').value = ""; // Clear out stale data
+        }
     }
 
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value;
         const gSurname = document.getElementById('scannedGuestSurname').value;
+        const mType = document.getElementById('movementTypeSelect').value;
         
-        if (window.isBigPartyPass && !gSurname) {
-            alert("Please enter the guest's surname.");
-            return;
-        }
+        if (window.isBigPartyPass && !gSurname) { alert("Please enter the guest's surname."); return; }
+        if (window.isStaffPassMode && mType === "Vehicle" && !plate) { alert("Please enter the vehicle plate number."); return; }
 
-        document.getElementById('confirmEntryBtn').innerText = "Logging Entry...";
+        document.getElementById('confirmEntryBtn').innerText = "Updating Guard Ledger...";
         
         callBackend({ 
             action: "confirmArrival", 
             qrId: window.lastScannedId, 
             plate: plate,
             guestSurname: gSurname,
+            movementType: mType,
             isBppUI: window.isBigPartyPass ? "true" : "false"
         }, (data) => {
             document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
-            
             if(data.result === "success") {
                 const statusFlash = document.getElementById('scannerStatusFlash');
-                statusFlash.innerText = window.isBigPartyPass ? "Guest Entry logged!" : "Plate Number logged!";
-                statusFlash.classList.remove('hidden');
                 
+                if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
+                else if (data.mode === "STAFF_ENTER") statusFlash.innerText = "Staff Pass Verified: ENTERED!";
+                else if (data.mode === "GUEST_BPP") statusFlash.innerText = "Party Guest entry logged!";
+                else statusFlash.innerText = "Plate number validated!";
+                
+                statusFlash.classList.remove('hidden');
                 document.getElementById('plateNumber').value = "";
                 document.getElementById('scannedGuestSurname').value = "";
             } else {
@@ -434,10 +514,12 @@
     function loadMyWindow() {
         const selectedDate = document.getElementById('manifestDate').value;
         const guestContainer = document.getElementById('myWindowGuestsList');
+        const staffContainer = document.getElementById('myWindowStaffList');
         
         if (!currentUser || !currentUser.info) return;
         
-        guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching updates...</div>';
+        guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching entries...</div>';
+        staffContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching entries...</div>';
 
         callBackend({ 
             action: "getMyWindowData", 
@@ -445,40 +527,60 @@
             date: selectedDate 
         }, (data) => {
             if (data.result !== "success") {
-                guestContainer.innerHTML = `<div class="text-danger text-center py-2">Error: ${data.message}</div>`;
+                guestContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
+                staffContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
                 return;
             }
 
-            if (!data.records || data.records.length === 0) {
+            // Segregate records via internal model category
+            let guestRecords = data.records.filter(r => r.category === "GUEST");
+            let staffRecords = data.records.filter(r => r.category === "STAFF");
+
+            // RENDER SEGMENT 1: GUESTS
+            if (guestRecords.length === 0) {
                 guestContainer.innerHTML = '<div class="text-muted text-center py-2">No entries logged for this date.</div>';
-                return;
+            } else {
+                let gHtml = '<div class="list-group list-group-flush">';
+                guestRecords.forEach(item => {
+                    let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
+                    let cleanName = item.name.replace("BPP / ", "").replace("Party Guest: ", "");
+                    gHtml += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
+                            <div>
+                                <div class="fw-bold text-dark">${cleanName}</div>
+                                <div class="text-muted xs-micro-text">${item.type}</div>
+                            </div>
+                            <div><span class="badge ${badgeClass} text-uppercase p-2">${item.status}</span></div>
+                        </div>
+                    `;
+                });
+                gHtml += '</div>';
+                guestContainer.innerHTML = gHtml;
             }
 
-            let htmlContent = '<div class="list-group list-group-flush">';
-            
-            data.records.forEach(item => {
-                let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
-                
-                let cleanDisplayName = item.name;
-                if (cleanDisplayName.indexOf("BPP / ") === 0) {
-                    cleanDisplayName = cleanDisplayName.replace("BPP / ", "").trim();
-                } else if (cleanDisplayName.indexOf("Party Guest: ") === 0) {
-                    cleanDisplayName = cleanDisplayName.replace("Party Guest: ", "").trim();
-                }
-
-                htmlContent += `
-                    <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
-                        <div>
-                            <div class="fw-bold text-dark">${cleanDisplayName}</div>
-                            <div class="text-muted xs-micro-text">${item.type}</div>
+            // RENDER SEGMENT 2: STAFF PASSES (DYNAMIC LOG DETAILS)
+            if (staffRecords.length === 0) {
+                staffContainer.innerHTML = '<div class="text-muted text-center py-2">No active staff leave logs for this date.</div>';
+            } else {
+                let sHtml = '<div class="list-group list-group-flush">';
+                staffRecords.forEach(item => {
+                    let badgeColor = "bg-warning text-dark"; // Default PENDING (Yellow)
+                    if (item.status === "EXITED") badgeColor = "bg-danger text-white"; // EXITED (Red)
+                    if (item.status === "ENTERED") badgeColor = "bg-success text-white"; // ENTERED (Green)
+                    
+                    sHtml += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
+                            <div>
+                                <div class="fw-bold text-dark">${item.name}</div>
+                                <div class="text-muted xs-micro-text" style="font-size:11px;">${item.type}</div>
+                            </div>
+                            <div><span class="badge ${badgeColor} text-uppercase p-2" style="font-size:11px; font-weight:700; border-radius:6px;">${item.status}</span></div>
                         </div>
-                        <div><span class="badge ${badgeClass} text-uppercase p-2">${item.status}</span></div>
-                    </div>
-                `;
-            });
-
-            htmlContent += '</div>';
-            guestContainer.innerHTML = htmlContent;
+                    `;
+                });
+                sHtml += '</div>';
+                staffContainer.innerHTML = sHtml;
+            }
         });
     }
 </script>
