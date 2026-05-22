@@ -80,7 +80,7 @@
           <i class="fa-solid fa-plus-circle mr-1.5"></i>Create Passes
         </button>
         <button onclick="switchResidentTab('window')" id="tabBtnWindow" class="py-2.5 text-xs font-bold rounded-lg transition-all text-slate-600 hover:text-slate-900">
-          <i class="fa-solid fa-calendar-day mr-1.5"></i>My Window
+          <i class="fa-solid fa-calendar-day mr-1.5"></i>MY GUESTS
         </button>
       </div>
 
@@ -167,7 +167,7 @@
         </div>
 
         <div id="vehicleInputRow" class="hidden animate-fadeIn">
-          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vehicle Plate Number / Identification</label>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vehicle Plate Number</label>
           <div class="relative">
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-credit-card"></i></span>
             <input type="text" id="guardPlateInput" placeholder="e.g., ABC 1234" class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none uppercase font-bold text-slate-800 placeholder-slate-400">
@@ -210,17 +210,14 @@
   </div>
 
   <script>
-    // CORE SCRIPT CONFIGURATION COORD
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
     
-    // Global Application State Matrix Variables
     let currentUser = null;
     let scannerInstance = null;
     let availableCameras = [];
     let currentCameraIndex = 0;
-    let selectedTransitMode = "Pedestrian"; // Default tracking mode
+    let selectedTransitMode = "Pedestrian";
 
-    // Initialize configuration constraints on window initialization
     window.addEventListener('DOMContentLoaded', () => {
       const todayString = new Date().toISOString().split('T')[0];
       if(document.getElementById('guestDateInput')) document.getElementById('guestDateInput').value = todayString;
@@ -242,7 +239,7 @@
         toggleButtonLoading('loginBtn', false, 'Verify & Proceed');
         if (response.result === 'success') {
           currentUser = response.info;
-          currentUser.role = response.role;
+          currentUser.role = response.role; // Captures "SUPER ADMIN" or "RESIDENT" or "GUARD"
           bootstrapUserSession();
         } else {
           alert(response.message || 'Verification rejected.');
@@ -258,12 +255,10 @@
       document.getElementById('userRoleBadge').innerText = currentUser.role;
       document.getElementById('userAvatar').innerText = currentUser.firstName.charAt(0).toUpperCase();
 
-      // Clear layout toggles
       document.getElementById('residentDashboard').classList.add('hidden');
       document.getElementById('guardDashboard').classList.add('hidden');
 
-      // Routing rules: GUARD goes straight to scanning camera, 
-      // RESIDENTS and SUPER ADMINS get full creation/manifest tile features.
+      // Super Admin and Residents both share the functional management grid layouts
       if (currentUser.role === 'GUARD') {
         document.getElementById('guardDashboard').classList.remove('hidden');
         initializeCameraSystem();
@@ -413,9 +408,6 @@
       startCameraByIndex(nextIndex);
     }
 
-    // ==========================================
-    // TRANSIT INPUT AND SCAN EVAL PROTOCOLS
-    // ==========================================
     function selectTransitMode(mode) {
       selectedTransitMode = mode;
       const pedBtn = document.getElementById('modePedestrianBtn');
@@ -483,7 +475,7 @@
     function executeJsonpRequest(parametersObject, callbackFunction) {
       const callbackName = 'jsonp_cb_' + Math.round(Math.random() * 1000000);
       window[callbackName] = function(data) {
-        delete window[calendarName];
+        delete window[callbackName]; // FIXED TYPO: Properly deletes callbackName string pointer
         document.body.removeChild(scriptTag);
         callbackFunction(data);
       };
@@ -518,6 +510,7 @@
       return `${months[parseInt(parts[1],10)-1]} ${parts[2]}`;
     }
 
+    type = '';
     function triggerQrModal(id, targetName, passType, dateString) {
       const modal = document.getElementById('qrModal');
       const qrcodeContainer = document.getElementById('qrcode');
