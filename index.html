@@ -184,21 +184,6 @@
       </div>
     </div>
 
-    <div id="superadminDashboard" class="hidden space-y-4">
-      <div class="bg-indigo-900 p-5 rounded-2xl text-white shadow-xl relative overflow-hidden">
-        <div class="absolute -right-6 -bottom-6 text-indigo-800/40 text-8xl font-black pointer-events-none"><i class="fa-solid fa-shield-halved"></i></div>
-        <span class="bg-white/20 text-white text-[10px] font-extrabold px-2 py-0.5 rounded tracking-wide uppercase">Core Terminal</span>
-        <h2 class="text-xl font-black mt-2">Super Admin Space</h2>
-        <p class="text-indigo-200 text-xs mt-1">Universal dashboard override mechanics for the community infrastructure system.</p>
-      </div>
-      
-      <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm text-center py-10">
-        <div class="w-12 h-12 bg-slate-100 rounded-full mx-auto flex items-center justify-center text-slate-400 text-xl mb-3"><i class="fa-solid fa-chart-line"></i></div>
-        <h4 class="font-bold text-slate-800 text-sm">System Logs & Metrics</h4>
-        <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto">Database telemetry streams and global application states are fully operational.</p>
-      </div>
-    </div>
-
   </div>
 
   <div id="qrModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -273,16 +258,15 @@
       document.getElementById('userRoleBadge').innerText = currentUser.role;
       document.getElementById('userAvatar').innerText = currentUser.firstName.charAt(0).toUpperCase();
 
-      // Configure Dashboard Visibility Rules Based on Role String Values
+      // Clear layout toggles
       document.getElementById('residentDashboard').classList.add('hidden');
       document.getElementById('guardDashboard').classList.add('hidden');
-      document.getElementById('superadminDashboard').classList.add('hidden');
 
+      // Routing rules: GUARD goes straight to scanning camera, 
+      // RESIDENTS and SUPER ADMINS get full creation/manifest tile features.
       if (currentUser.role === 'GUARD') {
         document.getElementById('guardDashboard').classList.remove('hidden');
         initializeCameraSystem();
-      } else if (currentUser.role === 'SUPER ADMIN') {
-        document.getElementById('superadminDashboard').classList.remove('hidden');
       } else {
         document.getElementById('residentDashboard').classList.remove('hidden');
         fetchMyWindowData();
@@ -429,6 +413,9 @@
       startCameraByIndex(nextIndex);
     }
 
+    // ==========================================
+    // TRANSIT INPUT AND SCAN EVAL PROTOCOLS
+    // ==========================================
     function selectTransitMode(mode) {
       selectedTransitMode = mode;
       const pedBtn = document.getElementById('modePedestrianBtn');
@@ -456,7 +443,6 @@
     }
 
     function evaluateScannedToken(rawPayload) {
-      // Collect transport configuration states from active UI bindings
       const plate = document.getElementById('guardPlateInput').value.trim().toUpperCase();
       
       if (selectedTransitMode === 'Vehicle' && !plate) {
@@ -471,7 +457,6 @@
         plate: selectedTransitMode === 'Vehicle' ? plate : 'Pedestrian'
       };
 
-      // Handle Big Party Pass parameters
       if (rawPayload.indexOf("BPP-") === 0) {
         const structuralToken = rawPayload.substring(4); 
         const visitorLabel = prompt("🎉 BIG PARTY PASS DETECTED.\nEnter individual visitor details or grouping descriptors:");
@@ -483,9 +468,7 @@
 
       executeJsonpRequest(params, (res) => {
         if (res.result === 'success') {
-          // Play a native sound check notification if needed
           alert(`SUCCESS: ${res.message}`);
-          // Clear inputs on successful checkpoint routing
           document.getElementById('guardPlateInput').value = '';
           selectTransitMode('Pedestrian');
         } else {
@@ -500,7 +483,7 @@
     function executeJsonpRequest(parametersObject, callbackFunction) {
       const callbackName = 'jsonp_cb_' + Math.round(Math.random() * 1000000);
       window[callbackName] = function(data) {
-        delete window[callbackName];
+        delete window[calendarName];
         document.body.removeChild(scriptTag);
         callbackFunction(data);
       };
@@ -539,11 +522,9 @@
       const modal = document.getElementById('qrModal');
       const qrcodeContainer = document.getElementById('qrcode');
       const headerBg = document.getElementById('modalHeaderBg');
-      const headerIcon = document.getElementById('modalHeaderIcon');
       
       qrcodeContainer.innerHTML = '';
       
-      // Update theme dynamics according to security profile categories
       if (passType === 'STAFF') {
         headerBg.className = "p-4 text-center text-white font-bold text-sm tracking-wide flex items-center justify-center gap-2 bg-emerald-600";
         document.getElementById('modalHeaderTitle').innerText = "DOMESTIC STAFF PASS GENERATED";
@@ -574,7 +555,7 @@
 
     function closeQrModal() {
       document.getElementById('qrModal').classList.add('hidden');
-      if(currentUser && currentUser.role === 'RESIDENT') {
+      if(currentUser) {
         fetchMyWindowData();
       }
     }
