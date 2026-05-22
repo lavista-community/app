@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VSF2027 Gate Entry Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212; /* Optimized dark theme for venue doorway battery-saving profiles */
+            color: #ffffff;
+            text-align: center;
+        }
+        .wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h2 {
+            margin-bottom: 5px;
+            font-size: 1.6rem;
+            letter-spacing: 0.5px;
+        }
+        #reader {
+            width: 100%;
+            background: #1e1e1e;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #333333 !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        /* Custom tweaks to strip down standard layout library junk */
+        #reader__dashboard_section_csr button, #reader__dashboard_section_swaplink {
+            background-color: #444444 !important;
+            color: #ffffff !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 6px !important;
+            cursor: pointer;
+            text-decoration: none !important;
+            font-size: 0.9rem !important;
+            margin: 10px 0 !important;
+        }
+        #reader__camera_selection {
+            background-color: #222222 !important;
+            color: #ffffff !important;
+            border: 1px solid #444444 !important;
+            padding: 6px !important;
+            border-radius: 6px !important;
+            margin-bottom: 10px !important;
+        }
+        #status-display {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            display: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            line-height: 1.5;
+        }
+        .processing { background-color: #2a2a2a; color: #ffc107; border: 2px solid #ffc107; }
+        .success { background-color: #1b5e20; color: #a5d6a7; border: 2px solid #4caf50; }
+        .error { background-color: #b71c1c; color: #ef9a9a; border: 2px solid #f44336; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <h2>VSF2027 Gate Entry</h2>
+        <p style="color: #aaa; font-size: 0.95rem; margin-top: 0; margin-bottom: 25px;">
+            Position attendee QR code inside the viewfinder window
+        </p>
+        
+        <div id="reader"></div>
+        <div id="status-display"></div>
+    </div>
+
+    <script>
+        // Bound Live API End-Point from your Google Deployment
+        const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbyLpcOVoaQfuFlusPlmYLGSKeLynk6jbbytucKXL5g05DQBTZymhh4W1yXY5EYUFeFi/exec";
+
+        let scannerInstance;
+        let cooldownLock = false;
+
+        function processQrScan(decodedText) {
+            if (cooldownLock) return; 
+            cooldownLock = true;
+
+            const display = document.getElementById('status-display');
+            display.style.display = "block";
+            display.className = "processing";
+            display.innerText = "Verifying Entry Token...";
+
+            // Transport decoded string data straight to the Google Sheets backend handler
+            fetch(GOOGLE_API_URL, {
+                method: "POST",
+                mode: "no-cors", // Gracefully passes explicit client browser network boundaries
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ qrContent: decodedText })
+            })
+            .then(() => {
+                // Parse clean visual feedback for your entry crew
+                const attendeeName = decodedText.split(" - ")[0];
+                display.className = "success";
+                display.innerHTML = "✓ ACCESS GRANTED<br><span style='font-size:1rem; font-weight:normal;'>" + attendeeName + " logged successfully.</span>";
+                
+                // Keep the success state visible for 3 seconds before opening camera back up
+                setTimeout(() => {
+                    display.style.display = "none";
+                    cooldownLock = false;
+                }, 3000);
+            })
+            .catch(err => {
+                display.className = "error";
+                display.innerText = "🚨 PIPELINE ERROR\nCheck gate operator data connection.";
+                console.error(err);
+                setTimeout(() => { cooldownLock = false; }, 4000);
+            });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            processQrScan(decodedText);
+        }
+
+        // Initialize and lock-on the target device hardware configuration
+        function startGateScanner() {
+            scannerInstance = new Html5QrcodeScanner("reader", { 
+                fps: 15, 
+                qrbox: { width: 250, height: 250 },
+                rememberLastUsedCamera: true,
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA]
+            });
+            scannerInstance.render(onScanSuccess);
+        }
+
+        window.addEventListener('DOMContentLoaded', startGateScanner);
+    </script>
+</body>
+</html>
