@@ -97,21 +97,41 @@
             // Transport decoded string data straight to the Google Sheets backend handler
             fetch(GOOGLE_API_URL, {
                 method: "POST",
-                mode: "no-cors", // Gracefully passes explicit client browser network boundaries
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ qrContent: decodedText })
             })
-            .then(() => {
-                // Parse clean visual feedback for your entry crew
-                const attendeeName = decodedText.split(" - ")[0];
-                display.className = "success";
-                display.innerHTML = "✓ ACCESS GRANTED<br><span style='font-size:1rem; font-weight:normal;'>" + attendeeName + " logged successfully.</span>";
-                
-                // Keep the success state visible for 3 seconds before opening camera back up
-                setTimeout(() => {
-                    display.style.display = "none";
-                    cooldownLock = false;
-                }, 3000);
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "SUCCESS") {
+                    // Clear validation: flash emerald green
+                    display.className = "success";
+                    display.innerHTML = "✓ ACCESS GRANTED<br><span style='font-size:1.1rem; font-weight:normal;'>" + result.attendeeName + " logged successfully.</span>";
+                    
+                    setTimeout(() => {
+                        display.style.display = "none";
+                        cooldownLock = false;
+                    }, 3000);
+                    
+                } else if (result.status === "ALREADY_IN") {
+                    // Security Breach: Double Scan alert triggered
+                    display.className = "error";
+                    display.innerHTML = "🚨 SECURITY BREACH ALERT<br><span style='font-size:1.3rem; font-weight:bold;'>" + result.message + "</span>";
+                    
+                    // Keep the security warning locked on screen longer for operator reaction time
+                    setTimeout(() => {
+                        display.style.display = "none";
+                        cooldownLock = false;
+                    }, 8000);
+                    
+                } else {
+                    // Mismatched data or bad QR formatting structure
+                    display.className = "error";
+                    display.innerHTML = "❌ ACCESS DENIED<br><span style='font-size:1rem; font-weight:normal;'>Row verification failed: " + result.message + "</span>";
+                    
+                    setTimeout(() => {
+                        display.style.display = "none";
+                        cooldownLock = false;
+                    }, 4000);
+                }
             })
             .catch(err => {
                 display.className = "error";
