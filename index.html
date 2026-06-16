@@ -130,7 +130,6 @@
                     <option value="FoodPanda">FoodPanda</option>
                     <option value="Lalamove">Lalamove</option>
                     <option value="Shopee Xpress">Shopee Xpress</option>
-                    <option value="Lazarus Logistics">Lazada Logistics</option>
                     <option value="Private Courier / Others">Private Courier / Others</option>
                 </select>
             </div>
@@ -289,10 +288,25 @@
         document.getElementById('dashboardView').classList.remove('hidden');
     }
 
-    // Mock Backend Connector Layer for local compilation context
+    // ================================================================= -->
+    // LIVE GOOGLE APPS SCRIPT BACKEND CONNECTOR                         -->
+    // ================================================================= -->
     function callBackend(payload, callback) {
-        console.log("Dispatching Payload to Script Url: ", payload);
-        // Script Engine integration loop fires out JSONP architecture mapping here.
+        const webAppUrl = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
+        
+        // Generate a temporary unique callback name for JSONP
+        const callbackName = "jsonp_" + Math.round(Math.random() * 1000000);
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            callback(data);
+        };
+
+        // Package payload string and inject JSONP script tag to bypass CORS restrictions
+        const payloadString = encodeURIComponent(JSON.stringify(payload));
+        const script = document.createElement('script');
+        script.src = `${webAppUrl}?callback=${callbackName}&payload=${payloadString}`;
+        document.body.appendChild(script);
     }
 
     function submitDeliveryAuth() {
