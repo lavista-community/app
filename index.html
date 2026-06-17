@@ -6,12 +6,16 @@
     <title>La Vista Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f2f2f7; font-family: -apple-system, sans-serif; }
+        body { background-color: #f7f7f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .hidden { display: none !important; }
-        .login-card { background: white; border-radius: 28px; padding: 40px 30px; margin: 50px auto; width: 100%; max-width: 400px; box-shadow: 0 8px 30px rgba(0,0,0,0.06); }
-        .menu-container { max-width: 500px; margin: 0 auto; }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
-        .menu-tile { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); aspect-ratio: 1/1; cursor: pointer; }
+        /* Login Styles */
+        .login-card { background: white; border-radius: 28px; padding: 40px 30px; margin: 100px auto; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        /* Dashboard Styles */
+        .header { text-align: center; padding: 40px 20px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; max-width: 600px; margin: 0 auto; }
+        .menu-tile { background: white; border-radius: 24px; padding: 25px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s; }
+        .menu-tile:active { transform: scale(0.98); }
+        .qr-tile { background: #1a1a1a; color: white; }
     </style>
 </head>
 <body>
@@ -22,30 +26,34 @@
         <p class="text-muted small mb-4">Resident Portal</p>
         <input type="email" id="emailInput" class="form-control text-center mb-2" placeholder="Email">
         <input type="password" id="passwordInput" class="form-control text-center mb-3" placeholder="Password">
-        <button onclick="attemptLogin()" id="loginBtn" class="btn btn-primary w-100">Sign In</button>
+        <button onclick="attemptLogin()" class="btn btn-primary w-100">Sign In</button>
     </div>
 </div>
 
 <div id="dashboardUI" class="hidden">
-    <div class="menu-container">
-        <div class="menu-grid">
-            <div class="menu-tile" onclick="alert('Guest Reg')">Guest Reg</div>
-            <div class="menu-tile" onclick="alert('Deliveries')">Deliveries</div>
-        </div>
+    <div class="header">
+        <h2 id="welcomeMsg" class="fw-bold text-primary"></h2>
+        <p class="text-muted">La Vista Community Services</p>
+    </div>
+    <div class="menu-grid">
+        <div class="menu-tile" onclick="alert('Announcements')">📢<br>Announcements</div>
+        <div class="menu-tile" onclick="alert('Calendar')">📅<br>Calendar</div>
+        <div class="menu-tile" onclick="alert('Courts')">🏀<br>Courts</div>
+        <div class="menu-tile" onclick="alert('Guest Registration')">✅<br>Guest Registration</div>
+        <div class="menu-tile" onclick="alert('Deliveries')">🛵<br>Deliveries</div>
+        <div class="menu-tile" onclick="alert('Staff Pass')">🚪<br>Staff Pass</div>
+        <div class="menu-tile" onclick="alert('My Window')">💻<br>My Window</div>
+        <div class="menu-tile qr-tile" onclick="alert('QR Scanner')">📱<br>QR Scanner</div>
     </div>
 </div>
 
 <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
-    let currentUser = null;
 
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
-        window.loadData = (data) => { 
-            document.body.removeChild(script); 
-            callback(data); 
-        };
+        window.loadData = (data) => { document.body.removeChild(script); callback(data); };
         script.src = url;
         document.body.appendChild(script);
     }
@@ -54,17 +62,13 @@
         const email = document.getElementById('emailInput').value;
         const password = document.getElementById('passwordInput').value;
 
-        callBackend({
-            action: "login",
-            email: email,
-            password: password
-        }, (data) => {
+        callBackend({ action: "login", email: email, password: password }, (data) => {
             if (data.result === "success") {
-                currentUser = data.user;
+                document.getElementById('welcomeMsg').innerText = "Hello, " + data.user.firstName;
                 document.getElementById('loginUI').classList.add('hidden');
                 document.getElementById('dashboardUI').classList.remove('hidden');
             } else {
-                alert(data.message || "Login failed.");
+                alert(data.message);
             }
         });
     }
