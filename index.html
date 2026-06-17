@@ -1,474 +1,79 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Vista Portal</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg-light: #f6f8fc;
-            --text-primary: #000000;
-            --brand-blue: #0d6efd;
-            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
+/**
+ * LA VISTA PORTAL - FRONTEND LOGIC
+ * Add this script section to your index.html
+ */
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-light);
-            color: #333;
-            padding-bottom: 40px;
-        }
+const APP_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
 
-        /* EXACT HEADER STYLE FROM THE SCREENSHOT */
-        .header-section {
-            text-align: center;
-            padding: 30px 20px 15px 20px;
-            background: #ffffff;
-            border-bottom: 1px solid #eef2f5;
-        }
+// 1. UPDATED LOGIN FUNCTION
+function performLogin() {
+  var email = document.getElementById("emailInput").value;
+  var password = document.getElementById("passwordInput").value;
 
-        .header-greeting {
-            color: var(--brand-blue);
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
+  var payload = {
+    action: "login",
+    email: email,
+    password: password
+  };
 
-        .header-subtitle {
-            color: #6c757d;
-            font-size: 1rem;
-            font-weight: 400;
-            margin: 0;
-        }
+  sendToAppsScript(payload, function(response) {
+    if (response.result === "success") {
+      // Save full profile returned from backend
+      localStorage.setItem("user", JSON.stringify(response.info));
+      alert("Login successful!");
+      showDashboard();
+    } else {
+      alert("Login failed: " + response.message);
+    }
+  });
+}
 
-        .dashboard-container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+// 2. UPDATED DELIVERY REGISTRATION
+function registerDelivery() {
+  var user = JSON.parse(localStorage.getItem("user"));
+  if (!user) { alert("Please log in first."); return; }
 
-        /* 2-COLUMN TILES GRID */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-            margin-top: 10px;
-        }
+  var payload = {
+    action: "registerDeliveryPreAuth",
+    surname: user.surname,
+    firstName: user.firstName,
+    address: user.address,
+    riderName: document.getElementById("riderNameInput").value
+  };
 
-        .menu-tile {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 30px 15px;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: var(--card-shadow);
-            border: none;
-            transition: transform 0.15s ease-in-out;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
+  sendToAppsScript(payload, function(response) {
+    if (response.result === "success") {
+      alert("Delivery successfully pre-authorized!");
+    } else {
+      alert("Delivery error: " + response.message);
+    }
+  });
+}
 
-        .menu-tile:active {
-            transform: scale(0.96);
-        }
+// 3. CORE COMMUNICATION WRAPPER
+function sendToAppsScript(payload, callback) {
+  var url = APP_URL + "?callback=handleResponse&payload=" + encodeURIComponent(JSON.stringify(payload));
+  
+  // Use a global callback function to handle JSONP
+  window.handleResponse = callback;
+  
+  var script = document.createElement('script');
+  script.src = url;
+  document.body.appendChild(script);
+}
 
-        .menu-tile i {
-            font-size: 2.2rem;
-            margin-bottom: 15px;
-            display: inline-block;
-        }
+// 4. LOAD DASHBOARD DATA
+function loadMyWindow() {
+  var user = JSON.parse(localStorage.getItem("user"));
+  var payload = {
+    action: "getMyWindowData",
+    email: user.email,
+    address: user.address
+  };
 
-        .menu-tile-title {
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #111111;
-        }
-
-        /* ICON COLORS MATCHING THE VISUALS */
-        .icon-announcements { color: #0d6efd; }
-        .icon-calendar { color: #dc3545; }
-        .icon-courts { color: #fd7e14; }
-        .icon-guest { color: #198754; }
-        .icon-deliveries { color: #6f42c1; }
-        .icon-staff { color: #0dcaf0; }
-        .icon-mywindow { color: #af52de; }
-
-        /* SPECIAL INVERTED SCANNER TILE */
-        .menu-tile.dark-scanner-tile {
-            background: #1e1e24;
-            color: #ffffff;
-        }
-
-        .menu-tile.dark-scanner-tile i {
-            color: #ffffff;
-        }
-
-        .menu-tile.dark-scanner-tile .menu-tile-title {
-            color: #ffffff;
-        }
-
-        /* SECURED LOGIN CARD */
-        .login-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--card-shadow);
-            margin-top: 40px;
-        }
-
-        .btn-login {
-            background-color: var(--brand-blue);
-            color: white;
-            font-weight: 600;
-            border-radius: 10px;
-            padding: 12px;
-            border: none;
-        }
-
-        .btn-login:hover {
-            background-color: #0b5ed7;
-            color: white;
-        }
-
-        .feature-panel {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: var(--card-shadow);
-            margin-top: 10px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- APPLICATION HEADER DISPLAY -->
-    <div class="header-section">
-        <h1 class="header-greeting" id="dynamicGreeting">Hello</h1>
-        <p class="header-subtitle">La Vista Community Services</p>
-        <div id="logoutHeaderBtn" class="mt-2 hidden">
-            <button class="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-medium" onclick="handleLogout()">
-                <i class="bi bi-box-arrow-right me-1"></i>Logout Session
-            </button>
-        </div>
-    </div>
-
-    <div class="dashboard-container">
-
-        <!-- 1. IDENTIFIED PASSWORD PASS DOOR -->
-        <div id="loginScreen" class="login-card">
-            <h5 class="fw-bold mb-3 text-dark">Account Verification</h5>
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="mb-3">
-                    <label class="form-label small fw-medium">Email Address</label>
-                    <input type="email" id="loginEmail" class="form-control" placeholder="yourname@domain.com" required>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label small fw-medium">Password</label>
-                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
-                </div>
-                <button type="submit" id="loginSubmitBtn" class="btn btn-login w-100">Sign In</button>
-            </form>
-        </div>
-
-        <!-- 2. RECONSTRUCTED TILES GRID FROM SCREENSHOT -->
-        <div id="dashboardScreen" class="hidden">
-            
-            <!-- Super Admin View Matrix -->
-            <div id="superAdminMenu" class="menu-grid hidden">
-                <div class="menu-tile">
-                    <i class="bi bi-megaphone icon-announcements"></i>
-                    <div class="menu-tile-title">Announcements</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-calendar3 icon-calendar"></i>
-                    <div class="menu-tile-title">Calendar</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-dribbble icon-courts"></i>
-                    <div class="menu-tile-title">Courts</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-person-check icon-guest"></i>
-                    <div class="menu-tile-title">Guest Registration</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-scooter icon-deliveries"></i>
-                    <div class="menu-tile-title">Deliveries</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-door-open icon-staff"></i>
-                    <div class="menu-tile-title">Staff Pass</div>
-                </div>
-                <div class="menu-tile" onclick="openFeature('myWindowPanel')">
-                    <i class="bi bi-window-stack icon-mywindow"></i>
-                    <div class="menu-tile-title">My Window</div>
-                </div>
-                <div class="menu-tile dark-scanner-tile" onclick="openFeature('scannerPanel')">
-                    <i class="bi bi-qr-code-scan"></i>
-                    <div class="menu-tile-title">QR Scanner</div>
-                </div>
-            </div>
-
-            <!-- Standard Resident View Matrix -->
-            <div id="residentMenu" class="menu-grid hidden">
-                <div class="menu-tile">
-                    <i class="bi bi-megaphone icon-announcements"></i>
-                    <div class="menu-tile-title">Announcements</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-calendar3 icon-calendar"></i>
-                    <div class="menu-tile-title">Calendar</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-dribbble icon-courts"></i>
-                    <div class="menu-tile-title">Courts</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-person-check icon-guest"></i>
-                    <div class="menu-tile-title">Guest Registration</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-scooter icon-deliveries"></i>
-                    <div class="menu-tile-title">Deliveries</div>
-                </div>
-                <div class="menu-tile">
-                    <i class="bi bi-door-open icon-staff"></i>
-                    <div class="menu-tile-title">Staff Pass</div>
-                </div>
-                <div class="menu-tile" onclick="openFeature('myWindowPanel')">
-                    <i class="bi bi-window-stack icon-mywindow"></i>
-                    <div class="menu-tile-title">My Window</div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- FEATURE BLOCK: QR GATE HUB -->
-        <div id="scannerPanel" class="feature-panel hidden">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h6 class="fw-bold text-dark m-0"><i class="bi bi-qr-code-scan me-2 text-primary"></i>Gate Control Hub</h6>
-                <button class="btn btn-sm btn-light border rounded-pill px-3" onclick="showDashboard()">Back</button>
-            </div>
-            
-            <div class="bg-light p-3 rounded-3 text-center mb-3 border">
-                <div class="small text-muted mb-2">Simulate Quick Verification Lookup</div>
-                <div class="input-group">
-                    <input type="text" id="mockQrInput" class="form-control text-center fw-bold" placeholder="Paste Token/QR ID Here">
-                    <button class="btn btn-dark" onclick="triggerMockScan()">Execute</button>
-                </div>
-            </div>
-
-            <div id="guardScannerFormBlock" class="mt-3 p-2 border rounded bg-white hidden">
-                <div class="mb-3">
-                    <label class="form-label small fw-medium">Movement Type</label>
-                    <select id="movementTypeSelect" class="form-select">
-                        <option value="Vehicle">Vehicle Entry</option>
-                        <option value="Walk-in">Walk-in Entry</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-medium">Vehicle Plate / Rider Identifier</label>
-                    <input type="text" id="plateNumber" class="form-control" placeholder="e.g. ABC 1234">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-medium">Guest Surname Verification</label>
-                    <input type="text" id="scannedGuestSurname" class="form-control">
-                </div>
-                <div id="fallbackInputs" class="p-2 bg-light border rounded mb-3 hidden">
-                    <input type="text" id="fallbackBlockInput" class="form-control form-control-sm mb-2" placeholder="Resident Address">
-                    <input type="text" id="fallbackCompanyInput" class="form-control form-control-sm" placeholder="Courier Company">
-                </div>
-                <div id="scannerStatusFlash" class="alert alert-success text-center py-2 small hidden"></div>
-                <button id="confirmEntryBtn" class="btn btn-dark w-100 mt-2" onclick="confirmArrival()">Confirm Entry</button>
-            </div>
-        </div>
-
-        <!-- FEATURE BLOCK: MY WINDOW -->
-        <div id="myWindowPanel" class="feature-panel hidden">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h6 class="fw-bold text-dark m-0"><i class="bi bi-window-stack me-2 text-primary"></i>My Window</h6>
-                <button class="btn btn-sm btn-light border rounded-pill px-3" onclick="showDashboard()">Back</button>
-            </div>
-            <div class="mb-3">
-                <label class="form-label small fw-medium">Schedule Date</label>
-                <input type="date" id="manifestDate" class="form-control" onchange="loadMyWindow()">
-            </div>
-            <div id="myWindowGuestsList" class="mb-2 p-2 bg-light rounded small"></div>
-            <div id="myWindowDeliveriesList" class="mb-2 p-2 bg-light rounded small"></div>
-            <div id="myWindowStaffList" class="p-2 bg-light rounded small"></div>
-        </div>
-
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
-        let currentUser = null;
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const todayStr = new Date().toISOString().split('T')[0];
-            document.getElementById('manifestDate').value = todayStr;
-
-            const savedUser = localStorage.getItem("lavista_user_session");
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                    renderDashboard(currentUser);
-                } catch(e) {
-                    localStorage.removeItem("lavista_user_session");
-                }
-            }
-        });
-
-        function callBackendLogin(email, password, callback) {
-            const callbackName = "jsonp_cb_login_" + Math.floor(Math.random() * 100000);
-            window[callbackName] = function(data) {
-                callback(data);
-                delete window[callbackName];
-                document.getElementById(callbackName).remove();
-            };
-            const script = document.createElement("script");
-            script.id = callbackName;
-            script.src = APPS_SCRIPT_URL + "?callback=" + callbackName + "&action=login&email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password);
-            document.body.appendChild(script);
-        }
-
-        function callBackend(payload, callback) {
-            const callbackName = "jsonp_cb_" + Math.floor(Math.random() * 100000);
-            window[callbackName] = function(data) {
-                callback(data);
-                delete window[callbackName];
-                document.getElementById(callbackName).remove();
-            };
-            const script = document.createElement("script");
-            script.id = callbackName;
-            script.src = APPS_SCRIPT_URL + "?callback=" + callbackName + "&payload=" + encodeURIComponent(JSON.stringify(payload));
-            document.body.appendChild(script);
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const submitBtn = document.getElementById('loginSubmitBtn');
-
-            submitBtn.innerText = "Verifying...";
-            submitBtn.disabled = true;
-
-            callBackendLogin(email, password, (data) => {
-                submitBtn.innerText = "Sign In";
-                submitBtn.disabled = false;
-
-                if (data.result === "success") {
-                    currentUser = data;
-                    localStorage.setItem("lavista_user_session", JSON.stringify(data));
-                    renderDashboard(data);
-                } else {
-                    alert(data.message || "Access denied.");
-                }
-            });
-        }
-
-        function renderDashboard(data) {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('dashboardScreen').classList.remove('hidden');
-            document.getElementById('logoutHeaderBtn').classList.remove('hidden');
-            
-            // DYNAMIC HELLO GREETING FROM IMAGERY
-            document.getElementById('dynamicGreeting').innerText = "Hello, " + data.info.firstName;
-
-            if (data.role === "super admin") {
-                document.getElementById('superAdminMenu').classList.remove('hidden');
-                document.getElementById('residentMenu').classList.add('hidden');
-            } else {
-                document.getElementById('residentMenu').classList.remove('hidden');
-                document.getElementById('superAdminMenu').classList.add('hidden');
-            }
-        }
-
-        function handleLogout() {
-            currentUser = null;
-            localStorage.removeItem("lavista_user_session");
-            document.getElementById('dashboardScreen').classList.add('hidden');
-            document.getElementById('logoutHeaderBtn').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('dynamicGreeting').innerText = "Hello";
-            document.getElementById('loginEmail').value = "";
-            document.getElementById('loginPassword').value = "";
-        }
-
-        function showDashboard() {
-            document.getElementById('scannerPanel').classList.add('hidden');
-            document.getElementById('myWindowPanel').classList.add('hidden');
-            if (currentUser && currentUser.role === "super admin") {
-                document.getElementById('superAdminMenu').classList.remove('hidden');
-            } else {
-                document.getElementById('residentMenu').classList.remove('hidden');
-            }
-        }
-
-        function openFeature(panelId) {
-            document.getElementById('superAdminMenu').classList.add('hidden');
-            document.getElementById('residentMenu').classList.add('hidden');
-            document.getElementById(panelId).classList.remove('hidden');
-            if (panelId === 'myWindowPanel') { loadMyWindow(); }
-        }
-
-        // KEEPING BACKEND PIPELINES INTEGRATED
-        function triggerMockScan() {
-            const mockToken = document.getElementById('mockQrInput').value.trim();
-            if (!mockToken) { alert("Input token required."); return; }
-            window.lastScannedId = mockToken;
-            window.isBigPartyPass = mockToken.startsWith("BPP-");
-            window.isStaffPassMode = mockToken.startsWith("LVS-");
-            window.isManualCourierFallback = false;
-            document.getElementById('guardScannerFormBlock').classList.remove('hidden');
-            document.getElementById('fallbackInputs').classList.add('hidden');
-        }
-
-        function confirmArrival() {
-            const payload = {
-                action: "confirmArrival",
-                qrId: window.lastScannedId,
-                plate: document.getElementById('plateNumber').value || "RIDER",
-                guestSurname: document.getElementById('scannedGuestSurname').value,
-                movementType: document.getElementById('movementTypeSelect').value,
-                isBppUI: window.isBigPartyPass ? "true" : "false"
-            };
-            callBackend(payload, (data) => {
-                if (data.result === "success") {
-                    alert("Entry logged successfully!");
-                    showDashboard();
-                } else {
-                    alert(data.message || "Error logging arrival.");
-                }
-            });
-        }
-
-        function loadMyWindow() {
-            if (!currentUser) return;
-            callBackend({
-                action: "getMyWindowData",
-                email: currentUser.info.email,
-                date: document.getElementById('manifestDate').value
-            }, (data) => {
-                const gList = document.getElementById('myWindowGuestsList');
-                gList.innerHTML = data.result === "success" ? JSON.stringify(data.records) : "Error loading records.";
-            });
-        }
-    </script>
-</body>
-</html>
+  sendToAppsScript(payload, function(response) {
+    if (response.result === "success") {
+      renderDashboard(response.records);
+    }
+  });
+}
