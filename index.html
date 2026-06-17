@@ -158,7 +158,7 @@
             <h4 class="fw-bold mb-3 text-dark">Sign In</h4>
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="mb-3">
-                    <label class="form-label small fw-medium">Email Address</label>
+                    <label class="form-label small fw-medium">Registered Email Address</label>
                     <input type="email" id="loginEmail" class="form-control" placeholder="name@domain.com" required>
                 </div>
                 <div class="mb-4">
@@ -186,14 +186,14 @@
             </div>
             <div class="menu-tile" onclick="openFeature('myWindowPanel')">
                 <i class="bi bi-window-stack icon-purple"></i>
-                <div class="menu-tile-title">My Guests</div>
+                <div class="menu-tile-title">MY GUESTS</div>
             </div>
         </div>
 
         <div id="residentMenu" class="menu-grid hidden">
             <div class="menu-tile" onclick="openFeature('myWindowPanel')">
                 <i class="bi bi-window-stack icon-purple"></i>
-                <div class="menu-tile-title">My Guests</div>
+                <div class="menu-tile-title">MY GUESTS</div>
             </div>
             <div class="menu-tile">
                 <i class="bi bi-dribbble icon-orange"></i>
@@ -254,7 +254,7 @@
 
         <div id="myWindowPanel" class="feature-panel hidden">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h5 class="fw-bold text-dark m-0"><i class="bi bi-window-stack me-2"></i>My Guests</h5>
+                <h5 class="fw-bold text-dark m-0"><i class="bi bi-window-stack me-2"></i>MY GUESTS</h5>
                 <button class="btn btn-sm btn-secondary rounded-pill" onclick="showDashboard()">Back</button>
             </div>
 
@@ -313,6 +313,17 @@
         document.addEventListener("DOMContentLoaded", () => {
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('manifestDate').value = todayStr;
+
+            // PERSISTENT LOGIN CHECK
+            const savedUser = localStorage.getItem("lavista_user_session");
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    renderDashboard(currentUser);
+                } catch(e) {
+                    localStorage.removeItem("lavista_user_session");
+                }
+            }
         });
 
         function callBackend(payload, callback) {
@@ -325,12 +336,12 @@
 
             const script = document.createElement("script");
             script.id = callbackName;
-            const targetUrl = APPS_SCRIPT_URL + "?callback=" + callbackName + "&payload=" + encodeURIComponent(JSON.stringify(payload));
-            script.src = targetUrl;
+            script.src = APPS_SCRIPT_URL + "?callback=" + callbackName + "&payload=" + encodeURIComponent(JSON.stringify(payload));
             document.body.appendChild(script);
         }
 
-        function callBackendLegacyLogin(email, password, callback) {
+        // BACKEND CALL PASSING BOTH EMAIL AND PASSWORD
+        function callBackendLogin(email, password, callback) {
             const callbackName = "jsonp_cb_login_" + Math.floor(Math.random() * 100000);
             window[callbackName] = function(data) {
                 callback(data);
@@ -340,8 +351,7 @@
 
             const script = document.createElement("script");
             script.id = callbackName;
-            const targetUrl = APPS_SCRIPT_URL + "?callback=" + callbackName + "&action=login&email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password);
-            script.src = targetUrl;
+            script.src = APPS_SCRIPT_URL + "?callback=" + callbackName + "&action=login&email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password);
             document.body.appendChild(script);
         }
 
@@ -351,34 +361,45 @@
             const password = document.getElementById('loginPassword').value;
             const submitBtn = document.getElementById('loginSubmitBtn');
 
-            submitBtn.innerText = "Authenticating Context...";
+            submitBtn.innerText = "Verifying Credentials...";
             submitBtn.disabled = true;
 
-            callBackendLegacyLogin(email, password, (data) => {
+            callBackendLogin(email, password, (data) => {
                 submitBtn.innerText = "Verify Identity";
                 submitBtn.disabled = false;
 
                 if (data.result === "success") {
                     currentUser = data;
-                    document.getElementById('loginScreen').classList.add('hidden');
-                    document.getElementById('dashboardScreen').classList.remove('hidden');
-                    document.getElementById('userDisplayName').innerText = data.info.firstName + " " + data.info.lastName;
-
-                    if (data.role === "super admin") {
-                        document.getElementById('superAdminMenu').classList.remove('hidden');
-                        document.getElementById('residentMenu').classList.add('hidden');
-                    } else {
-                        document.getElementById('residentMenu').classList.remove('hidden');
-                        document.getElementById('superAdminMenu').classList.add('hidden');
-                    }
+                    
+                    // SAVE USER SESSION TO MACHINE REMAIN LOGGED IN
+                    localStorage.setItem("lavista_user_session", JSON.stringify(data));
+                    
+                    renderDashboard(data);
                 } else {
-                    alert(data.message || "Invalid account credentials.");
+                    alert(data.message || "Invalid email or password combination.");
                 }
             });
         }
 
+        function renderDashboard(data) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboardScreen').classList.remove('hidden');
+            document.getElementById('userDisplayName').innerText = data.info.firstName + " " + data.info.lastName;
+
+            if (data.role === "super admin") {
+                document.getElementById('superAdminMenu').classList.remove('hidden');
+                document.getElementById('residentMenu').classList.add('hidden');
+            } else {
+                document.getElementById('residentMenu').classList.remove('hidden');
+                document.getElementById('superAdminMenu').classList.add('hidden');
+            }
+        }
+
         function handleLogout() {
             currentUser = null;
+            // DROP LOCAL REMEMBERED SESSION
+            localStorage.removeItem("lavista_user_session");
+            
             document.getElementById('dashboardScreen').classList.add('hidden');
             document.getElementById('loginScreen').classList.remove('hidden');
             document.getElementById('loginEmail').value = "";
@@ -388,7 +409,6 @@
         function showDashboard() {
             document.getElementById('scannerPanel').classList.add('hidden');
             document.getElementById('myWindowPanel').classList.add('hidden');
-            
             if (currentUser && currentUser.role === "super admin") {
                 document.getElementById('superAdminMenu').classList.remove('hidden');
             } else {
@@ -400,29 +420,20 @@
             document.getElementById('superAdminMenu').classList.add('hidden');
             document.getElementById('residentMenu').classList.add('hidden');
             document.getElementById(panelId).classList.remove('hidden');
-            
-            if (panelId === 'myWindowPanel') {
-                loadMyWindow();
-            }
+            if (panelId === 'myWindowPanel') { loadMyWindow(); }
         }
 
         function triggerMockScan() {
             const mockToken = document.getElementById('mockQrInput').value.trim();
             if (!mockToken) { alert("Please input a mock QR token."); return; }
-
             window.lastScannedId = mockToken;
             window.isBigPartyPass = false;
             window.isStaffPassMode = false;
             window.isManualCourierFallback = false;
-
             document.getElementById('guardScannerFormBlock').classList.remove('hidden');
             document.getElementById('fallbackInputs').classList.add('hidden');
-
-            if (mockToken.startsWith("BPP-")) {
-                window.isBigPartyPass = true;
-            } else if (mockToken.startsWith("LVS-")) {
-                window.isStaffPassMode = true;
-            }
+            if (mockToken.startsWith("BPP-")) { window.isBigPartyPass = true; } 
+            else if (mockToken.startsWith("LVS-")) { window.isStaffPassMode = true; }
         }
 
         function confirmArrival() {
@@ -457,7 +468,6 @@
                 document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
                 if(data.result === "success") {
                     const statusFlash = document.getElementById('scannerStatusFlash');
-                    
                     if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
                     else if (data.mode === "STAFF_ENTER") statusFlash.innerText = "Staff Pass Verified: ENTERED!";
                     else if (data.mode === "GUEST_BPP") statusFlash.innerText = "Party Guest entry logged!";
@@ -475,7 +485,6 @@
                         statusFlash.classList.add('hidden');
                         showDashboard();
                     }, 2500);
-
                 } else if (data.result === "unregistered") {
                     alert("Unregistered delivery provider pass! Opening entry override logs.");
                     window.isManualCourierFallback = true;
