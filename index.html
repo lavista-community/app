@@ -36,19 +36,20 @@
         <p class="text-muted">La Vista Community Services</p>
     </div>
     <div class="menu-grid">
-        <div class="menu-tile" onclick="alert('Announcements')">📢<br>Announcements</div>
-        <div class="menu-tile" onclick="alert('Calendar')">📅<br>Calendar</div>
-        <div class="menu-tile" onclick="alert('Courts')">🏀<br>Courts</div>
-        <div class="menu-tile" onclick="alert('Guest Registration')">✅<br>Guest Registration</div>
-        <div class="menu-tile" onclick="alert('Deliveries')">🛵<br>Deliveries</div>
-        <div class="menu-tile" onclick="alert('Staff Pass')">🚪<br>Staff Pass</div>
-        <div class="menu-tile" onclick="alert('My Window')">💻<br>My Window</div>
-        <div class="menu-tile qr-tile" onclick="alert('QR Scanner')">📱<br>QR Scanner</div>
-    </div>
+    <div class="menu-tile" onclick="runAction('registerAnnouncements')">📢<br>Announcements</div>
+    <div class="menu-tile" onclick="runAction('registerCalendar')">📅<br>Calendar</div>
+    <div class="menu-tile" onclick="runAction('registerCourts')">🏀<br>Courts</div>
+    <div class="menu-tile" onclick="runAction('registerGuest')">✅<br>Guest Registration</div>
+    <div class="menu-tile" onclick="runAction('registerDeliveries')">🛵<br>Deliveries</div>
+    <div class="menu-tile" onclick="runAction('registerStaffPass')">🚪<br>Staff Pass</div>
+    <div class="menu-tile" onclick="runAction('getMyWindowData')">💻<br>My Window</div>
+    <div class="menu-tile qr-tile" onclick="runAction('openScanner')">📱<br>QR Scanner</div>
+</div>
 </div>
 
 <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
+    let currentUser = null; // ADD THIS LINE
 
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
@@ -64,12 +65,23 @@
 
         callBackend({ action: "login", email: email, password: password }, (data) => {
             if (data.result === "success") {
+                currentUser = data.user; // ADD THIS LINE
                 document.getElementById('welcomeMsg').innerText = "Hello, " + data.user.firstName;
                 document.getElementById('loginUI').classList.add('hidden');
                 document.getElementById('dashboardUI').classList.remove('hidden');
             } else {
                 alert(data.message);
             }
+        });
+    }
+
+    function runAction(action) { // ADD THIS FUNCTION
+        if (!currentUser) { 
+            alert("Please log in first."); 
+            return; 
+        }
+        callBackend({ action: action, email: currentUser.email }, (data) => {
+            alert("Status: " + data.result);
         });
     }
 </script>
