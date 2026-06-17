@@ -1,79 +1,63 @@
-/**
- * LA VISTA PORTAL - FRONTEND LOGIC
- * Add this script section to your index.html
- */
+<!DOCTYPE html>
+<html>
+<head>
+    <title>La Vista Portal</title>
+</head>
+<body>
 
-const APP_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
+    <div id="loginSection">
+        <input type="email" id="emailInput" placeholder="Email Address">
+        <input type="password" id="passwordInput" placeholder="Password">
+        <button onclick="performLogin()">Login</button>
+    </div>
 
-// 1. UPDATED LOGIN FUNCTION
-function performLogin() {
-  var email = document.getElementById("emailInput").value;
-  var password = document.getElementById("passwordInput").value;
+    <div id="deliverySection" style="display:none;">
+        <input type="text" id="riderNameInput" placeholder="Rider Name">
+        <button onclick="registerDelivery()">Pre-authorize Delivery</button>
+    </div>
 
-  var payload = {
-    action: "login",
-    email: email,
-    password: password
-  };
+    <script>
+        const APP_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
 
-  sendToAppsScript(payload, function(response) {
-    if (response.result === "success") {
-      // Save full profile returned from backend
-      localStorage.setItem("user", JSON.stringify(response.info));
-      alert("Login successful!");
-      showDashboard();
-    } else {
-      alert("Login failed: " + response.message);
-    }
-  });
-}
+        function performLogin() {
+            var email = document.getElementById("emailInput").value;
+            var password = document.getElementById("passwordInput").value;
+            var payload = { action: "login", email: email, password: password };
 
-// 2. UPDATED DELIVERY REGISTRATION
-function registerDelivery() {
-  var user = JSON.parse(localStorage.getItem("user"));
-  if (!user) { alert("Please log in first."); return; }
+            sendToAppsScript(payload, function(response) {
+                if (response.result === "success") {
+                    localStorage.setItem("user", JSON.stringify(response.info));
+                    alert("Login successful!");
+                    document.getElementById("loginSection").style.display = "none";
+                    document.getElementById("deliverySection").style.display = "block";
+                } else {
+                    alert("Login failed: " + response.message);
+                }
+            });
+        }
 
-  var payload = {
-    action: "registerDeliveryPreAuth",
-    surname: user.surname,
-    firstName: user.firstName,
-    address: user.address,
-    riderName: document.getElementById("riderNameInput").value
-  };
+        function registerDelivery() {
+            var user = JSON.parse(localStorage.getItem("user"));
+            var payload = {
+                action: "registerDeliveryPreAuth",
+                surname: user.surname,
+                firstName: user.firstName,
+                address: user.address,
+                riderName: document.getElementById("riderNameInput").value
+            };
+            sendToAppsScript(payload, function(response) {
+                if (response.result === "success") alert("Delivery pre-authorized!");
+                else alert("Error: " + response.message);
+            });
+        }
 
-  sendToAppsScript(payload, function(response) {
-    if (response.result === "success") {
-      alert("Delivery successfully pre-authorized!");
-    } else {
-      alert("Delivery error: " + response.message);
-    }
-  });
-}
-
-// 3. CORE COMMUNICATION WRAPPER
-function sendToAppsScript(payload, callback) {
-  var url = APP_URL + "?callback=handleResponse&payload=" + encodeURIComponent(JSON.stringify(payload));
-  
-  // Use a global callback function to handle JSONP
-  window.handleResponse = callback;
-  
-  var script = document.createElement('script');
-  script.src = url;
-  document.body.appendChild(script);
-}
-
-// 4. LOAD DASHBOARD DATA
-function loadMyWindow() {
-  var user = JSON.parse(localStorage.getItem("user"));
-  var payload = {
-    action: "getMyWindowData",
-    email: user.email,
-    address: user.address
-  };
-
-  sendToAppsScript(payload, function(response) {
-    if (response.result === "success") {
-      renderDashboard(response.records);
-    }
-  });
-}
+        function sendToAppsScript(payload, callback) {
+            var url = APP_URL + "?callback=handleResponse&payload=" + encodeURIComponent(JSON.stringify(payload));
+            window.handleResponse = callback;
+            var script = document.createElement('script');
+            script.src = url;
+            document.body.appendChild(script);
+        }
+    </script>
+</body>
+</html>
