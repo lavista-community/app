@@ -35,7 +35,9 @@
     </div>
     <div class="menu-grid">
         <div class="menu-tile" onclick="showSection('deliverySection')"><i class="bi bi-scooter text-indigo"></i>Deliveries</div>
-        </div>
+        <div class="menu-tile" onclick="showSection('guestSection')"><i class="bi bi-journal-check text-success"></i>Guest Reg</div>
+        <div class="menu-tile" onclick="showSection('staffSection')"><i class="bi bi-door-open text-info"></i>Staff Pass</div>
+    </div>
     <div class="text-center py-4"><button class="btn btn-link text-danger" onclick="logout()">Logout</button></div>
 </div>
 
@@ -45,12 +47,12 @@
         <input type="text" id="riderNameInput" class="form-control" placeholder="Courier Name">
         <input type="date" id="deliveryDateInput" class="form-control">
         <button onclick="submitDelivery()" id="deliveryBtn" class="btn btn-primary w-100">Log Delivery</button>
-        <button onclick="showSection('dashboardUI')" class="btn btn-link w-100 mt-2">Back</button>
+        <button onclick="showSection('dashboardUI')" class="btn btn-link w-100 mt-2 text-muted">Back</button>
     </div>
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = "YOUR_APPS_SCRIPT_URL_HERE/exec"; // IMPORTANT: Update this
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
     let currentUser = null;
 
     function callBackend(params, callback) {
@@ -87,7 +89,7 @@
         });
     }
 
-    function attemptLogin() { /* Your login logic */ }
+    function attemptLogin() { /* Fill with your login validation logic */ }
     function logout() { location.reload(); }
 </script>
 </body>
