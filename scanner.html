@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Vista Gate Entry Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212; 
+            color: #ffffff;
+            text-align: center;
+        }
+        .wrapper {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        h2 {
+            margin-bottom: 5px;
+            font-size: 1.6rem;
+            letter-spacing: 0.5px;
+        }
+        .subtitle {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+        #reader {
+            width: 100%;
+            background: #1e1e1e;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #333333 !important;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        #reader__dashboard_section_csr button, #reader__dashboard_section_swaplink {
+            background-color: #2563eb !important;
+            color: white !important;
+            border: none !important;
+            padding: 10px 20px !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            display: inline-block !important;
+            margin: 10px 0 !important;
+        }
+        #reader__camera_selection {
+            padding: 8px !important;
+            background: #2a2a2a !important;
+            color: white !important;
+            border: 1px solid #444 !important;
+            border-radius: 6px !important;
+            margin-bottom: 10px !important;
+        }
+        .form-container {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 16px;
+            margin-top: 20px;
+            text-align: left;
+            border: 1px solid #2a2a2a;
+            display: none;
+        }
+        .form-container.visible {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        .btn-submit {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .btn-submit:disabled {
+            opacity: 0.7;
+        }
+        #feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-align: center;
+            display: none;
+        }
+        .status-success { background: #065f46; color: #34d399; }
+        .status-error { background: #991b1b; color: #fca5a5; }
+        .status-warning { background: #854d0e; color: #fde047; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <h2>LA VISTA</h2>
+        <p class="subtitle">Gate Entry Verification System</p>
+
+        <div id="reader"></div>
+
+        <div id="processingForm" class="form-container">
+            <div class="form-group">
+                <label id="identityLabel">Scanned Credential Token</label>
+                <input type="text" id="tokenDisplay" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>Checkpoint Action Type</label>
+                <select id="movementType">
+                    <option value="Vehicle">Vehicle Entry Check</option>
+                    <option value="Walk-in">Walk-in Entry Check</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Plate Number / Identification Tag</label>
+                <input type="text" id="plateNumber" placeholder="e.g., NQR 1234 or N/A" value="RIDER">
+            </div>
+
+            <div id="feedback"></div>
+
+            <button id="submitBtn" class="btn-submit" onclick="commitGateLog()">Authorize Gate Pass</button>
+        </div>
+    </div>
+
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
+        
+        let activeScannedId = "";
+        let html5QrcodeScanner = null;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (activeScannedId === decodedText) return; 
+            activeScannedId = decodedText;
+            
+            try {
+                let context = new (window.AudioContext || window.webkitAudioContext)();
+                let osc = context.createOscillator();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(880, context.currentTime);
+                osc.connect(context.destination);
+                osc.start();
+                osc.stop(context.currentTime + 0.12);
+            } catch(e) {}
+
+            document.getElementById("tokenDisplay").value = decodedText;
+            document.getElementById("processingForm").classList.add("visible");
+            clearFeedback();
+        }
+
+        function onScanFailure(error) {}
+
+        window.addEventListener("DOMContentLoaded", () => {
+            html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
+                fps: 10, 
+                qrbox: { width: 250, height: 250 },
+                rememberLastUsedCamera: true
+            });
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        });
+
+        function commitGateLog() {
+            const submitBtn = document.getElementById("submitBtn");
+            const movement = document.getElementById("movementType").value;
+            const plate = document.getElementById("plateNumber").value;
+
+            submitBtn.innerText = "Requesting Clearance...";
+            submitBtn.disabled = true;
+            clearFeedback();
+
+            const callbackName = "jsonp_gate_" + Math.floor(Math.random() * 100000);
+            window[callbackName] = function(data) {
+                submitBtn.innerText = "Authorize Gate Pass";
+                submitBtn.disabled = false;
+
+                if (data.result === "success") {
+                    showFeedback("ENTRY GRANTED! Record synchronized successfully.", "status-success");
+                    setTimeout(() => { resetScannerForm(); }, 3000);
+                } else if (data.result === "unregistered") {
+                    showFeedback("UNREGISTERED PASS! Direct provider to scan layout onboarding sheet.", "status-warning");
+                } else {
+                    showFeedback(data.message || "Access Refused! Token validation failure.", "status-error");
+                }
+
+                delete window[callbackName];
+                document.getElementById(callbackName).remove();
+            };
+
+            const script = document.createElement("script");
+            script.id = callbackName;
+            script.src = `${APPS_SCRIPT_URL}?callback=${callbackName}&action=confirmArrival&qrId=${encodeURIComponent(activeScannedId)}&movementType=${encodeURIComponent(movement)}&plate=${encodeURIComponent(plate)}`;
+            document.body.appendChild(script);
+        }
+
+        function showFeedback(text, className) {
+            const fb = document.getElementById("feedback");
+            fb.innerText = text;
+            fb.className = className;
+            fb.style.display = "block";
+        }
+
+        function clearFeedback() {
+            const fb = document.getElementById("feedback");
+            fb.style.display = "none";
+            fb.className = "";
+            fb.innerText = "";
+        }
+
+        function resetScannerForm() {
+            activeScannedId = "";
+            document.getElementById("tokenDisplay").value = "";
+            document.getElementById("plateNumber").value = "RIDER";
+            document.getElementById("processingForm").classList.remove("visible");
+            clearFeedback();
+        }
+    </script>
+</body>
+</html>
