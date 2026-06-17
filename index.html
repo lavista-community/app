@@ -64,8 +64,31 @@
     }
 
     function showSection(id) {
-        document.querySelectorAll('body > div').forEach(div => div.classList.add('hidden'));
+        document.getElementById('loginUI').classList.add('hidden');
+        document.getElementById('dashboardUI').classList.add('hidden');
+        document.getElementById('deliverySection').classList.add('hidden');
         document.getElementById(id).classList.remove('hidden');
+    }
+
+    function attemptLogin() {
+        const email = document.getElementById('emailInput').value;
+        const btn = document.getElementById('loginBtn');
+        if (!email) { alert("Please enter email"); return; }
+        
+        btn.innerText = "Signing in...";
+        btn.disabled = true;
+        
+        callBackend({ action: "getUserData", email: email }, (data) => {
+            btn.innerText = "Sign In";
+            btn.disabled = false;
+            if (data.result === "success") {
+                currentUser = data;
+                document.getElementById('welcomeMsg').innerText = "Hello, " + data.info.firstName + "!";
+                showSection('dashboardUI');
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
     }
 
     function submitDelivery() {
@@ -89,7 +112,6 @@
         });
     }
 
-    function attemptLogin() { /* Fill with your login validation logic */ }
     function logout() { location.reload(); }
 </script>
 </body>
