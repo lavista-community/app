@@ -1,43 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Vista Portal</title>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; width: 100%; max-width: 400px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        body { font-family: -apple-system, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 400px; width: 100%; }
         .page { display: none; }
-        .tile { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; cursor: pointer; }
-        input { width: 100%; padding: 10px; margin: 5px 0; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; margin-top: 10px; }
+        #loginPage { display: block; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .tile { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="loginPage" class="card page" style="display:block;">
-        <h2>Login</h2>
-        <input type="email" id="emailInput" placeholder="Email">
-        <input type="password" id="passwordInput" placeholder="Password">
-        <button onclick="performLogin()">Login</button>
-    </div>
+    <div class="container">
+        <div id="loginPage" class="page">
+            <div class="header"><h2>Login</h2></div>
+            <input type="email" id="emailInput" placeholder="Email">
+            <input type="password" id="passwordInput" placeholder="Password">
+            <button onclick="performLogin()">Login</button>
+        </div>
 
-    <div id="dashboardPage" class="card page">
-        <h2>Dashboard</h2>
-        <div class="tile" onclick="showSection('deliverySection')">📦 Delivery Pre-Auth</div>
-        <div class="tile" onclick="showSection('guestSection')">👤 Guest Registration</div>
-        <button onclick="logout()" style="background:#dc3545;">Logout</button>
-    </div>
+        <div id="dashboardPage" class="page">
+            <div class="header"><h2 id="userNameDisplay">Hello</h2></div>
+            <div class="grid">
+                <div class="tile">📢<br>Announcements</div>
+                <div class="tile">📅<br>Calendar</div>
+                <div class="tile">🏀<br>Courts</div>
+                <div class="tile">✅<br>Guest Reg</div>
+                <div class="tile" onclick="showSection('deliverySection')">📦<br>Deliveries</div>
+                <div class="tile">🚪<br>Staff Pass</div>
+                <div class="tile">💻<br>My Window</div>
+                <div class="tile">📷<br>QR Scanner</div>
+            </div>
+            <button style="margin-top:20px; background:#dc3545;" onclick="logout()">Logout</button>
+        </div>
 
-    <div id="deliverySection" class="card page">
-        <button onclick="showSection('dashboardPage')">← Back</button>
-        <h3>Pre-authorize Delivery</h3>
-        <input type="text" id="riderNameInput" placeholder="Rider Name">
-        <button onclick="registerDelivery()">Submit</button>
-    </div>
-
-    <div id="guestSection" class="card page">
-        <button onclick="showSection('dashboardPage')">← Back</button>
-        <h3>Guest Registration</h3>
-        <input type="text" id="guestNameInput" placeholder="Guest Name">
-        <button onclick="registerGuest()">Register Guest</button>
+        <div id="deliverySection" class="page">
+            <div class="header"><h3>📦 Pre-authorize Delivery</h3></div>
+            <input type="text" id="riderNameInput" placeholder="Rider Name">
+            <button onclick="registerDelivery()">Submit</button>
+            <button style="margin-top:10px; background:#6c757d;" onclick="showSection('dashboardPage')">Back</button>
+        </div>
     </div>
 
     <script>
@@ -53,15 +62,16 @@
             sendToAppsScript(payload, function(res) {
                 if (res.result === "success") {
                     localStorage.setItem("user", JSON.stringify(res.info));
+                    document.getElementById("userNameDisplay").innerText = "Hello, " + res.info.firstName;
                     showSection('dashboardPage');
-                } else { alert(res.message); }
+                } else { alert("Login failed: " + res.message); }
             });
         }
 
         function registerDelivery() {
             var user = JSON.parse(localStorage.getItem("user"));
             var payload = { action: "registerDeliveryPreAuth", surname: user.surname, firstName: user.firstName, address: user.address, riderName: document.getElementById("riderNameInput").value };
-            sendToAppsScript(payload, function(res) { alert(res.result === "success" ? "Done!" : res.message); });
+            sendToAppsScript(payload, function(res) { alert(res.result === "success" ? "Authorized!" : res.message); });
         }
 
         function sendToAppsScript(payload, callback) {
