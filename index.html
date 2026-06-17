@@ -1,87 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Vista Portal</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; background-color: #f8f9fa; margin: 0; padding: 20px; display: flex; justify-content: center; }
-        .container { max-width: 400px; width: 100%; }
-        .page { display: none; }
-        #loginPage { display: block; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .tile { background: white; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; border: 1px solid #eee; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 8px; cursor: pointer; }
-    </style>
-</head>
-<body>
+<div class="menu-tile" onclick="showSection('deliverySection')">
+    <i class="bi bi-scooter icon-indigo"></i>Deliveries
+</div>
 
-    <div class="container">
-        <div id="loginPage" class="page">
-            <div class="header"><h2>Login</h2></div>
-            <input type="email" id="emailInput" placeholder="Email">
-            <input type="password" id="passwordInput" placeholder="Password">
-            <button onclick="performLogin()">Login</button>
-        </div>
-
-        <div id="dashboardPage" class="page">
-            <div class="header"><h2 id="userNameDisplay">Hello</h2></div>
-            <div class="grid">
-                <div class="tile">📢<br>Announcements</div>
-                <div class="tile">📅<br>Calendar</div>
-                <div class="tile">🏀<br>Courts</div>
-                <div class="tile">✅<br>Guest Reg</div>
-                <div class="tile" onclick="showSection('deliverySection')">📦<br>Deliveries</div>
-                <div class="tile">🚪<br>Staff Pass</div>
-                <div class="tile">💻<br>My Window</div>
-                <div class="tile">📷<br>QR Scanner</div>
-            </div>
-            <button style="margin-top:20px; background:#dc3545;" onclick="logout()">Logout</button>
-        </div>
-
-        <div id="deliverySection" class="page">
-            <div class="header"><h3>📦 Pre-authorize Delivery</h3></div>
-            <input type="text" id="riderNameInput" placeholder="Rider Name">
-            <button onclick="registerDelivery()">Submit</button>
-            <button style="margin-top:10px; background:#6c757d;" onclick="showSection('dashboardPage')">Back</button>
-        </div>
+<div id="deliverySection" class="hidden container py-4">
+    <div class="bg-white p-4 rounded-5 shadow-sm">
+        <h4 class="fw-bold mb-1 text-indigo">Delivery Pre-auth</h4>
+        <p class="text-muted small mb-4">Register an expected delivery for your residence.</p>
+        
+        <label class="form-label" for="riderNameInput">Rider/Courier Name</label>
+        <input type="text" id="riderNameInput" class="form-control" placeholder="Courier Name">
+        
+        <label class="form-label" for="deliveryDateInput">Expected Date</label>
+        <input type="date" id="deliveryDateInput" class="form-control">
+        
+        <button onclick="registerDelivery()" id="deliveryGenBtn" class="btn btn-indigo w-100 mt-2 fw-bold" style="background:#5856d6; color:white;">Authorize Delivery</button>
+        <button onclick="showDashboard()" class="btn btn-link text-muted mt-3 text-decoration-none d-block mx-auto small">Back</button>
     </div>
+</div>
 
-    <script>
-        const APP_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
-
-        function showSection(id) {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-        }
-
-        function performLogin() {
-            var payload = { action: "login", email: document.getElementById("emailInput").value, password: document.getElementById("passwordInput").value };
-            sendToAppsScript(payload, function(res) {
-                if (res.result === "success") {
-                    localStorage.setItem("user", JSON.stringify(res.info));
-                    document.getElementById("userNameDisplay").innerText = "Hello, " + res.info.firstName;
-                    showSection('dashboardPage');
-                } else { alert("Login failed: " + res.message); }
-            });
-        }
-
-        function registerDelivery() {
-            var user = JSON.parse(localStorage.getItem("user"));
-            var payload = { action: "registerDeliveryPreAuth", surname: user.surname, firstName: user.firstName, address: user.address, riderName: document.getElementById("riderNameInput").value };
-            sendToAppsScript(payload, function(res) { alert(res.result === "success" ? "Authorized!" : res.message); });
-        }
-
-        function sendToAppsScript(payload, callback) {
-            window.handleResponse = callback;
-            var script = document.createElement('script');
-            script.src = APP_URL + "?callback=handleResponse&payload=" + encodeURIComponent(JSON.stringify(payload));
-            document.body.appendChild(script);
-        }
-
-        function logout() { localStorage.clear(); location.reload(); }
-    </script>
-</body>
-</html>
+<script>
+    // ADD THIS FUNCTION TO YOUR SCRIPT SECTION
+    function registerDelivery() {
+        const name = document.getElementById('riderNameInput').value;
+        const date = document.getElementById('deliveryDateInput').value;
+        if (!name || !date) { alert("Please enter courier name and date."); return; }
+        
+        callBackend({
+            action: "registerDelivery", // Ensure this matches your GS function name
+            email: currentUser.info.email,
+            riderName: name,
+            date: date,
+            surname: currentUser.info.surname,
+            firstName: currentUser.info.firstName,
+            address: currentUser.info.address
+        }, (data) => {
+            if (data.result === "success") {
+                alert("Delivery Authorized!");
+                showDashboard();
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+    }
+</script>
