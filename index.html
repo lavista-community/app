@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Vista Village Portal</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f7f6; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 320px; text-align: center; }
-        h2 { color: #333; margin-bottom: 20px; }
+        body { font-family: sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; text-align: center; }
         input { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background: #218838; }
+        button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; margin-top: 10px; }
         .page { display: none; }
         #loginPage { display: block; }
+        .record-item { border-bottom: 1px solid #eee; padding: 10px 0; text-align: left; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -25,10 +24,11 @@
     </div>
 
     <div id="dashboardPage" class="container page">
-        <h2>Delivery Portal</h2>
+        <h2>My Deliveries</h2>
+        <div id="recordList"></div> <hr>
         <input type="text" id="riderNameInput" placeholder="Rider Name">
         <button onclick="registerDelivery()">Pre-authorize Delivery</button>
-        <button onclick="logout()" style="background:#dc3545; margin-top: 20px;">Logout</button>
+        <button onclick="logout()" style="background:#dc3545;">Logout</button>
     </div>
 
     <script>
@@ -37,48 +37,50 @@
         function performLogin() {
             var email = document.getElementById("emailInput").value;
             var password = document.getElementById("passwordInput").value;
-            var payload = { action: "login", email: email, password: password };
-
-            sendToAppsScript(payload, function(response) {
+            sendToAppsScript({action: "login", email: email, password: password}, function(response) {
                 if (response.result === "success") {
                     localStorage.setItem("user", JSON.stringify(response.info));
-                    alert("Login successful!");
-                    document.getElementById("loginPage").style.display = "none";
-                    document.getElementById("dashboardPage").style.display = "block";
-                } else {
-                    alert("Login failed: " + response.message);
-                }
+                    showDashboard();
+                } else { alert(response.message); }
+            });
+        }
+
+        function showDashboard() {
+            document.getElementById("loginPage").style.display = "none";
+            document.getElementById("dashboardPage").style.display = "block";
+            loadMyWindow();
+        }
+
+        function loadMyWindow() {
+            var user = JSON.parse(localStorage.getItem("user"));
+            sendToAppsScript({action: "getMyWindowData", address: user.address}, function(response) {
+                var list = document.getElementById("recordList");
+                list.innerHTML = "";
+                if (response.records && response.records.length > 0) {
+                    response.records.forEach(function(rec) {
+                        list.innerHTML += "<div class='record-item'><b>" + rec.name + "</b> - " + rec.status + "</div>";
+                    });
+                } else { list.innerHTML = "No active deliveries."; }
             });
         }
 
         function registerDelivery() {
             var user = JSON.parse(localStorage.getItem("user"));
-            if (!user) { alert("Please log in first."); return; }
-            var payload = {
-                action: "registerDeliveryPreAuth",
-                surname: user.surname,
-                firstName: user.firstName,
-                address: user.address,
-                riderName: document.getElementById("riderNameInput").value
-            };
-            sendToAppsScript(payload, function(response) {
-                if (response.result === "success") alert("Delivery pre-authorized!");
-                else alert("Error: " + response.message);
+            var rider = document.getElementById("riderNameInput").value;
+            sendToAppsScript({action: "registerDeliveryPreAuth", surname: user.surname, firstName: user.firstName, address: user.address, riderName: rider}, function(response) {
+                if (response.result === "success") { alert("Authorized!"); loadMyWindow(); }
+                else alert(response.message);
             });
         }
 
         function sendToAppsScript(payload, callback) {
-            var url = APP_URL + "?callback=handleResponse&payload=" + encodeURIComponent(JSON.stringify(payload));
             window.handleResponse = callback;
             var script = document.createElement('script');
-            script.src = url;
+            script.src = APP_URL + "?callback=handleResponse&payload=" + encodeURIComponent(JSON.stringify(payload));
             document.body.appendChild(script);
         }
 
-        function logout() {
-            localStorage.removeItem("user");
-            location.reload();
-        }
+        function logout() { localStorage.removeItem("user"); location.reload(); }
     </script>
 </body>
 </html>
