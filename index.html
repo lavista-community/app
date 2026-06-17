@@ -36,13 +36,16 @@
 </div>
 
 <script>
-    const APPS_SCRIPT_URL = "YOUR_DEPLOYED_URL_HERE"; 
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
     let currentUser = null;
 
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
-        window.loadData = (data) => { document.body.removeChild(script); callback(data); };
+        window.loadData = (data) => { 
+            document.body.removeChild(script); 
+            callback(data); 
+        };
         script.src = url;
         document.body.appendChild(script);
     }
@@ -61,7 +64,7 @@
                 document.getElementById('loginUI').classList.add('hidden');
                 document.getElementById('dashboardUI').classList.remove('hidden');
             } else {
-                alert(data.message);
+                alert(data.message || "Login failed. Please check your credentials.");
             }
         });
     }
