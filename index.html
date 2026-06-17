@@ -3,257 +3,583 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Vista Gate Entry Scanner</title>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <title>La Vista Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --primary-color: #0f172a;
+            --accent-orange: #f97316;
+            --bg-light: #f8fafc;
+            --card-border: rgba(226, 232, 240, 0.8);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: #334155;
+            padding-bottom: 60px;
+        }
+
+        .login-container {
+            max-width: 420px;
+            margin: 80px auto auto auto;
             padding: 20px;
-            background-color: #121212; 
-            color: #ffffff;
+        }
+
+        .brand-header {
             text-align: center;
+            margin-bottom: 35px;
         }
-        .wrapper {
-            max-width: 480px;
+
+        .brand-logo {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .brand-logo span {
+            color: var(--accent-orange);
+        }
+
+        .custom-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 25px rgba(15, 23, 42, 0.04);
+            padding: 30px;
+        }
+
+        .btn-primary-custom {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            font-weight: 600;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary-custom:hover {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        .dashboard-container {
+            max-width: 600px;
             margin: 0 auto;
+            padding: 20px;
         }
-        h2 {
-            margin-bottom: 5px;
-            font-size: 1.6rem;
-            letter-spacing: 0.5px;
+
+        .welcome-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 14px;
+            border: 1px solid var(--card-border);
         }
-        .subtitle {
-            color: #aaa;
-            font-size: 0.9rem;
-            margin-top: 0;
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
             margin-bottom: 25px;
         }
-        #reader {
-            width: 100%;
-            background: #1e1e1e;
+
+        .menu-tile {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
             border-radius: 16px;
-            overflow: hidden;
-            border: 2px solid #333333 !important;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-        }
-        #reader__dashboard_section_csr button, #reader__dashboard_section_swaplink {
-            background-color: #2563eb !important;
-            color: white !important;
-            border: none !important;
-            padding: 10px 20px !important;
-            border-radius: 8px !important;
-            cursor: pointer !important;
-            font-weight: 600 !important;
-            text-decoration: none !important;
-            display: inline-block !important;
-            margin: 10px 0 !important;
-        }
-        #reader__camera_selection {
-            padding: 8px !important;
-            background: #2a2a2a !important;
-            color: white !important;
-            border: 1px solid #444 !important;
-            border-radius: 6px !important;
-            margin-bottom: 10px !important;
-        }
-        .form-container {
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 16px;
-            margin-top: 20px;
-            text-align: left;
-            border: 1px solid #2a2a2a;
-            display: none;
-        }
-        .form-container.visible {
-            display: block;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            font-size: 0.85rem;
-            color: #aaa;
-            margin-bottom: 5px;
-            font-weight: 500;
-        }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            background: #2a2a2a;
-            border: 1px solid #333;
-            color: white;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #2563eb;
-        }
-        .btn-submit {
-            width: 100%;
-            background: #2563eb;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: background 0.2s;
-        }
-        .btn-submit:disabled {
-            opacity: 0.7;
-        }
-        #feedback {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            font-weight: 500;
+            padding: 25px 20px;
             text-align: center;
-            display: none;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.01);
         }
-        .status-success { background: #065f46; color: #34d399; }
-        .status-error { background: #991b1b; color: #fca5a5; }
-        .status-warning { background: #854d0e; color: #fde047; }
+
+        .menu-tile:active {
+            transform: scale(0.97);
+        }
+
+        .menu-tile i {
+            font-size: 2.2rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .icon-blue { color: #2563eb; }
+        .icon-orange { color: #f97316; }
+        .icon-green { color: #16a34a; }
+        .icon-purple { color: #7c3aed; }
+
+        .menu-tile-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
+
+        .feature-panel {
+            background: white;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+
+        .border-bottom-dashed {
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .xs-micro-text {
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 
-    <div class="wrapper">
-        <h2>LA VISTA</h2>
-        <p class="subtitle">Gate Entry Verification System</p>
-
-        <div id="reader"></div>
-
-        <div id="processingForm" class="form-container">
-            <div class="form-group">
-                <label id="identityLabel">Scanned Credential Token</label>
-                <input type="text" id="tokenDisplay" readonly>
-            </div>
-
-            <div class="form-group">
-                <label>Checkpoint Action Type</label>
-                <select id="movementType">
-                    <option value="Vehicle">Vehicle Entry Check</option>
-                    <option value="Walk-in">Walk-in Entry Check</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label>Plate Number / Identification Tag</label>
-                <input type="text" id="plateNumber" placeholder="e.g., NQR 1234 or N/A" value="RIDER">
-            </div>
-
-            <div id="feedback"></div>
-
-            <button id="submitBtn" class="btn-submit" onclick="commitGateLog()">Authorize Gate Pass</button>
+    <div id="loginScreen" class="login-container">
+        <div class="brand-header">
+            <div class="brand-logo">LA VISTA<span>.</span></div>
+            <p class="text-muted small">Community Management Portal</p>
+        </div>
+        <div class="custom-card">
+            <h4 class="fw-bold mb-3 text-dark">Sign In</h4>
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Email Address</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="name@domain.com" required>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-medium">Password</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" id="loginSubmitBtn" class="btn btn-primary-custom w-100">Verify Identity</button>
+            </form>
         </div>
     </div>
 
-    <script>
-        // Bound active microservice processing pipeline link
-        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
-        
-        let activeScannedId = "";
-        let html5QrcodeScanner = null;
+    <div id="dashboardScreen" class="dashboard-container hidden">
+        <div class="welcome-bar">
+            <div>
+                <div class="text-muted small">Logged in as</div>
+                <div class="fw-bold text-dark" id="userDisplayName">User Profile</div>
+            </div>
+            <button class="btn btn-sm btn-outline-danger px-3 rounded-pill fw-medium" onclick="handleLogout()">Logout</button>
+        </div>
 
-        function onScanSuccess(decodedText, decodedResult) {
-            if (activeScannedId === decodedText) return; 
-            activeScannedId = decodedText;
+        <div id="superAdminMenu" class="menu-grid hidden">
+            <div class="menu-tile" onclick="openFeature('scannerPanel')">
+                <i class="bi bi-qr-code-scan icon-blue"></i>
+                <div class="menu-tile-title">Gate Scanner</div>
+            </div>
+            <div class="menu-tile" onclick="openFeature('myWindowPanel')">
+                <i class="bi bi-window-stack icon-purple"></i>
+                <div class="menu-tile-title">My Guests</div>
+            </div>
+        </div>
+
+        <div id="residentMenu" class="menu-grid hidden">
+            <div class="menu-tile" onclick="openFeature('myWindowPanel')">
+                <i class="bi bi-window-stack icon-purple"></i>
+                <div class="menu-tile-title">My Guests</div>
+            </div>
+            <div class="menu-tile">
+                <i class="bi bi-dribbble icon-orange"></i>
+                <div class="menu-tile-title">Courts</div>
+            </div>
+        </div>
+
+        <div id="scannerPanel" class="feature-panel hidden">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold text-dark m-0"><i class="bi bi-qr-code-scan me-2"></i>Gate Control Hub</h5>
+                <button class="btn btn-sm btn-secondary rounded-pill" onclick="showDashboard()">Back</button>
+            </div>
             
-            // Audio confirmation ping feedback cue
-            try {
-                let context = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = context.createOscillator();
-                osc.type = "sine";
-                osc.frequency.setValueAtTime(880, context.currentTime);
-                osc.connect(context.destination);
-                osc.start();
-                osc.stop(context.currentTime + 0.12);
-            } catch(e) {}
+            <div class="bg-light p-3 rounded-3 text-center mb-3 border">
+                <div class="small text-muted mb-2">Simulate Quick Verification Lookup</div>
+                <div class="input-group">
+                    <input type="text" id="mockQrInput" class="form-control text-center fw-bold" placeholder="Paste Token/QR ID Here">
+                    <button class="btn btn-dark" onclick="triggerMockScan()">Execute Scan</button>
+                </div>
+            </div>
 
-            document.getElementById("tokenDisplay").value = decodedText;
-            document.getElementById("processingForm").classList.add("visible");
-            clearFeedback();
-        }
+            <div id="guardScannerFormBlock" class="mt-4 p-3 border rounded-3 bg-white hidden">
+                <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2">Verification Records Matching</h6>
+                
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Movement Type</label>
+                    <select id="movementTypeSelect" class="form-select">
+                        <option value="Vehicle">Vehicle Entry</option>
+                        <option value="Walk-in">Walk-in Entry</option>
+                    </select>
+                </div>
 
-        function onScanFailure(error) {
-            // Silent drop of matrix camera misalignments
-        }
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Vehicle Plate / Rider Identifier</label>
+                    <input type="text" id="plateNumber" class="form-control" placeholder="e.g. ABC 1234">
+                </div>
 
-        // INITIALIZE LENS AT RUNTIME
-        window.addEventListener("DOMContentLoaded", () => {
-            html5QrcodeScanner = new Html5QrcodeScanner("reader", { 
-                fps: 10, 
-                qrbox: { width: 250, height: 250 },
-                rememberLastUsedCamera: true
-            });
-            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+                <div class="mb-3">
+                    <label class="form-label small fw-medium">Guest Surname Verification</label>
+                    <input type="text" id="scannedGuestSurname" class="form-control" placeholder="Cross-check identification">
+                </div>
+
+                <div id="fallbackInputs" class="p-2 bg-light border rounded mb-3 hidden">
+                    <div class="text-danger small fw-bold mb-2">Manual Courier Fallback Execution Mode</div>
+                    <div class="mb-2">
+                        <input type="text" id="fallbackBlockInput" class="form-control form-control-sm" placeholder="Resident Address (e.g. Blk 1)">
+                    </div>
+                    <div>
+                        <input type="text" id="fallbackCompanyInput" class="form-control form-control-sm" placeholder="Courier Company (e.g. Grab)">
+                    </div>
+                </div>
+
+                <div id="scannerStatusFlash" class="alert alert-success text-center xs-micro-text py-2 hidden"></div>
+
+                <button id="confirmEntryBtn" class="btn btn-primary-custom w-100 mt-2" onclick="confirmArrival()">Confirm Entry</button>
+            </div>
+        </div>
+
+        <div id="myWindowPanel" class="feature-panel hidden">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold text-dark m-0"><i class="bi bi-window-stack me-2"></i>My Guests</h5>
+                <button class="btn btn-sm btn-secondary rounded-pill" onclick="showDashboard()">Back</button>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-medium">Target Schedule Date</label>
+                <input type="date" id="manifestDate" class="form-control" onchange="loadMyWindow()">
+            </div>
+
+            <div class="accordion border-0" id="myWindowAccordion">
+                <div class="card border mb-2 rounded-3 overflow-hidden">
+                    <div class="card-header bg-white p-2" id="headingGuests">
+                        <button class="btn btn-link text-decoration-none w-100 text-start text-dark fw-bold d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGuests">
+                            <span><i class="bi bi-people me-2 text-primary"></i>Visitor Registrations</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </button>
+                    </div>
+                    <div id="collapseGuests" class="collapse show" data-bs-parent="#myWindowAccordion">
+                        <div class="card-body p-2 bg-light" id="myWindowGuestsList"></div>
+                    </div>
+                </div>
+
+                <div class="card border mb-2 rounded-3 overflow-hidden">
+                    <div class="card-header bg-white p-2" id="headingDeliveries">
+                        <button class="btn btn-link text-decoration-none w-100 text-start text-dark fw-bold d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDeliveries">
+                            <span><i class="bi bi-truck me-2 text-warning"></i>Pre-Authorized Deliveries</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </button>
+                    </div>
+                    <div id="collapseDeliveries" class="collapse" data-bs-parent="#myWindowAccordion">
+                        <div class="card-body p-2 bg-light" id="myWindowDeliveriesList"></div>
+                    </div>
+                </div>
+
+                <div class="card border mb-2 rounded-3 overflow-hidden">
+                    <div class="card-header bg-white p-2" id="headingStaff">
+                        <button class="btn btn-link text-decoration-none w-100 text-start text-dark fw-bold d-flex justify-content-between align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStaff">
+                            <span><i class="bi bi-person-badge me-2 text-success"></i>Household Staff Logs</span>
+                            <i class="bi bi-chevron-down small"></i>
+                        </button>
+                    </div>
+                    <div id="collapseStaff" class="collapse" data-bs-parent="#myWindowAccordion">
+                        <div class="card-body p-2 bg-light" id="myWindowStaffList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec";
+
+        let currentUser = null;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('manifestDate').value = todayStr;
         });
 
-        // EXECUTE BACKEND CLEARANCE VERIFICATION
-        function commitGateLog() {
-            const submitBtn = document.getElementById("submitBtn");
-            const movement = document.getElementById("movementType").value;
-            const plate = document.getElementById("plateNumber").value;
-
-            submitBtn.innerText = "Requesting Clearance...";
-            submitBtn.disabled = true;
-            clearFeedback();
-
-            // Direct fallback scanner URL query parameters injection matching backend
-            const callbackName = "jsonp_gate_" + Math.floor(Math.random() * 100000);
+        function callBackend(payload, callback) {
+            const callbackName = "jsonp_cb_" + Math.floor(Math.random() * 100000);
             window[callbackName] = function(data) {
-                submitBtn.innerText = "Authorize Gate Pass";
-                submitBtn.disabled = false;
-
-                if (data.result === "success") {
-                    showFeedback("ENTRY GRANTED! Record synchronized successfully.", "status-success");
-                    setTimeout(() => {
-                        resetScannerForm();
-                    }, 3000);
-                } else if (data.result === "unregistered") {
-                    showFeedback("UNREGISTERED PASS! Direct provider to scan layout onboarding sheet.", "status-warning");
-                } else {
-                    showFeedback(data.message || "Access Refused! Token validation failure.", "status-error");
-                }
-
+                callback(data);
                 delete window[callbackName];
                 document.getElementById(callbackName).remove();
             };
 
             const script = document.createElement("script");
             script.id = callbackName;
-            script.src = `${APPS_SCRIPT_URL}?callback=${callbackName}&action=confirmArrival&qrId=${encodeURIComponent(activeScannedId)}&movementType=${encodeURIComponent(movement)}&plate=${encodeURIComponent(plate)}`;
+            const targetUrl = APPS_SCRIPT_URL + "?callback=" + callbackName + "&payload=" + encodeURIComponent(JSON.stringify(payload));
+            script.src = targetUrl;
             document.body.appendChild(script);
         }
 
-        function showFeedback(text, className) {
-            const fb = document.getElementById("feedback");
-            fb.innerText = text;
-            fb.className = className;
-            fb.style.display = "block";
+        function callBackendLegacyLogin(email, password, callback) {
+            const callbackName = "jsonp_cb_login_" + Math.floor(Math.random() * 100000);
+            window[callbackName] = function(data) {
+                callback(data);
+                delete window[callbackName];
+                document.getElementById(callbackName).remove();
+            };
+
+            const script = document.createElement("script");
+            script.id = callbackName;
+            const targetUrl = APPS_SCRIPT_URL + "?callback=" + callbackName + "&action=login&email=" + encodeURIComponent(email) + "&password=" + encodeURIComponent(password);
+            script.src = targetUrl;
+            document.body.appendChild(script);
         }
 
-        function clearFeedback() {
-            const fb = document.getElementById("feedback");
-            fb.style.display = "none";
-            fb.className = "";
-            fb.innerText = "";
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const submitBtn = document.getElementById('loginSubmitBtn');
+
+            submitBtn.innerText = "Authenticating Context...";
+            submitBtn.disabled = true;
+
+            callBackendLegacyLogin(email, password, (data) => {
+                submitBtn.innerText = "Verify Identity";
+                submitBtn.disabled = false;
+
+                if (data.result === "success") {
+                    currentUser = data;
+                    document.getElementById('loginScreen').classList.add('hidden');
+                    document.getElementById('dashboardScreen').classList.remove('hidden');
+                    document.getElementById('userDisplayName').innerText = data.info.firstName + " " + data.info.lastName;
+
+                    if (data.role === "super admin") {
+                        document.getElementById('superAdminMenu').classList.remove('hidden');
+                        document.getElementById('residentMenu').classList.add('hidden');
+                    } else {
+                        document.getElementById('residentMenu').classList.remove('hidden');
+                        document.getElementById('superAdminMenu').classList.add('hidden');
+                    }
+                } else {
+                    alert(data.message || "Invalid account credentials.");
+                }
+            });
         }
 
-        function resetScannerForm() {
-            activeScannedId = "";
-            document.getElementById("tokenDisplay").value = "";
-            document.getElementById("plateNumber").value = "RIDER";
-            document.getElementById("processingForm").classList.remove("visible");
-            clearFeedback();
+        function handleLogout() {
+            currentUser = null;
+            document.getElementById('dashboardScreen').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('loginEmail').value = "";
+            document.getElementById('loginPassword').value = "";
+        }
+
+        function showDashboard() {
+            document.getElementById('scannerPanel').classList.add('hidden');
+            document.getElementById('myWindowPanel').classList.add('hidden');
+            
+            if (currentUser && currentUser.role === "super admin") {
+                document.getElementById('superAdminMenu').classList.remove('hidden');
+            } else {
+                document.getElementById('residentMenu').classList.remove('hidden');
+            }
+        }
+
+        function openFeature(panelId) {
+            document.getElementById('superAdminMenu').classList.add('hidden');
+            document.getElementById('residentMenu').classList.add('hidden');
+            document.getElementById(panelId).classList.remove('hidden');
+            
+            if (panelId === 'myWindowPanel') {
+                loadMyWindow();
+            }
+        }
+
+        function triggerMockScan() {
+            const mockToken = document.getElementById('mockQrInput').value.trim();
+            if (!mockToken) { alert("Please input a mock QR token."); return; }
+
+            window.lastScannedId = mockToken;
+            window.isBigPartyPass = false;
+            window.isStaffPassMode = false;
+            window.isManualCourierFallback = false;
+
+            document.getElementById('guardScannerFormBlock').classList.remove('hidden');
+            document.getElementById('fallbackInputs').classList.add('hidden');
+
+            if (mockToken.startsWith("BPP-")) {
+                window.isBigPartyPass = true;
+            } else if (mockToken.startsWith("LVS-")) {
+                window.isStaffPassMode = true;
+            }
+        }
+
+        function confirmArrival() {
+            const plate = document.getElementById('plateNumber').value;
+            const gSurname = document.getElementById('scannedGuestSurname').value;
+            const mType = document.getElementById('movementTypeSelect').value;
+            const fBlock = document.getElementById('fallbackBlockInput').value;
+            const fCompany = document.getElementById('fallbackCompanyInput').value;
+            
+            if (window.isBigPartyPass && !gSurname) { alert("Please enter the guest's surname."); return; }
+            if (window.isStaffPassMode && mType === "Vehicle" && !plate) { alert("Please enter the vehicle plate number."); return; }
+            if (window.isManualCourierFallback && (!fBlock || !fCompany)) { alert("Please fill in Address and Courier details."); return; }
+
+            document.getElementById('confirmEntryBtn').innerText = "Updating Guard Ledger...";
+            
+            let payload = {
+                action: "confirmArrival", 
+                qrId: window.lastScannedId, 
+                plate: plate || "RIDER",
+                guestSurname: gSurname,
+                movementType: mType,
+                isBppUI: window.isBigPartyPass ? "true" : "false"
+            };
+
+            if (window.isManualCourierFallback) {
+                payload.isManualCourier = "true";
+                payload.fallbackAddress = fBlock;
+                payload.fallbackCompany = fCompany;
+            }
+            
+            callBackend(payload, (data) => {
+                document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
+                if(data.result === "success") {
+                    const statusFlash = document.getElementById('scannerStatusFlash');
+                    
+                    if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
+                    else if (data.mode === "STAFF_ENTER") statusFlash.innerText = "Staff Pass Verified: ENTERED!";
+                    else if (data.mode === "GUEST_BPP") statusFlash.innerText = "Party Guest entry logged!";
+                    else if (data.mode === "DELIVERY_QR") statusFlash.innerText = "Delivery Token Validated!";
+                    else if (data.mode === "MANUAL_DELIVERY") statusFlash.innerText = "Unregistered courier logged manually!";
+                    else statusFlash.innerText = "Plate number validated!";
+                    
+                    statusFlash.classList.remove('hidden');
+                    document.getElementById('plateNumber').value = "";
+                    document.getElementById('scannedGuestSurname').value = "";
+                    document.getElementById('fallbackBlockInput').value = "";
+                    document.getElementById('fallbackCompanyInput').value = "";
+
+                    setTimeout(() => {
+                        statusFlash.classList.add('hidden');
+                        showDashboard();
+                    }, 2500);
+
+                } else if (data.result === "unregistered") {
+                    alert("Unregistered delivery provider pass! Opening entry override logs.");
+                    window.isManualCourierFallback = true;
+                    document.getElementById('fallbackInputs').classList.remove('hidden');
+                    document.getElementById('fallbackCompanyInput').value = data.riderName || "";
+                } else {
+                    alert(data.message || "An error occurred.");
+                    showDashboard();
+                }
+            });
+        }
+
+        function loadMyWindow() {
+            const selectedDate = document.getElementById('manifestDate').value;
+            const guestContainer = document.getElementById('myWindowGuestsList');
+            const deliveryContainer = document.getElementById('myWindowDeliveriesList');
+            const staffContainer = document.getElementById('myWindowStaffList');
+            
+            if (!currentUser || !currentUser.info) return;
+            
+            guestContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching entries...</div>';
+            deliveryContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching entries...</div>';
+            staffContainer.innerHTML = '<div class="text-muted text-center py-2">Fetching entries...</div>';
+
+            callBackend({ 
+                action: "getMyWindowData", 
+                email: currentUser.info.email, 
+                date: selectedDate 
+            }, (data) => {
+                if (data.result !== "success") {
+                    guestContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
+                    deliveryContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
+                    staffContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
+                    return;
+                }
+
+                let guestRecords = data.records.filter(r => r.category === "GUEST");
+                let deliveryRecords = data.records.filter(r => r.category === "DELIVERY");
+                let staffRecords = data.records.filter(r => r.category === "STAFF");
+
+                if (guestRecords.length === 0) {
+                    guestContainer.innerHTML = '<div class="text-muted text-center py-2">No entries logged for this date.</div>';
+                } else {
+                    let gHtml = '<div class="list-group list-group-flush">';
+                    guestRecords.forEach(item => {
+                        let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
+                        let cleanName = item.name.replace("BPP / ", "").replace("Party Guest: ", "");
+                        gHtml += `
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
+                                <div>
+                                    <div class="fw-bold text-dark">${cleanName}</div>
+                                    <div class="text-muted xs-micro-text">${item.type}</div>
+                                </div>
+                                <div><span class="badge ${badgeClass} text-uppercase p-2">${item.status}</span></div>
+                            </div>
+                        `;
+                    });
+                    gHtml += '</div>';
+                    guestContainer.innerHTML = gHtml;
+                }
+
+                if (deliveryRecords.length === 0) {
+                    deliveryContainer.innerHTML = '<div class="text-muted text-center py-2">No active delivery entries.</div>';
+                } else {
+                    let dHtml = '<div class="list-group list-group-flush">';
+                    deliveryRecords.forEach(item => {
+                        let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
+                        dHtml += `
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
+                                <div>
+                                    <div class="fw-bold text-dark">${item.name}</div>
+                                    <div class="text-muted xs-micro-text">${item.type}</div>
+                                </div>
+                                <div><span class="badge ${badgeClass} text-uppercase p-2">${item.status}</span></div>
+                            </div>
+                        `;
+                    });
+                    dHtml += '</div>';
+                    deliveryContainer.innerHTML = dHtml;
+                }
+
+                if (staffRecords.length === 0) {
+                    staffContainer.innerHTML = '<div class="text-muted text-center py-2">No active staff logs for this date.</div>';
+                } else {
+                    let sHtml = '<div class="list-group list-group-flush">';
+                    staffRecords.forEach(item => {
+                        let badgeColor = "bg-warning text-dark"; 
+                        if (item.status === "EXITED") badgeColor = "bg-danger text-white"; 
+                        if (item.status === "ENTERED") badgeColor = "bg-success text-white"; 
+                        
+                        sHtml += `
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed">
+                                <div>
+                                    <div class="fw-bold text-dark">${item.name}</div>
+                                    <div class="text-muted xs-micro-text">${item.type}</div>
+                                </div>
+                                <div><span class="badge ${badgeColor} text-uppercase p-2" style="font-weight:700; border-radius:6px;">${item.status}</span></div>
+                            </div>
+                        `;
+                    });
+                    sHtml += '</div>';
+                    staffContainer.innerHTML = sHtml;
+                }
+            });
         }
     </script>
 </body>
