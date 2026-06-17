@@ -9,10 +9,25 @@
     <style>
         body { background-color: #f8f9fa; font-family: -apple-system, sans-serif; }
         .hidden { display: none !important; }
-        .login-card { background: white; border-radius: 20px; padding: 30px; width: 90%; max-width: 400px; margin: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
-        .menu-tile { background: white; border-radius: 20px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; aspect-ratio: 1/1; font-weight: 500; font-size: 14px; }
-        .menu-tile i { font-size: 32px; margin-bottom: 8px; }
+        .login-card { background: white; border-radius: 20px; padding: 30px; width: 90%; max-width: 400px; margin: 40px auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        /* Updated Grid to keep tiles compact */
+        .dashboard-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .menu-tile { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            text-align: center; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); 
+            cursor: pointer; 
+            height: 140px; /* Fixed height to stop them from stretching */
+        }
+        .menu-tile i { font-size: 28px; margin-bottom: 8px; }
         .qr-tile { background: #212529; color: white; }
         .form-control { border-radius: 10px; padding: 12px; margin-bottom: 10px; }
     </style>
@@ -28,9 +43,11 @@
     </div>
 </div>
 
-<div id="dashboardUI" class="hidden container pt-4">
-    <h3 class="text-center text-primary">Hello, Boc</h3>
-    <p class="text-center text-muted">La Vista Community Services</p>
+<div id="dashboardUI" class="hidden dashboard-container">
+    <div class="text-center py-4">
+        <h3 class="text-primary">Hello, Boc</h3>
+        <p class="text-muted">La Vista Community Services</p>
+    </div>
     <div class="menu-grid">
         <div class="menu-tile"><i class="bi bi-megaphone text-primary"></i>Announcements</div>
         <div class="menu-tile"><i class="bi bi-calendar-event text-danger"></i>Calendar</div>
