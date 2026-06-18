@@ -8,14 +8,25 @@
     <style>
         body { background-color: #f7f7f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .hidden { display: none !important; }
-        /* Login Styles */
-        .login-card { background: white; border-radius: 28px; padding: 40px 30px; margin: 100px auto; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        /* Dashboard Styles */
-        .header { text-align: center; padding: 40px 20px; }
-        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; max-width: 600px; margin: 0 auto; }
-        .menu-tile { background: white; border-radius: 24px; padding: 25px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s; }
-        .menu-tile:active { transform: scale(0.98); }
+        
+        /* Layout Blocks */
+        .login-card, .app-card { background: white; border-radius: 24px; padding: 30px 20px; margin: 30px auto; width: 95%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        .login-card { margin-top: 100px; max-width: 400px; }
+        
+        /* Dashboard Grid */
+        .header { text-align: center; padding: 30px 20px 15px 20px; }
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; max-width: 500px; margin: 0 auto; }
+        .menu-tile { background: white; border-radius: 22px; padding: 25px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s; font-weight: 500; font-size: 15px; color: #333; }
+        .menu-tile:active { transform: scale(0.97); }
         .qr-tile { background: #1a1a1a; color: white; }
+        
+        /* Utility Styles */
+        .back-btn { font-size: 14px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; margin-bottom: 20px; color: #007aff; cursor: pointer; }
+        .border-bottom-dashed { border-bottom: 1px dashed #e9ecef; }
+        .xs-micro-text { font-size: 11px; color: #6c757d; }
+        .status-flash-banner { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; }
+        .mock-pill { cursor: pointer; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid #dee2e6; background: #fff; margin: 3px; display: inline-block; }
+        .mock-pill:hover { background: #f1f3f5; }
     </style>
 </head>
 <body>
@@ -26,35 +37,160 @@
         <p class="text-muted small mb-4">Resident Portal</p>
         <input type="email" id="emailInput" class="form-control text-center mb-2" placeholder="Email">
         <input type="password" id="passwordInput" class="form-control text-center mb-3" placeholder="Password">
-        <button onclick="attemptLogin()" class="btn btn-primary w-100">Sign In</button>
+        <button onclick="attemptLogin()" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Sign In</button>
     </div>
 </div>
 
 <div id="dashboardUI" class="hidden">
     <div class="header">
-        <h2 id="welcomeMsg" class="fw-bold text-primary"></h2>
-        <p class="text-muted">La Vista Community Services</p>
+        <h2 id="welcomeMsg" class="fw-bold text-primary mb-1"></h2>
+        <p class="text-muted small">La Vista Community Services</p>
     </div>
     <div class="menu-grid">
-    <div class="menu-tile" onclick="runAction('registerAnnouncements')">📢<br>Announcements</div>
-    <div class="menu-tile" onclick="runAction('registerCalendar')">📅<br>Calendar</div>
-    <div class="menu-tile" onclick="runAction('registerCourts')">🏀<br>Courts</div>
-    <div class="menu-tile" onclick="runAction('registerGuest')">✅<br>Guest Registration</div>
-    <div class="menu-tile" onclick="runAction('registerDeliveries')">🛵<br>Deliveries</div>
-    <div class="menu-tile" onclick="runAction('registerStaffPass')">🚪<br>Staff Pass</div>
-    <div class="menu-tile" onclick="runAction('getMyWindowData')">💻<br>My Window</div>
-    <div class="menu-tile qr-tile" onclick="runAction('openScanner')">📱<br>QR Scanner</div>
+        <div class="menu-tile" onclick="showView('placeholderUI')">📢<br><span class="mt-1">Announcements</span></div>
+        <div class="menu-tile" onclick="showView('placeholderUI')">📅<br><span class="mt-1">Calendar</span></div>
+        <div class="menu-tile" onclick="showView('placeholderUI')">🏀<br><span class="mt-1">Courts</span></div>
+        <div class="menu-tile" onclick="showView('guestRegistrationUI')">✅<br><span class="mt-1">Guest Registration</span></div>
+        <div class="menu-tile" onclick="showView('placeholderUI')">🛵<br><span class="mt-1">Deliveries</span></div>
+        <div class="menu-tile" onclick="showView('staffPassUI')">🚪<br><span class="mt-1">Staff Pass</span></div>
+        <div class="menu-tile" onclick="openMyWindowView()">💻<br><span class="mt-1">MY GUESTS</span></div>
+        <div class="menu-tile qr-tile" onclick="openScannerUI()">📱<br><span class="mt-1">QR Scanner</span></div>
+    </div>
 </div>
+
+<div id="guestRegistrationUI" class="container hidden">
+    <div class="app-card">
+        <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
+        <h4 class="fw-bold text-dark mb-1">Guest Registration</h4>
+        <p class="text-muted small mb-4">Generate an access pass for an upcoming visitor.</p>
+        
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Guest Full Name</label>
+            <input type="text" id="regGuestName" class="form-control" placeholder="e.g. Juan Dela Cruz" style="border-radius: 10px;">
+        </div>
+        <div class="mb-4">
+            <label class="form-label small fw-bold">Pass Mode Classification</label>
+            <select id="regGuestType" class="form-select" style="border-radius: 10px;">
+                <option value="Standard QR Pass">Standard QR Pass</option>
+                <option value="Big Party Pass">Big Party Pass (Event Group)</option>
+            </select>
+        </div>
+        <button id="submitGuestBtn" onclick="submitGuestForm()" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Generate Entry Pass</button>
+    </div>
+</div>
+
+<div id="staffPassUI" class="container hidden">
+    <div class="app-card">
+        <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
+        <h4 class="fw-bold text-dark mb-1">Staff Pass Registration</h4>
+        <p class="text-muted small mb-4">Log authorized household workers or personnel listings.</p>
+        
+        <div class="mb-4">
+            <label class="form-label small fw-bold">Staff Member/Helper Name</label>
+            <input type="text" id="regStaffName" class="form-control" placeholder="e.g. Maria Santos" style="border-radius: 10px;">
+        </div>
+        <button id="submitStaffBtn" onclick="submitStaffForm()" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Authorize Staff Profile</button>
+    </div>
+</div>
+
+<div id="myWindowUI" class="container hidden">
+    <div class="app-card">
+        <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
+        <h4 class="fw-bold text-dark mb-1">My Window</h4>
+        <p class="text-muted small mb-3">Real-time domestic oversight tracking manifest logs.</p>
+        
+        <div class="mb-4">
+            <label class="form-label small fw-bold">Select Filter Tracking Date</label>
+            <input type="date" id="manifestDate" class="form-control" onchange="loadMyWindow()" style="border-radius: 10px;">
+        </div>
+
+        <h6 class="fw-bold text-primary mb-2">📋 Registered Guests</h6>
+        <div id="myWindowGuestsList" class="mb-4"></div>
+
+        <h6 class="fw-bold text-warning mb-2">🛵 Logged Deliveries</h6>
+        <div id="myWindowDeliveriesList" class="mb-4"></div>
+
+        <h6 class="fw-bold text-danger mb-2">🚪 Active Staff Logs</h6>
+        <div id="myWindowStaffList" class="mb-2"></div>
+    </div>
+</div>
+
+<div id="scannerUI" class="container hidden">
+    <div class="app-card">
+        <div class="back-btn" onclick="showView('dashboardUI')">← Close Scanner Terminal</div>
+        <h4 class="fw-bold text-dark mb-1">Gate Entry Terminal</h4>
+        <p class="text-muted small mb-3">Guard validation console for entry point monitoring.</p>
+        
+        <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
+
+        <div class="p-3 bg-light rounded-4 mb-3 text-center border">
+            <span class="text-muted d-block small mb-2 fw-bold">⚙️ Mock Scanning Pass Emulator Trigger:</span>
+            <div class="mock-pill" onclick="simulateScan('BPP')">Party Pass Scan</div>
+            <div class="mock-pill" onclick="simulateScan('STAFF')">Staff Pass Vehicle</div>
+            <div class="mock-pill" onclick="simulateScan('COURIER')">Courier Manual Fallback</div>
+        </div>
+
+        <hr class="my-3 text-muted">
+
+        <div class="mb-2">
+            <label class="form-label small fw-bold">Vehicle Plate Number</label>
+            <input type="text" id="plateNumber" class="form-control" placeholder="RIDER / Plate No.">
+        </div>
+        <div class="mb-2">
+            <label class="form-label small fw-bold">Guest Surname (Party Pass Only)</label>
+            <input type="text" id="scannedGuestSurname" class="form-control" placeholder="Required for Big Party Pass entries">
+        </div>
+        <div class="mb-3">
+            <label class="form-label small fw-bold">Movement Tracking Classification</label>
+            <select id="movementTypeSelect" class="form-select">
+                <option value="Vehicle">Vehicle Entry</option>
+                <option value="Walk-in">Walk-in Pedestrian</option>
+            </select>
+        </div>
+
+        <div class="p-3 bg-light rounded-4 mb-3 border">
+            <span class="text-dark d-block small mb-2 fw-bold text-uppercase" style="letter-spacing:0.5px;">⚠️ Manual Courier Entry Fields</span>
+            <div class="mb-2">
+                <input type="text" id="fallbackBlockInput" class="form-control form-control-sm" placeholder="Resident Address (e.g. Block 2 Lot 4)">
+            </div>
+            <div>
+                <input type="text" id="fallbackCompanyInput" class="form-control form-control-sm" placeholder="Logistics Agency (e.g. Grab/Lalamove)">
+            </div>
+        </div>
+
+        <button id="confirmEntryBtn" onclick="confirmArrival()" class="btn btn-dark w-100 py-2" style="border-radius: 12px;">Confirm Entry</button>
+    </div>
+</div>
+
+<div id="placeholderUI" class="container hidden">
+    <div class="app-card text-center py-5">
+        <span style="font-size: 48px;">🚧</span>
+        <h4 class="fw-bold mt-3 mb-1">Feature Coming Soon</h4>
+        <p class="text-muted small mb-4">This module is currently under engineering implementation details inside AppSheet frameworks.</p>
+        <button onclick="showView('dashboardUI')" class="btn btn-primary px-4" style="border-radius: 10px;">Return Home</button>
+    </div>
 </div>
 
 <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
-    let currentUser = null; // ADD THIS LINE
+    let currentUser = null; 
+
+    // Unified client-side display page state toggler
+    function showView(viewId) {
+        const screens = ['loginUI', 'dashboardUI', 'guestRegistrationUI', 'staffPassUI', 'myWindowUI', 'scannerUI', 'placeholderUI'];
+        screens.forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        document.getElementById(viewId).classList.remove('hidden');
+    }
 
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
-        window.loadData = (data) => { document.body.removeChild(script); callback(data); };
+        window.loadData = (data) => { 
+            document.body.removeChild(script); 
+            callback(data); 
+        };
         script.src = url;
         document.body.appendChild(script);
     }
@@ -65,25 +201,219 @@
 
         callBackend({ action: "login", email: email, password: password }, (data) => {
             if (data.result === "success") {
-                currentUser = data.user; // ADD THIS LINE
+                currentUser = data.user; 
                 document.getElementById('welcomeMsg').innerText = "Hello, " + data.user.firstName;
-                document.getElementById('loginUI').classList.add('hidden');
-                document.getElementById('dashboardUI').classList.remove('hidden');
+                showView('dashboardUI');
             } else {
                 alert(data.message);
             }
         });
     }
 
-    function runAction(action) { // ADD THIS FUNCTION
-        if (!currentUser) { 
-            alert("Please log in first."); 
-            return; 
-        }
-        callBackend({ action: action, email: currentUser.email }, (data) => {
-            alert("Status: " + data.result);
+    /* =========================================================================
+       SUBMISSION DRIVERS (FORMS TO CODE.GS)
+       ========================================================================= */
+    function submitGuestForm() {
+        const name = document.getElementById('regGuestName').value;
+        const type = document.getElementById('regGuestType').value;
+        if (!name) { alert("Please input guest profile name details."); return; }
+
+        document.getElementById('submitGuestBtn').innerText = "Processing Pipeline...";
+        callBackend({ action: "registerGuest", email: currentUser.email, guestName: name, passType: type }, (data) => {
+            document.getElementById('submitGuestBtn').innerText = "Generate Entry Pass";
+            if(data.result === "success") {
+                alert("Pass successfully generated!");
+                document.getElementById('regGuestName').value = "";
+                showView('dashboardUI');
+            } else {
+                alert("Execution issue logging visitor registration.");
+            }
         });
     }
-</script>
-</body>
-</html>
+
+    function submitStaffForm() {
+        const name = document.getElementById('regStaffName').value;
+        if (!name) { alert("Please input staff worker profile listing name."); return; }
+
+        document.getElementById('submitStaffBtn').innerText = "Processing Pipeline...";
+        callBackend({ action: "registerStaffPass", email: currentUser.email, staffName: name }, (data) => {
+            document.getElementById('submitStaffBtn').innerText = "Authorize Staff Profile";
+            if(data.result === "success") {
+                alert("Staff member profile authorized successfully.");
+                document.getElementById('regStaffName').value = "";
+                showView('dashboardUI');
+            } else {
+                alert("Execution issue saving worker profile registration.");
+            }
+        });
+    }
+
+    /* =========================================================================
+       MOCK UTILITY: SCAN EMULATOR FOR TESTS
+       ========================================================================= */
+    function openScannerUI() {
+        // Clear old states entirely on window initialization
+        window.isBigPartyPass = false;
+        window.isStaffPassMode = false;
+        window.isManualCourierFallback = false;
+        window.lastScannedId = "";
+        
+        document.getElementById('scannerStatusFlash').classList.add('hidden');
+        showView('scannerUI');
+    }
+
+    function simulateScan(mode) {
+        // Reset state space parameters
+        window.isBigPartyPass = false;
+        window.isStaffPassMode = false;
+        window.isManualCourierFallback = false;
+        const flash = document.getElementById('scannerStatusFlash');
+        
+        if (mode === 'BPP') {
+            window.isBigPartyPass = true;
+            window.lastScannedId = "QR-BPP-7721";
+            flash.innerText = "Emulated Scan Event: Big Party Pass Detected! Enter Surname.";
+        } else if (mode === 'STAFF') {
+            window.isStaffPassMode = true;
+            window.lastScannedId = "QR-STAFF-1029";
+            flash.innerText = "Emulated Scan Event: Household Staff Pass Captured! Verify Vehicle.";
+        } else if (mode === 'COURIER') {
+            window.isManualCourierFallback = true;
+            window.lastScannedId = "MANUAL_ENTRY";
+            flash.innerText = "Emulated Scan Event: Unregistered Rider Fallback Interface Prompted.";
+        }
+        flash.classList.remove('hidden');
+    }
+
+    function openMyWindowView() {
+        // Auto-initialize filter to today's localized timezone value string match
+        const localDate = new Date().toISOString().split('T')[0];
+        document.getElementById('manifestDate').value = localDate;
+        
+        showView('myWindowUI');
+        loadMyWindow();
+    }
+
+    /* =========================================================================
+       USER SNAPSHOT HOOK FUNCTIONS (CONFIRM ARRIVAL & RELOAD WINDOW)
+       ========================================================================= */
+    function confirmArrival() {
+        const plate = document.getElementById('plateNumber').value;
+        const gSurname = document.getElementById('scannedGuestSurname').value;
+        const mType = document.getElementById('movementTypeSelect').value;
+        const fBlock = document.getElementById('fallbackBlockInput').value;
+        const fCompany = document.getElementById('fallbackCompanyInput').value;
+        
+        if (window.isBigPartyPass && !gSurname) { alert("Please enter the guest's surname."); return; }
+        if (window.isStaffPassMode && mType === "Vehicle" && !plate) { alert("Please enter the vehicle plate number."); return; }
+        if (window.isManualCourierFallback && (!fBlock || !fCompany)) { alert("Please fill in Resident Address and Courier Company details."); return; }
+
+        document.getElementById('confirmEntryBtn').innerText = "Updating Guard Ledger...";
+        
+        let payload = {
+            action: "confirmArrival", 
+            qrId: window.lastScannedId, 
+            plate: plate || "RIDER",
+            guestSurname: gSurname,
+            movementType: mType,
+            isBppUI: window.isBigPartyPass ? "true" : "false"
+        };
+
+        if (window.isManualCourierFallback) {
+            payload.isManualCourier = "true";
+            payload.fallbackAddress = fBlock;
+            payload.fallbackCompany = fCompany;
+        }
+        
+        callBackend(payload, (data) => {
+            document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
+            if(data.result === "success") {
+                const statusFlash = document.getElementById('scannerStatusFlash');
+                
+                if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
+                else if (data.mode === "STAFF_ENTER") statusFlash.innerText = "Staff Pass Verified: ENTERED!";
+                else if (data.mode === "GUEST_BPP") statusFlash.innerText = "Party Guest entry logged!";
+                else if (data.mode === "DELIVERY_QR") statusFlash.innerText = "Delivery Token Validated!";
+                else if (data.mode === "MANUAL_DELIVERY") statusFlash.innerText = "Unregistered courier logged manually!";
+                else statusFlash.innerText = "Plate number validated!";
+                
+                statusFlash.classList.remove('hidden');
+                document.getElementById('plateNumber').value = "";
+                document.getElementById('scannedGuestSurname').value = "";
+                document.getElementById('fallbackBlockInput').value = "";
+                document.getElementById('fallbackCompanyInput').value = "";
+            } else {
+                alert(data.message || "An error occurred.");
+                showView('dashboardUI');
+            }
+        });
+    }
+
+    function loadMyWindow() {
+        const selectedDate = document.getElementById('manifestDate').value;
+        const guestContainer = document.getElementById('myWindowGuestsList');
+        const deliveryContainer = document.getElementById('myWindowDeliveriesList');
+        const staffContainer = document.getElementById('myWindowStaffList');
+        
+        if (!currentUser) return;
+        
+        guestContainer.innerHTML = '<div class="text-muted text-center py-2 micro-text">Fetching entries...</div>';
+        deliveryContainer.innerHTML = '<div class="text-muted text-center py-2 micro-text">Fetching entries...</div>';
+        staffContainer.innerHTML = '<div class="text-muted text-center py-2 micro-text">Fetching entries...</div>';
+
+        callBackend({ 
+            action: "getMyWindowData", 
+            email: currentUser.email, 
+            date: selectedDate 
+        }, (data) => {
+            if (data.result !== "success") {
+                guestContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
+                deliveryContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
+                staffContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
+                return;
+            }
+
+            let guestRecords = data.records.filter(r => r.category === "GUEST");
+            let deliveryRecords = data.records.filter(r => r.category === "DELIVERY");
+            let staffRecords = data.records.filter(r => r.category === "STAFF");
+
+            // 1. GUESTS
+            if (guestRecords.length === 0) {
+                guestContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No entries logged for this date.</div>';
+            } else {
+                let gHtml = '<div class="list-group list-group-flush">';
+                guestRecords.forEach(item => {
+                    let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
+                    let cleanName = item.name.replace("BPP / ", "").replace("Party Guest: ", "");
+                    gHtml += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
+                            <div>
+                                <div class="fw-bold text-dark small">${cleanName}</div>
+                                <div class="xs-micro-text">${item.type}</div>
+                            </div>
+                            <div><span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size:10px; border-radius:6px;">${item.status}</span></div>
+                        </div>
+                    `;
+                });
+                gHtml += '</div>';
+                guestContainer.innerHTML = gHtml;
+            }
+
+            // 2. DELIVERIES
+            if (deliveryRecords.length === 0) {
+                deliveryContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No active delivery entries.</div>';
+            } else {
+                let dHtml = '<div class="list-group list-group-flush">';
+                deliveryRecords.forEach(item => {
+                    let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
+                    dHtml += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
+                            <div>
+                                <div class="fw-bold text-dark small">${item.name}</div>
+                                <div class="xs-micro-text">${item.type}</div>
+                            </div>
+                            <div><span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size:10px; border-radius:6px;">${item.status}</span></div>
+                        </div>
+                    `;
+                });
+                dHtml += '</div>';
