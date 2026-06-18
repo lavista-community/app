@@ -31,6 +31,7 @@
 </head>
 <body>
 
+<!-- 1. LOGIN INTERFACE -->
 <div id="loginUI" class="container">
     <div class="login-card text-center">
         <h2 class="fw-bold mb-1" style="color: #007aff;">La Vista</h2>
@@ -41,6 +42,7 @@
     </div>
 </div>
 
+<!-- 2. HOME MAIN DASHBOARD -->
 <div id="dashboardUI" class="hidden">
     <div class="header">
         <h2 id="welcomeMsg" class="fw-bold text-primary mb-1"></h2>
@@ -58,6 +60,7 @@
     </div>
 </div>
 
+<!-- 3. GUEST REGISTRATION FORM -->
 <div id="guestRegistrationUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -79,6 +82,7 @@
     </div>
 </div>
 
+<!-- 4. STAFF PASS FORM -->
 <div id="staffPassUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -93,6 +97,7 @@
     </div>
 </div>
 
+<!-- 5. RESIDENT MANIFEST VIEW ("MY GUESTS") -->
 <div id="myWindowUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -115,14 +120,17 @@
     </div>
 </div>
 
+<!-- 6. GUARD HOUSE SCANNING UI GATEWAY -->
 <div id="scannerUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Close Scanner Terminal</div>
         <h4 class="fw-bold text-dark mb-1">Gate Entry Terminal</h4>
         <p class="text-muted small mb-3">Guard validation console for entry point monitoring.</p>
         
+        <!-- Status Notification Banner -->
         <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
 
+        <!-- Simulation Control Blocks -->
         <div class="p-3 bg-light rounded-4 mb-3 text-center border">
             <span class="text-muted d-block small mb-2 fw-bold">⚙️ Mock Scanning Pass Emulator Trigger:</span>
             <div class="mock-pill" onclick="simulateScan('BPP')">Party Pass Scan</div>
@@ -132,6 +140,7 @@
 
         <hr class="my-3 text-muted">
 
+        <!-- Input Processing Fields -->
         <div class="mb-2">
             <label class="form-label small fw-bold">Vehicle Plate Number</label>
             <input type="text" id="plateNumber" class="form-control" placeholder="RIDER / Plate No.">
@@ -148,6 +157,7 @@
             </select>
         </div>
 
+        <!-- Courier Fallback Group Wrapper -->
         <div class="p-3 bg-light rounded-4 mb-3 border">
             <span class="text-dark d-block small mb-2 fw-bold text-uppercase" style="letter-spacing:0.5px;">⚠️ Manual Courier Entry Fields</span>
             <div class="mb-2">
@@ -162,6 +172,7 @@
     </div>
 </div>
 
+<!-- 7. FEATURE UNDER CONSTRUCTION VIEW -->
 <div id="placeholderUI" class="container hidden">
     <div class="app-card text-center py-5">
         <span style="font-size: 48px;">🚧</span>
@@ -210,9 +221,6 @@
         });
     }
 
-    /* =========================================================================
-       SUBMISSION DRIVERS (FORMS TO CODE.GS)
-       ========================================================================= */
     function submitGuestForm() {
         const name = document.getElementById('regGuestName').value;
         const type = document.getElementById('regGuestType').value;
@@ -248,11 +256,7 @@
         });
     }
 
-    /* =========================================================================
-       MOCK UTILITY: SCAN EMULATOR FOR TESTS
-       ========================================================================= */
     function openScannerUI() {
-        // Clear old states entirely on window initialization
         window.isBigPartyPass = false;
         window.isStaffPassMode = false;
         window.isManualCourierFallback = false;
@@ -263,7 +267,6 @@
     }
 
     function simulateScan(mode) {
-        // Reset state space parameters
         window.isBigPartyPass = false;
         window.isStaffPassMode = false;
         window.isManualCourierFallback = false;
@@ -286,7 +289,6 @@
     }
 
     function openMyWindowView() {
-        // Auto-initialize filter to today's localized timezone value string match
         const localDate = new Date().toISOString().split('T')[0];
         document.getElementById('manifestDate').value = localDate;
         
@@ -294,9 +296,6 @@
         loadMyWindow();
     }
 
-    /* =========================================================================
-       USER SNAPSHOT HOOK FUNCTIONS (CONFIRM ARRIVAL & RELOAD WINDOW)
-       ========================================================================= */
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value;
         const gSurname = document.getElementById('scannedGuestSurname').value;
@@ -377,7 +376,6 @@
             let deliveryRecords = data.records.filter(r => r.category === "DELIVERY");
             let staffRecords = data.records.filter(r => r.category === "STAFF");
 
-            // 1. GUESTS
             if (guestRecords.length === 0) {
                 guestContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No entries logged for this date.</div>';
             } else {
@@ -399,7 +397,6 @@
                 guestContainer.innerHTML = gHtml;
             }
 
-            // 2. DELIVERIES
             if (deliveryRecords.length === 0) {
                 deliveryContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No active delivery entries.</div>';
             } else {
@@ -417,3 +414,33 @@
                     `;
                 });
                 dHtml += '</div>';
+                deliveryContainer.innerHTML = dHtml;
+            }
+
+            if (staffRecords.length === 0) {
+                staffContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No active staff leave logs for this date.</div>';
+            } else {
+                let sHtml = '<div class="list-group list-group-flush">';
+                staffRecords.forEach(item => {
+                    let badgeColor = "bg-warning text-dark"; 
+                    if (item.status === "EXITED") badgeColor = "bg-danger text-white"; 
+                    if (item.status === "ENTERED") badgeColor = "bg-success text-white"; 
+                    
+                    sHtml += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
+                            <div>
+                                <div class="fw-bold text-dark small">${item.name}</div>
+                                <div class="text-muted xs-micro-text" style="font-size:11px;">${item.type}</div>
+                            </div>
+                            <div><span class="badge ${badgeColor} text-uppercase p-2" style="font-size:11px; font-weight:700; border-radius:6px;">${item.status}</span></div>
+                        </div>
+                    `;
+                });
+                sHtml += '</div>';
+                staffContainer.innerHTML = sHtml;
+            }
+        });
+    }
+</script>
+</body>
+</html>
