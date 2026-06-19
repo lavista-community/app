@@ -27,22 +27,40 @@
         .status-flash-banner { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; }
         .mock-pill { cursor: pointer; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid #dee2e6; background: #fff; margin: 3px; display: inline-block; }
         .mock-pill:hover { background: #f1f3f5; }
+
+        /* Pass Generation Tab Switches */
+        .toggle-btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .toggle-tab-btn { flex: 1; padding: 12px; border: 2px solid #cbd5e1; background: #fff; color: #64748b; font-weight: bold; border-radius: 12px; transition: 0.2s; cursor: pointer; font-size: 14px; }
+        .toggle-tab-btn.active-individual { background: #007aff; color: white; border-color: #007aff; }
+        .toggle-tab-btn.active-event { background: #e67e22; color: white; border-color: #e67e22; }
+
+        /* Digital Security Pass Receipt Container */
+        .secure-pass-frame { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); max-width: 340px; margin: 0 auto 20px auto; text-align: center; }
+        .secure-pass-header { font-weight: 800; font-size: 13px; color: #94a3b8; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 15px; }
+        .secure-pass-qr { width: 210px; height: 210px; margin: 0 auto 15px auto; display: block; border: 4px solid #f8fafc; padding: 5px; border-radius: 12px; }
+        .secure-pass-name { font-size: 21px; font-weight: 700; color: #1e293b; margin-bottom: 4px; word-wrap: break-word; }
+        .secure-pass-date { font-size: 14px; font-weight: 600; color: #64748b; }
+        .secure-pass-id { font-size: 13px; font-weight: 700; color: #007aff; font-family: monospace; margin-top: 5px; }
+        
+        @keyframes passFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-pass-receipt { animation: passFadeIn 0.4s ease-out forwards; }
     </style>
 </head>
 <body>
 
-<!-- 1. LOGIN INTERFACE -->
 <div id="loginUI" class="container">
     <div class="login-card text-center">
         <h2 class="fw-bold mb-1" style="color: #007aff;">La Vista</h2>
         <p class="text-muted small mb-4">Resident Portal</p>
-        <input type="email" id="emailInput" class="form-control text-center mb-2" placeholder="Email">
-        <input type="password" id="passwordInput" class="form-control text-center mb-3" placeholder="Password">
+        <input type="email" id="emailInput" class="form-control text-center mb-2" placeholder="Email" style="border-radius: 10px;">
+        <input type="password" id="passwordInput" class="form-control text-center mb-3" placeholder="Password" style="border-radius: 10px;">
         <button onclick="attemptLogin()" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Sign In</button>
     </div>
 </div>
 
-<!-- 2. HOME MAIN DASHBOARD -->
 <div id="dashboardUI" class="hidden">
     <div class="header">
         <h2 id="welcomeMsg" class="fw-bold text-primary mb-1"></h2>
@@ -60,29 +78,77 @@
     </div>
 </div>
 
-<!-- 3. GUEST REGISTRATION FORM -->
 <div id="guestRegistrationUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
-        <h4 class="fw-bold text-dark mb-1">Guest Registration</h4>
-        <p class="text-muted small mb-4">Generate an access pass for an upcoming visitor.</p>
         
-        <div class="mb-3">
-            <label class="form-label small fw-bold">Guest Full Name</label>
-            <input type="text" id="regGuestName" class="form-control" placeholder="e.g. Juan Dela Cruz" style="border-radius: 10px;">
+        <div id="passRegistrationWizardForm">
+            <h4 class="fw-bold text-dark mb-1">Guest Registration</h4>
+            <p class="text-muted small mb-4">Select classification to configure code authorizations.</p>
+            
+            <div class="toggle-btn-group">
+                <button type="button" id="tabBtnIndividual" class="toggle-tab-btn active-individual" onclick="toggleWizardPassType('Individual')">
+                    Individual Pass
+                </button>
+                <button type="button" id="tabBtnEvent" class="toggle-tab-btn" onclick="toggleWizardPassType('Event')">
+                    Event Pass (Group)
+                </button>
+            </div>
+
+            <div id="wizardIndividualFieldsBlock" class="mb-3">
+                <label class="form-label small fw-bold">Guest Full Name</label>
+                <input type="text" id="regGuestName" class="form-control" placeholder="e.g. Juan Dela Cruz" style="border-radius: 10px;">
+            </div>
+            
+            <div id="wizardEventFieldsBlock" class="mb-3 hidden">
+                <label class="form-label small fw-bold">Dynamic Destination Mapping</label>
+                <select id="regEventLocation" class="form-select" onchange="toggleWizardCustomLocation()" style="border-radius: 10px;">
+                    <option value="Resident Address">My Registered Home Address</option>
+                    <option value="Clubhouse Hall">La Vista Clubhouse Complex</option>
+                    <option value="Other Area Explicit">Other Community Venue...</option>
+                </select>
+                <div id="wizardCustomLocationWrapper" class="mt-2 hidden">
+                    <input type="text" id="regCustomLocation" class="form-control" placeholder="Specify location detail description" style="border-radius: 10px;">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label id="wizardDateInputLabel" class="form-label small fw-bold">Expected Date of Arrival</label>
+                <input type="date" id="regExpectedDate" class="form-control" style="border-radius: 10px;">
+            </div>
+
+            <button id="submitGuestBtn" onclick="submitGuestForm()" class="btn btn-primary w-100 py-2" style="border-radius: 12px; font-weight: 600;">
+                Generate Entry Pass
+            </button>
         </div>
-        <div class="mb-4">
-            <label class="form-label small fw-bold">Pass Mode Classification</label>
-            <select id="regGuestType" class="form-select" style="border-radius: 10px;">
-                <option value="Standard QR Pass">Standard QR Pass</option>
-                <option value="Big Party Pass">Big Party Pass (Event Group)</option>
-            </select>
+
+        <div id="passRegistrationReceiptContainer" class="hidden animate-pass-receipt">
+            <div class="secure-pass-frame">
+                <div class="secure-pass-header">La Vista Security Pass</div>
+                <img id="receiptQrImage" src="" alt="Gate Token" class="secure-pass-qr">
+                <div id="receiptMetaName" class="secure-pass-name"></div>
+                <div id="receiptMetaDate" class="secure-pass-date"></div>
+                <div id="receiptMetaId" class="secure-pass-id"></div>
+            </div>
+
+            <button type="button" onclick="downloadPassPngImageToDevice()" class="btn btn-dark w-100 py-2.5 mb-3" style="border-radius: 12px; font-weight: bold; font-size: 15px;">
+                💾 Save Pass to Device
+            </button>
+
+            <hr class="my-4 text-muted">
+            
+            <div class="d-flex flex-column gap-2 text-center">
+                <button onclick="resetPassWizardForm()" class="btn btn-light btn-sm py-2 border fw-semibold" style="border-radius: 8px;">
+                    ➕ Register New Visitor Pass
+                </button>
+                <button onclick="openMyWindowView()" class="btn btn-sm text-primary fw-bold border-0 bg-transparent mt-1">
+                    💻 Proceed to MY GUESTS Manifest
+                </button>
+            </div>
         </div>
-        <button id="submitGuestBtn" onclick="submitGuestForm()" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Generate Entry Pass</button>
     </div>
 </div>
 
-<!-- 4. STAFF PASS FORM -->
 <div id="staffPassUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -97,7 +163,6 @@
     </div>
 </div>
 
-<!-- 5. RESIDENT MANIFEST VIEW ("MY GUESTS") -->
 <div id="myWindowUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -120,27 +185,24 @@
     </div>
 </div>
 
-<!-- 6. GUARD HOUSE SCANNING UI GATEWAY -->
 <div id="scannerUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Close Scanner Terminal</div>
         <h4 class="fw-bold text-dark mb-1">Gate Entry Terminal</h4>
         <p class="text-muted small mb-3">Guard validation console for entry point monitoring.</p>
         
-        <!-- Status Notification Banner -->
         <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
 
-        <!-- Simulation Control Blocks -->
         <div class="p-3 bg-light rounded-4 mb-3 text-center border">
             <span class="text-muted d-block small mb-2 fw-bold">⚙️ Mock Scanning Pass Emulator Trigger:</span>
-            <div class="mock-pill" onclick="simulateScan('BPP')">Party Pass Scan</div>
+            <div class="mock-pill" onclick="simulateScan('INDIVIDUAL')">Individual Pass (R-)</div>
+            <div class="mock-pill" onclick="simulateScan('BPP')">Event Pass (E-)</div>
             <div class="mock-pill" onclick="simulateScan('STAFF')">Staff Pass Vehicle</div>
             <div class="mock-pill" onclick="simulateScan('COURIER')">Courier Manual Fallback</div>
         </div>
 
         <hr class="my-3 text-muted">
 
-        <!-- Input Processing Fields -->
         <div class="mb-2">
             <label class="form-label small fw-bold">Vehicle Plate Number</label>
             <input type="text" id="plateNumber" class="form-control" placeholder="RIDER / Plate No.">
@@ -157,7 +219,6 @@
             </select>
         </div>
 
-        <!-- Courier Fallback Group Wrapper -->
         <div class="p-3 bg-light rounded-4 mb-3 border">
             <span class="text-dark d-block small mb-2 fw-bold text-uppercase" style="letter-spacing:0.5px;">⚠️ Manual Courier Entry Fields</span>
             <div class="mb-2">
@@ -172,7 +233,6 @@
     </div>
 </div>
 
-<!-- 7. FEATURE UNDER CONSTRUCTION VIEW -->
 <div id="placeholderUI" class="container hidden">
     <div class="app-card text-center py-5">
         <span style="font-size: 48px;">🚧</span>
@@ -185,8 +245,10 @@
 <script>
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
     let currentUser = null; 
+    let activePassWizardType = "Individual";
+    let activeGeneratedTrackingId = "";
 
-    // Unified client-side display page state toggler
+    // Unified display views state router
     function showView(viewId) {
         const screens = ['loginUI', 'dashboardUI', 'guestRegistrationUI', 'staffPassUI', 'myWindowUI', 'scannerUI', 'placeholderUI'];
         screens.forEach(id => {
@@ -195,6 +257,7 @@
         document.getElementById(viewId).classList.remove('hidden');
     }
 
+    // JSONP Core Transport Infrastructure Layer
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
@@ -221,22 +284,188 @@
         });
     }
 
+    // Toggle Registration Form View Inputs state logic
+    function toggleWizardPassType(type) {
+        activePassWizardType = type;
+        const btnIndividual = document.getElementById("tabBtnIndividual");
+        const btnEvent = document.getElementById("tabBtnEvent");
+        const indFields = document.getElementById("wizardIndividualFieldsBlock");
+        const evtFields = document.getElementById("wizardEventFieldsBlock");
+        const dateLabel = document.getElementById("wizardDateInputLabel");
+        const submitBtn = document.getElementById("submitGuestBtn");
+
+        if (type === "Individual") {
+            btnIndividual.className = "toggle-tab-btn active-individual";
+            btnEvent.className = "toggle-tab-btn";
+            indFields.classList.remove("hidden");
+            evtFields.classList.add("hidden");
+            dateLabel.innerText = "Expected Date of Arrival";
+            submitBtn.className = "btn btn-primary w-100 py-2";
+        } else {
+            btnIndividual.className = "toggle-tab-btn";
+            btnEvent.className = "toggle-tab-btn active-event";
+            indFields.classList.add("hidden");
+            evtFields.classList.remove("hidden");
+            dateLabel.innerText = "Scheduled Event Date";
+            submitBtn.className = "btn btn-warning text-white w-100 py-2";
+        }
+    }
+
+    function toggleWizardCustomLocation() {
+        const selectVal = document.getElementById("regEventLocation").value;
+        const wrapper = document.getElementById("wizardCustomLocationWrapper");
+        if (selectVal === "Other Area Explicit") {
+            wrapper.classList.remove("hidden");
+        } else {
+            wrapper.classList.add("hidden");
+        }
+    }
+
+    // Upgraded registration dispatcher with receipt view cards and validation constraints
     function submitGuestForm() {
-        const name = document.getElementById('regGuestName').value;
-        const type = document.getElementById('regGuestType').value;
-        if (!name) { alert("Please input guest profile name details."); return; }
+        const expectedDate = document.getElementById('regExpectedDate').value;
+        if (!expectedDate) { alert("Please select a target execution date parameter."); return; }
+
+        let payload = {
+            action: "registerGuest",
+            email: currentUser.email,
+            passType: activePassWizardType,
+            dateExpected: expectedDate
+        };
+
+        let displayNameText = "";
+
+        if (activePassWizardType === "Individual") {
+            const name = document.getElementById('regGuestName').value.trim();
+            if (!name) { alert("Please input guest profile name details."); return; }
+            payload.guestName = name;
+            displayNameText = name;
+        } else {
+            const locSelect = document.getElementById('regEventLocation').value;
+            const customLoc = document.getElementById('regCustomLocation').value.trim();
+            if (locSelect === "Other Area Explicit" && !customLoc) {
+                alert("Please explicitly define the custom event location venue details.");
+                return;
+            }
+            payload.locationDetails = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
+            displayNameText = "Community Event Pass";
+        }
 
         document.getElementById('submitGuestBtn').innerText = "Processing Pipeline...";
-        callBackend({ action: "registerGuest", email: currentUser.email, guestName: name, passType: type }, (data) => {
+        document.getElementById('submitGuestBtn').disabled = true;
+
+        callBackend(payload, (data) => {
+            document.getElementById('submitGuestBtn').disabled = false;
             document.getElementById('submitGuestBtn').innerText = "Generate Entry Pass";
-            if(data.result === "success") {
-                alert("Pass successfully generated!");
-                document.getElementById('regGuestName').value = "";
-                showView('dashboardUI');
+            
+            if (data.result === "success") {
+                renderGeneratedPassReceiptCard(data.qrId, expectedDate, displayNameText);
             } else {
-                alert("Execution issue logging visitor registration.");
+                alert("Execution issue logging visitor registration: " + (data.message || "Unknown error"));
             }
         });
+    }
+
+    // Paint dynamic ticket parameters onto UI receipt target view fields
+    function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
+        activeGeneratedTrackingId = qrId;
+        
+        // Formulate friendly local date string
+        const parsedDate = new Date(targetDateRaw);
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        const cleanDisplayDate = isNaN(parsedDate) ? targetDateRaw : parsedDate.toLocaleDateString('en-US', options);
+
+        // Mount third-party high-density QR asset string endpoint
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
+        
+        document.getElementById("receiptQrImage").src = qrApiUrl;
+        document.getElementById("receiptMetaName").innerText = targetName;
+        document.getElementById("receiptMetaDate").innerText = cleanDisplayDate;
+        document.getElementById("receiptMetaId").innerText = qrId;
+
+        // Toggle visibility to view card state frame
+        document.getElementById("passRegistrationWizardForm").classList.add("hidden");
+        document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
+    }
+
+    // Dynamic HTML5 canvas drawing engine to save images directly without screenshots
+    function downloadPassPngImageToDevice() {
+        const qrImg = document.getElementById("receiptQrImage");
+        const nameVal = document.getElementById("receiptMetaName").innerText;
+        const dateVal = document.getElementById("receiptMetaDate").innerText;
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // High resolution card bounding configuration layout bounds
+        canvas.width = 400;
+        canvas.height = 520;
+
+        // Base card fill layers setup
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Border line safety tracing structure path
+        ctx.strokeStyle = "#e2e8f0";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+
+        // Header Title Branding Texts
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.letterSpacing = "1px";
+        ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
+
+        // Instantiate isolated image data frame context to protect canvas tracking streams
+        const crossOriginImageInstance = new Image();
+        crossOriginImageInstance.crossOrigin = "anonymous";
+        crossOriginImageInstance.src = qrImg.src;
+
+        crossOriginImageInstance.onload = function() {
+            // Drop QR Matrix Block onto canvas coordinates
+            ctx.drawImage(crossOriginImageInstance, 75, 75, 250, 250);
+
+            // Subtext Token identifier
+            ctx.fillStyle = "#007aff";
+            ctx.font = "bold 15px monospace";
+            ctx.fillText(activeGeneratedTrackingId, canvas.width / 2, 355);
+
+            // Guest profile title identification header label info rows
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 23px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.fillText(nameVal, canvas.width / 2, 405);
+
+            // Dates threshold subtexts parameters info string elements
+            ctx.fillStyle = "#64748b";
+            ctx.font = "600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.fillText(dateVal, canvas.width / 2, 435);
+
+            // General compliance footnote
+            ctx.fillStyle = "#94a3b8";
+            ctx.font = "12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.fillText("Present this code at the checkpoint terminal entry.", canvas.width / 2, 485);
+
+            // Dispatch instant background anchor down link routing pipeline execution
+            const dynamicDownloadTriggerNode = document.createElement("a");
+            dynamicDownloadTriggerNode.download = `${activeGeneratedTrackingId.replace('-', '_')}_Pass.png`;
+            dynamicDownloadTriggerNode.href = canvas.toDataURL("image/png");
+            document.body.appendChild(dynamicDownloadTriggerNode);
+            dynamicDownloadTriggerNode.click();
+            document.body.removeChild(dynamicDownloadTriggerNode);
+        };
+    }
+
+    function resetPassWizardForm() {
+        document.getElementById("regGuestName").value = "";
+        document.getElementById("regExpectedDate").value = "";
+        document.getElementById("regCustomLocation").value = "";
+        document.getElementById("regEventLocation").selectedIndex = 0;
+        document.getElementById("wizardCustomLocationWrapper").classList.add("hidden");
+        
+        toggleWizardPassType("Individual");
+        document.getElementById("passRegistrationReceiptContainer").classList.add("hidden");
+        document.getElementById("passRegistrationWizardForm").classList.remove("hidden");
     }
 
     function submitStaffForm() {
@@ -272,9 +501,12 @@
         window.isManualCourierFallback = false;
         const flash = document.getElementById('scannerStatusFlash');
         
-        if (mode === 'BPP') {
+        if (mode === 'INDIVIDUAL') {
+            window.lastScannedId = "R-NM84K";
+            flash.innerText = "Emulated Scan Event: Individual Guest Pass (R-NM84K) Captured! Guard plate entry requested.";
+        } else if (mode === 'BPP') {
             window.isBigPartyPass = true;
-            window.lastScannedId = "QR-BPP-7721";
+            window.lastScannedId = "E-9X2PL";
             flash.innerText = "Emulated Scan Event: Big Party Pass Detected! Enter Surname.";
         } else if (mode === 'STAFF') {
             window.isStaffPassMode = true;
@@ -297,12 +529,17 @@
     }
 
     function confirmArrival() {
-        const plate = document.getElementById('plateNumber').value;
+        const plate = document.getElementById('plateNumber').value.trim();
         const gSurname = document.getElementById('scannedGuestSurname').value;
         const mType = document.getElementById('movementTypeSelect').value;
         const fBlock = document.getElementById('fallbackBlockInput').value;
         const fCompany = document.getElementById('fallbackCompanyInput').value;
         
+        // Quick logical checks and guard warning alert routines
+        if (window.lastScannedId.indexOf("R-") === 0 && !plate) {
+            alert("Security Protocol: Guard must log a visitor vehicle plate number or specify 'WALK-IN' parameter before finalizing individual entries.");
+            return;
+        }
         if (window.isBigPartyPass && !gSurname) { alert("Please enter the guest's surname."); return; }
         if (window.isStaffPassMode && mType === "Vehicle" && !plate) { alert("Please enter the vehicle plate number."); return; }
         if (window.isManualCourierFallback && (!fBlock || !fCompany)) { alert("Please fill in Resident Address and Courier Company details."); return; }
@@ -329,7 +566,9 @@
             if(data.result === "success") {
                 const statusFlash = document.getElementById('scannerStatusFlash');
                 
-                if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
+                if (data.mode === "INDIVIDUAL_ARRIVED") statusFlash.innerText = "Access Granted: Individual Resident Pass Authorized and Marked Arrived!";
+                else if (data.mode === "EVENT_ARRIVED") statusFlash.innerText = "Access Granted: Event Multi-Entry Pass Authenticated and Cloned Log Saved!";
+                else if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
                 else if (data.mode === "STAFF_ENTER") statusFlash.innerText = "Staff Pass Verified: ENTERED!";
                 else if (data.mode === "GUEST_BPP") statusFlash.innerText = "Party Guest entry logged!";
                 else if (data.mode === "DELIVERY_QR") statusFlash.innerText = "Delivery Token Validated!";
@@ -342,7 +581,7 @@
                 document.getElementById('fallbackBlockInput').value = "";
                 document.getElementById('fallbackCompanyInput').value = "";
             } else {
-                alert(data.message || "An error occurred.");
+                alert(data.message || "An error occurred during verification processing.");
                 showView('dashboardUI');
             }
         });
@@ -372,7 +611,7 @@
                 return;
             }
 
-            let guestRecords = data.records.filter(r => r.category === "GUEST");
+            let guestRecords = data.records.filter(r => r.category === "GUEST" || r.category === "EVENT");
             let deliveryRecords = data.records.filter(r => r.category === "DELIVERY");
             let staffRecords = data.records.filter(r => r.category === "STAFF");
 
@@ -381,7 +620,10 @@
             } else {
                 let gHtml = '<div class="list-group list-group-flush">';
                 guestRecords.forEach(item => {
-                    let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
+                    let badgeClass = "bg-success";
+                    if (item.status === "ACTIVE" || item.status === "PENDING") badgeClass = "bg-warning text-dark";
+                    if (item.status === "QR EXPIRED") badgeClass = "bg-secondary text-white";
+                    
                     let cleanName = item.name.replace("BPP / ", "").replace("Party Guest: ", "");
                     gHtml += `
                         <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
