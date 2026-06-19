@@ -14,7 +14,9 @@
         .login-card { margin-top: 100px; max-width: 400px; }
         
         /* Dashboard Grid */
-        .header { text-align: center; padding: 30px 20px 15px 20px; }
+        .header { position: relative; text-align: center; padding: 30px 20px 15px 20px; }
+        .logout-link { position: absolute; top: 15px; right: 20px; font-size: 13px; font-weight: 600; color: #dc3545; text-decoration: none; cursor: pointer; }
+        .logout-link:hover { text-decoration: underline; }
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; max-width: 500px; margin: 0 auto; }
         .menu-tile { background: white; border-radius: 22px; padding: 25px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.02); cursor: pointer; transition: transform 0.2s; font-weight: 500; font-size: 15px; color: #333; }
         .menu-tile:active { transform: scale(0.97); }
@@ -23,7 +25,7 @@
         /* Utility Styles */
         .back-btn { font-size: 14px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; margin-bottom: 20px; color: #007aff; cursor: pointer; }
         .border-bottom-dashed { border-bottom: 1px dashed #e9ecef; }
-        .xs-micro-text { font-size: 11px; color: #6c757d; }
+        .xs-micro-text { font-size: 12px; color: #64748b; font-weight: 500; }
         .status-flash-banner { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; }
         .mock-pill { cursor: pointer; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid #dee2e6; background: #fff; margin: 3px; display: inline-block; }
         .mock-pill:hover { background: #f1f3f5; }
@@ -42,6 +44,14 @@
         .secure-pass-date { font-size: 14px; font-weight: 600; color: #64748b; }
         .secure-pass-id { font-size: 13px; font-weight: 700; color: #007aff; font-family: monospace; margin-top: 5px; }
         
+        /* Interactive Recover Link Accent */
+        .inline-qr-trigger { color: #007aff; cursor: pointer; margin-left: 6px; font-size: 14px; transition: opacity 0.2s; }
+        .inline-qr-trigger:hover { opacity: 0.7; }
+
+        /* Modal Overlay Blocks */
+        .custom-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 15px; }
+        .custom-modal-box { background: white; border-radius: 24px; padding: 25px; width: 100%; max-width: 420px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); position: relative; }
+
         @keyframes passFadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -51,18 +61,39 @@
 </head>
 <body>
 
+<!-- 1. LOGIN INTERFACE -->
 <div id="loginUI" class="container">
     <div class="login-card text-center">
         <h2 class="fw-bold mb-1" style="color: #007aff;">La Vista</h2>
         <p class="text-muted small mb-4">Resident Portal</p>
         <input type="email" id="emailInput" class="form-control text-center mb-2" placeholder="Email" style="border-radius: 10px;">
         <input type="password" id="passwordInput" class="form-control text-center mb-3" placeholder="Password" style="border-radius: 10px;">
-        <button onclick="attemptLogin()" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Sign In</button>
+        <button onclick="attemptLogin()" class="btn btn-primary w-100 py-2 mb-3" style="border-radius: 12px;">Sign In</button>
+        <div class="text-center">
+            <a href="#" onclick="openForgotPasswordModal(event)" class="text-decoration-none small text-muted fw-semibold">Forgot password?</a>
+        </div>
     </div>
 </div>
 
+<!-- FORGOT PASSWORD OVERLAY POPUP MODAL -->
+<div id="forgotPasswordModal" class="custom-modal-backdrop hidden">
+    <div class="custom-modal-box">
+        <h5 class="fw-bold text-dark mb-2">Reset Password</h5>
+        <p class="text-muted small mb-3">Provide your registered email address to receive secure reset credentials instructions.</p>
+        <div class="mb-3">
+            <input type="email" id="forgotPasswordEmailInput" class="form-control" placeholder="name@example.com" style="border-radius: 10px;">
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="closeForgotPasswordModal()" class="btn btn-light border flex-1 w-50" style="border-radius: 10px; font-weight: 600;">Cancel</button>
+            <button onclick="submitForgotPassword()" class="btn btn-primary flex-1 w-50" style="border-radius: 10px; font-weight: 600;">Send Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- 2. HOME MAIN DASHBOARD -->
 <div id="dashboardUI" class="hidden">
     <div class="header">
+        <a onclick="logoutResidentSession()" class="logout-link">Logout</a>
         <h2 id="welcomeMsg" class="fw-bold text-primary mb-1"></h2>
         <p class="text-muted small">La Vista Community Services</p>
     </div>
@@ -78,14 +109,17 @@
     </div>
 </div>
 
+<!-- 3. GUEST REGISTRATION COMPONENT ENGINE -->
 <div id="guestRegistrationUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
         
+        <!-- MODULE PHASE 1: FILL PASS SPECIFICATIONS -->
         <div id="passRegistrationWizardForm">
             <h4 class="fw-bold text-dark mb-1">Guest Registration</h4>
             <p class="text-muted small mb-4">Select classification to configure code authorizations.</p>
             
+            <!-- Type Segmentation Button Cluster -->
             <div class="toggle-btn-group">
                 <button type="button" id="tabBtnIndividual" class="toggle-tab-btn active-individual" onclick="toggleWizardPassType('Individual')">
                     Individual Pass
@@ -95,13 +129,14 @@
                 </button>
             </div>
 
+            <!-- Context Input Sub-field Wrappers -->
             <div id="wizardIndividualFieldsBlock" class="mb-3">
                 <label class="form-label small fw-bold">Guest Full Name</label>
                 <input type="text" id="regGuestName" class="form-control" placeholder="e.g. Juan Dela Cruz" style="border-radius: 10px;">
             </div>
             
             <div id="wizardEventFieldsBlock" class="mb-3 hidden">
-                <label class="form-label small fw-bold">Dynamic Destination Mapping</label>
+                <label class="form-label small fw-bold">Event Address</label>
                 <select id="regEventLocation" class="form-select" onchange="toggleWizardCustomLocation()" style="border-radius: 10px;">
                     <option value="Resident Address">My Registered Home Address</option>
                     <option value="Clubhouse Hall">La Vista Clubhouse Complex</option>
@@ -112,6 +147,7 @@
                 </div>
             </div>
 
+            <!-- Shared Chronology Selection Parameter -->
             <div class="mb-4">
                 <label id="wizardDateInputLabel" class="form-label small fw-bold">Expected Date of Arrival</label>
                 <input type="date" id="regExpectedDate" class="form-control" style="border-radius: 10px;">
@@ -122,6 +158,7 @@
             </button>
         </div>
 
+        <!-- MODULE PHASE 2: GENERATED CARD INTERFACE RECEIPT -->
         <div id="passRegistrationReceiptContainer" class="hidden animate-pass-receipt">
             <div class="secure-pass-frame">
                 <div class="secure-pass-header">La Vista Security Pass</div>
@@ -131,12 +168,14 @@
                 <div id="receiptMetaId" class="secure-pass-id"></div>
             </div>
 
+            <!-- Download Canvas Pipeline Trigger -->
             <button type="button" onclick="downloadPassPngImageToDevice()" class="btn btn-dark w-100 py-2.5 mb-3" style="border-radius: 12px; font-weight: bold; font-size: 15px;">
                 💾 Save Pass to Device
             </button>
 
             <hr class="my-4 text-muted">
             
+            <!-- Quick Link Matrices Navigation Tree -->
             <div class="d-flex flex-column gap-2 text-center">
                 <button onclick="resetPassWizardForm()" class="btn btn-light btn-sm py-2 border fw-semibold" style="border-radius: 8px;">
                     ➕ Register New Visitor Pass
@@ -149,6 +188,7 @@
     </div>
 </div>
 
+<!-- 4. STAFF PASS FORM -->
 <div id="staffPassUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -163,6 +203,7 @@
     </div>
 </div>
 
+<!-- 5. RESIDENT MANIFEST VIEW ("MY GUESTS") -->
 <div id="myWindowUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -185,14 +226,31 @@
     </div>
 </div>
 
+<!-- DYNAMIC PASS POPUP RECOVERY LIGHTBOX MODAL -->
+<div id="passRecoveryModal" class="custom-modal-backdrop hidden">
+    <div class="custom-modal-box text-center">
+        <div class="secure-pass-frame shadow-none border-0 m-0 p-0">
+            <div class="secure-pass-header">La Vista Security Pass</div>
+            <img id="recoverQrImage" src="" alt="Gate Token" class="secure-pass-qr">
+            <div id="recoverMetaName" class="secure-pass-name"></div>
+            <div id="recoverMetaDate" class="secure-pass-date"></div>
+            <div id="recoverMetaId" class="secure-pass-id"></div>
+        </div>
+        <button onclick="closePassRecoveryModal()" class="btn btn-dark w-100 py-2 mt-3" style="border-radius: 12px; font-weight: 600;">Close Pass</button>
+    </div>
+</div>
+
+<!-- 6. GUARD HOUSE SCANNING UI GATEWAY -->
 <div id="scannerUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Close Scanner Terminal</div>
         <h4 class="fw-bold text-dark mb-1">Gate Entry Terminal</h4>
         <p class="text-muted small mb-3">Guard validation console for entry point monitoring.</p>
         
+        <!-- Status Notification Banner -->
         <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
 
+        <!-- Simulation Control Blocks -->
         <div class="p-3 bg-light rounded-4 mb-3 text-center border">
             <span class="text-muted d-block small mb-2 fw-bold">⚙️ Mock Scanning Pass Emulator Trigger:</span>
             <div class="mock-pill" onclick="simulateScan('INDIVIDUAL')">Individual Pass (R-)</div>
@@ -203,6 +261,7 @@
 
         <hr class="my-3 text-muted">
 
+        <!-- Input Processing Fields -->
         <div class="mb-2">
             <label class="form-label small fw-bold">Vehicle Plate Number</label>
             <input type="text" id="plateNumber" class="form-control" placeholder="RIDER / Plate No.">
@@ -219,6 +278,7 @@
             </select>
         </div>
 
+        <!-- Courier Fallback Group Wrapper -->
         <div class="p-3 bg-light rounded-4 mb-3 border">
             <span class="text-dark d-block small mb-2 fw-bold text-uppercase" style="letter-spacing:0.5px;">⚠️ Manual Courier Entry Fields</span>
             <div class="mb-2">
@@ -233,6 +293,7 @@
     </div>
 </div>
 
+<!-- 7. FEATURE UNDER CONSTRUCTION VIEW -->
 <div id="placeholderUI" class="container hidden">
     <div class="app-card text-center py-5">
         <span style="font-size: 48px;">🚧</span>
@@ -247,6 +308,23 @@
     let currentUser = null; 
     let activePassWizardType = "Individual";
     let activeGeneratedTrackingId = "";
+
+    // Application boot routine tracking persistent session states
+    window.onload = function() {
+        const persistedUser = localStorage.getItem("lavista_authenticated_user");
+        if (persistedUser) {
+            try {
+                currentUser = JSON.parse(persistedUser);
+                document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.firstName;
+                showView('dashboardUI');
+            } catch (e) {
+                localStorage.removeItem("lavista_authenticated_user");
+                showView('loginUI');
+            }
+        } else {
+            showView('loginUI');
+        }
+    };
 
     // Unified display views state router
     function showView(viewId) {
@@ -276,11 +354,43 @@
         callBackend({ action: "login", email: email, password: password }, (data) => {
             if (data.result === "success") {
                 currentUser = data.user; 
+                localStorage.setItem("lavista_authenticated_user", JSON.stringify(data.user));
                 document.getElementById('welcomeMsg').innerText = "Hello, " + data.user.firstName;
                 showView('dashboardUI');
             } else {
                 alert(data.message);
             }
+        });
+    }
+
+    function logoutResidentSession() {
+        localStorage.removeItem("lavista_authenticated_user");
+        currentUser = null;
+        document.getElementById('emailInput').value = "";
+        document.getElementById('passwordInput').value = "";
+        showView('loginUI');
+    }
+
+    // Forgot Password Trigger Logic
+    function openForgotPasswordModal(event) {
+        event.preventDefault();
+        document.getElementById("forgotPasswordEmailInput").value = "";
+        document.getElementById("forgotPasswordModal").classList.remove("hidden");
+    }
+
+    function closeForgotPasswordModal() {
+        document.getElementById("forgotPasswordModal").classList.add("hidden");
+    }
+
+    function submitForgotPassword() {
+        const targetEmail = document.getElementById("forgotPasswordEmailInput").value.trim();
+        if (!targetEmail) { alert("Please provide a valid email address."); return; }
+
+        // Pipeline notification trigger
+        callBackend({ action: "forgotPassword", email: targetEmail }, (data) => {
+            // Emulated notification for verification transparency 
+            alert(`Password modification email dispatched successfully to ${targetEmail}!`);
+            closeForgotPasswordModal();
         });
     }
 
@@ -348,7 +458,7 @@
                 return;
             }
             payload.locationDetails = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
-            displayNameText = "Community Event Pass";
+            displayNameText = "Event Pass";
         }
 
         document.getElementById('submitGuestBtn').innerText = "Processing Pipeline...";
@@ -397,56 +507,45 @@
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
 
-        // High resolution card bounding configuration layout bounds
         canvas.width = 400;
         canvas.height = 520;
 
-        // Base card fill layers setup
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Border line safety tracing structure path
         ctx.strokeStyle = "#e2e8f0";
         ctx.lineWidth = 2;
         ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
 
-        // Header Title Branding Texts
         ctx.fillStyle = "#94a3b8";
         ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
         ctx.textAlign = "center";
         ctx.letterSpacing = "1px";
         ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
 
-        // Instantiate isolated image data frame context to protect canvas tracking streams
         const crossOriginImageInstance = new Image();
         crossOriginImageInstance.crossOrigin = "anonymous";
         crossOriginImageInstance.src = qrImg.src;
 
         crossOriginImageInstance.onload = function() {
-            // Drop QR Matrix Block onto canvas coordinates
             ctx.drawImage(crossOriginImageInstance, 75, 75, 250, 250);
 
-            // Subtext Token identifier
             ctx.fillStyle = "#007aff";
             ctx.font = "bold 15px monospace";
             ctx.fillText(activeGeneratedTrackingId, canvas.width / 2, 355);
 
-            // Guest profile title identification header label info rows
             ctx.fillStyle = "#1e293b";
             ctx.font = "bold 23px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
             ctx.fillText(nameVal, canvas.width / 2, 405);
 
-            // Dates threshold subtexts parameters info string elements
             ctx.fillStyle = "#64748b";
             ctx.font = "600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
             ctx.fillText(dateVal, canvas.width / 2, 435);
 
-            // General compliance footnote
             ctx.fillStyle = "#94a3b8";
             ctx.font = "12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
             ctx.fillText("Present this code at the checkpoint terminal entry.", canvas.width / 2, 485);
 
-            // Dispatch instant background anchor down link routing pipeline execution
             const dynamicDownloadTriggerNode = document.createElement("a");
             dynamicDownloadTriggerNode.download = `${activeGeneratedTrackingId.replace('-', '_')}_Pass.png`;
             dynamicDownloadTriggerNode.href = canvas.toDataURL("image/png");
@@ -528,6 +627,20 @@
         loadMyWindow();
     }
 
+    // Modal view display re-trigger layer
+    function launchInteractivePassRecovery(qrId, displayDate, displayName) {
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
+        document.getElementById("recoverQrImage").src = qrApiUrl;
+        document.getElementById("recoverMetaName").innerText = displayName;
+        document.getElementById("recoverMetaDate").innerText = displayDate;
+        document.getElementById("recoverMetaId").innerText = qrId;
+        document.getElementById("passRecoveryModal").classList.remove("hidden");
+    }
+
+    function closePassRecoveryModal() {
+        document.getElementById("passRecoveryModal").classList.add("hidden");
+    }
+
     function confirmArrival() {
         const plate = document.getElementById('plateNumber').value.trim();
         const gSurname = document.getElementById('scannedGuestSurname').value;
@@ -535,7 +648,6 @@
         const fBlock = document.getElementById('fallbackBlockInput').value;
         const fCompany = document.getElementById('fallbackCompanyInput').value;
         
-        // Quick logical checks and guard warning alert routines
         if (window.lastScannedId.indexOf("R-") === 0 && !plate) {
             alert("Security Protocol: Guard must log a visitor vehicle plate number or specify 'WALK-IN' parameter before finalizing individual entries.");
             return;
@@ -611,6 +723,11 @@
                 return;
             }
 
+            // Create clean visualization mapping options
+            const parsedDate = new Date(selectedDate);
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            const fallbackDisplayDate = isNaN(parsedDate) ? selectedDate : parsedDate.toLocaleDateString('en-US', options);
+
             let guestRecords = data.records.filter(r => r.category === "GUEST" || r.category === "EVENT");
             let deliveryRecords = data.records.filter(r => r.category === "DELIVERY");
             let staffRecords = data.records.filter(r => r.category === "STAFF");
@@ -625,11 +742,16 @@
                     if (item.status === "QR EXPIRED") badgeClass = "bg-secondary text-white";
                     
                     let cleanName = item.name.replace("BPP / ", "").replace("Party Guest: ", "");
+                    let trackingQrId = item.type || "R-UNKNOWN"; 
+                    
                     gHtml += `
                         <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
                             <div>
-                                <div class="fw-bold text-dark small">${cleanName}</div>
-                                <div class="xs-micro-text">${item.type}</div>
+                                <div class="fw-bold text-dark small d-inline-flex align-items-center">
+                                    ${cleanName}
+                                    <span class="inline-qr-trigger" onclick="launchInteractivePassRecovery('${trackingQrId}', '${fallbackDisplayDate}', '${cleanName}')" title="View Security Pass">📱</span>
+                                </div>
+                                <div class="xs-micro-text">${fallbackDisplayDate}</div>
                             </div>
                             <div><span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size:10px; border-radius:6px;">${item.status}</span></div>
                         </div>
@@ -649,7 +771,7 @@
                         <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
                             <div>
                                 <div class="fw-bold text-dark small">${item.name}</div>
-                                <div class="xs-micro-text">${item.type}</div>
+                                <div class="xs-micro-text">${fallbackDisplayDate}</div>
                             </div>
                             <div><span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size:10px; border-radius:6px;">${item.status}</span></div>
                         </div>
