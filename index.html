@@ -503,5 +503,208 @@
         ctx.letterSpacing = "1px";
         ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
 
+        // Dynamic HTML5 canvas drawing engine to save images directly without screenshots
         const crossOriginImageInstance = new Image();
-        crossOriginImageInstance.crossOrigin = "anonymous"; cross
+        crossOriginImageInstance.crossOrigin = "anonymous"; 
+        
+        crossOriginImageInstance.onload = function() {
+            ctx.drawImage(crossOriginImageInstance, 75, 90, 250, 250);
+            
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.fillText(nameVal, canvas.width / 2, 380);
+            
+            ctx.fillStyle = "#64748b";
+            ctx.font = "600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.fillText(dateVal, canvas.width / 2, 415);
+            
+            ctx.fillStyle = "#007aff";
+            ctx.font = "bold 14px monospace";
+            ctx.fillText(activeGeneratedTrackingId, canvas.width / 2, 445);
+            
+            const link = document.createElement("a");
+            link.download = `LaVista_Pass_${activeGeneratedTrackingId}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        };
+        crossOriginImageInstance.src = qrImg.src;
+    }
+
+    function resetPassWizardForm() {
+        document.getElementById('regGuestName').value = "";
+        document.getElementById('regExpectedDate').value = "";
+        document.getElementById('regCustomLocation').value = "";
+        document.getElementById('regEventLocation').selectedIndex = 0;
+        document.getElementById("passRegistrationWizardForm").classList.remove("hidden");
+        document.getElementById("passRegistrationReceiptContainer").classList.add("hidden");
+    }
+
+    // 2. AUTHORIZE HOUSEHOLD STAFF PIPELINE
+    function submitStaffForm() {
+        const staffName = document.getElementById('regStaffName').value.trim();
+        if (!staffName) { alert("Please input staff name details."); return; }
+        
+        document.getElementById('submitStaffBtn').innerText = "Processing Pipeline...";
+        document.getElementById('submitStaffBtn').disabled = true;
+        
+        callBackend({
+            action: "registerStaffPass",
+            email: currentUser.email,
+            staffName: staffName
+        }, (data) => {
+            document.getElementById('submitStaffBtn').disabled = false;
+            document.getElementById('submitStaffBtn').innerText = "Authorize Staff Profile";
+            if (data.result === "success") {
+                alert("Staff workers registry updated successfully!");
+                document.getElementById('regStaffName').value = "";
+                showView('dashboardUI');
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+    }
+
+    // 3. REAL-TIME DOMESTIC OVERSIGHT (MY GUESTS)
+    function openMyWindowView() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('manifestDate').value = today;
+        showView('myWindowUI');
+        loadMyWindow();
+    }
+
+    function loadMyWindow() {
+        const selectedDate = document.getElementById('manifestDate').value;
+        const guestsList = document.getElementById('myWindowGuestsList');
+        const deliveriesList = document.getElementById('myWindowDeliveriesList');
+        const staffList = document.getElementById('myWindowStaffList');
+        
+        guestsList.innerHTML = "<div class='text-muted small p-2'>Loading manifest framework logs...</div>";
+        deliveriesList.innerHTML = "<div class='text-muted small p-2'>Loading logs...</div>";
+        staffList.innerHTML = "<div class='text-muted small p-2'>Loading staff...</div>";
+        
+        callBackend({
+            action: "getMyWindowData",
+            email: currentUser.email,
+            date: selectedDate
+        }, (data) => {
+            if (data.result === "success") {
+                guestsList.innerHTML = "";
+                deliveriesList.innerHTML = "";
+                staffList.innerHTML = "";
+                
+                let hasGuests = false;
+                let hasStaff = false;
+                
+                data.records.forEach(rec => {
+                    const item = document.createElement('div');
+                    item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
+                    
+                    if (rec.category === "GUEST" || rec.category === "EVENT") {
+                        hasGuests = true;
+                        item.innerHTML = `<div><strong class='text-dark'>${rec.name}</strong> <span class="text-muted d-block xs-micro-text">${rec.type}</span></div>
+                                          <span class="badge ${rec.status === 'ARRIVED' ? 'bg-success' : 'bg-primary'}">${rec.status}</span>`;
+                        guestsList.appendChild(item);
+                    } else if (rec.category === "STAFF") {
+                        hasStaff = true;
+                        item.innerHTML = `<div><strong class='text-dark'>${rec.name}</strong> <span class="text-muted d-block xs-micro-text">${rec.type}</span></div>
+                                          <span class="badge bg-secondary">${rec.status}</span>`;
+                        staffList.appendChild(item);
+                    }
+                });
+                
+                if (!hasGuests) guestsList.innerHTML = "<div class='text-muted small text-center py-3 bg-light rounded-3 border border-dashed'>No guest authorizations found for this tracking parameters.</div>";
+                if (!hasStaff) staffList.innerHTML = "<div class='text-muted small text-center py-3 bg-light rounded-3 border border-dashed'>No home staff accounts verified.</div>";
+                deliveriesList.innerHTML = "<div class='text-muted small text-center py-3 bg-light rounded-3 border border-dashed'>No external logistics activities logged.</div>";
+            } else {
+                alert("Failed to load window dashboard: " + data.message);
+            }
+        });
+    }
+
+    // 4. GUARD STATION SCANNER SIMULATION ENGINE
+    let simulatedQrId = "";
+    
+    function openScannerUI() {
+        simulatedQrId = "";
+        document.getElementById('plateNumber').value = "";
+        document.getElementById('scannedGuestSurname').value = "";
+        document.getElementById('fallbackBlockInput').value = "";
+        document.getElementById('fallbackCompanyInput').value = "";
+        
+        const flash = document.getElementById('scannerStatusFlash');
+        flash.classList.add('hidden');
+        showView('scannerUI');
+    }
+
+    function simulateScan(type) {
+        const flash = document.getElementById('scannerStatusFlash');
+        flash.classList.remove('hidden');
+        flash.style.backgroundColor = "#e0f2fe";
+        flash.style.color = "#0369a1";
+        flash.style.borderColor = "#bae6fd";
+        
+        if (type === 'INDIVIDUAL') {
+            simulatedQrId = "R-SAMPLE";
+            flash.innerText = "📟 Pass Decoded: Individual Visitor Code (R-SAMPLE). Ready for gate assignment logging.";
+        } else if (type === 'BPP') {
+            simulatedQrId = "E-SAMPLE";
+            flash.innerText = "📟 Pass Decoded: Group Event Master Pass (E-SAMPLE). Verify surname before processing.";
+        } else if (type === 'STAFF') {
+            simulatedQrId = "STAFF_PASS";
+            flash.innerText = "📟 RFID Target: Automated Domestic Labor Tag recognized.";
+        } else if (type === 'COURIER') {
+            simulatedQrId = "MANUAL";
+            flash.innerText = "⚠️ Manual Bypass Route Configured. Input Block/Lot designations.";
+        }
+    }
+
+    function confirmArrival() {
+        const plate = document.getElementById('plateNumber').value.trim();
+        const flash = document.getElementById('scannerStatusFlash');
+        
+        let payload = { action: "confirmArrival" };
+        
+        if (simulatedQrId === "MANUAL") {
+            const address = document.getElementById('fallbackBlockInput').value.trim();
+            const company = document.getElementById('fallbackCompanyInput').value.trim();
+            if (!address || !company) { alert("Please compile fall back logistics fields before override authorization."); return; }
+            
+            payload.isManualLog = "true";
+            payload.address = address;
+            payload.guestName = company;
+            payload.plate = plate || "DELIVERY RIDER";
+        } else {
+            if (!simulatedQrId) { alert("Please simulate an entry token target tracking type execution first."); return; }
+            payload.isManualLog = "false";
+            payload.qrId = simulatedQrId;
+            payload.plate = plate || "PASSENGER VEHICLE";
+            if (simulatedQrId.indexOf("E-") === 0) {
+                payload.guestName = document.getElementById('scannedGuestSurname').value.trim() || "Event Visitor";
+            }
+        }
+        
+        flash.classList.remove('hidden');
+        flash.innerText = "Verifying backend authorizations data pipelines...";
+        
+        callBackend(payload, (data) => {
+            if (data.result === "success") {
+                flash.style.backgroundColor = "#d1e7dd";
+                flash.style.color = "#0f5132";
+                flash.style.borderColor = "#badbcc";
+                flash.innerText = "✅ ACCESS GRANTED: Security manifest tracking parameters committed successfully.";
+                if(simulatedQrId !== "MANUAL") simulatedQrId = ""; 
+            } else {
+                flash.style.backgroundColor = "#f8d7da";
+                flash.style.color = "#842029";
+                flash.style.borderColor = "#f5c2c7";
+                flash.innerText = "❌ ACCESS DENIED: " + (data.reason || data.message || "Invalid Security Token");
+            }
+        });
+    }
+
+    function closePassRecoveryModal() {
+        document.getElementById('passRecoveryModal').classList.add('hidden');
+    }
+</script>
+</body>
+</html>
