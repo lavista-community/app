@@ -61,7 +61,6 @@
 </head>
 <body>
 
-<!-- 1. LOGIN INTERFACE -->
 <div id="loginUI" class="container">
     <div class="login-card text-center">
         <h2 class="fw-bold mb-1" style="color: #007aff;">La Vista</h2>
@@ -75,7 +74,6 @@
     </div>
 </div>
 
-<!-- FORGOT PASSWORD OVERLAY POPUP MODAL -->
 <div id="forgotPasswordModal" class="custom-modal-backdrop hidden">
     <div class="custom-modal-box">
         <h5 class="fw-bold text-dark mb-2">Reset Password</h5>
@@ -90,7 +88,6 @@
     </div>
 </div>
 
-<!-- 2. HOME MAIN DASHBOARD -->
 <div id="dashboardUI" class="hidden">
     <div class="header">
         <a onclick="logoutResidentSession()" class="logout-link">Logout</a>
@@ -109,17 +106,14 @@
     </div>
 </div>
 
-<!-- 3. GUEST REGISTRATION COMPONENT ENGINE -->
 <div id="guestRegistrationUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
         
-        <!-- MODULE PHASE 1: FILL PASS SPECIFICATIONS -->
         <div id="passRegistrationWizardForm">
             <h4 class="fw-bold text-dark mb-1">Guest Registration</h4>
             <p class="text-muted small mb-4">Select classification to configure code authorizations.</p>
             
-            <!-- Type Segmentation Button Cluster -->
             <div class="toggle-btn-group">
                 <button type="button" id="tabBtnIndividual" class="toggle-tab-btn active-individual" onclick="toggleWizardPassType('Individual')">
                     Individual Pass
@@ -129,7 +123,6 @@
                 </button>
             </div>
 
-            <!-- Context Input Sub-field Wrappers -->
             <div id="wizardIndividualFieldsBlock" class="mb-3">
                 <label class="form-label small fw-bold">Guest Full Name</label>
                 <input type="text" id="regGuestName" class="form-control" placeholder="e.g. Juan Dela Cruz" style="border-radius: 10px;">
@@ -147,7 +140,6 @@
                 </div>
             </div>
 
-            <!-- Shared Chronology Selection Parameter -->
             <div class="mb-4">
                 <label id="wizardDateInputLabel" class="form-label small fw-bold">Expected Date of Arrival</label>
                 <input type="date" id="regExpectedDate" class="form-control" style="border-radius: 10px;">
@@ -158,7 +150,6 @@
             </button>
         </div>
 
-        <!-- MODULE PHASE 2: GENERATED CARD INTERFACE RECEIPT -->
         <div id="passRegistrationReceiptContainer" class="hidden animate-pass-receipt">
             <div class="secure-pass-frame">
                 <div class="secure-pass-header">La Vista Security Pass</div>
@@ -168,14 +159,12 @@
                 <div id="receiptMetaId" class="secure-pass-id"></div>
             </div>
 
-            <!-- Download Canvas Pipeline Trigger -->
             <button type="button" onclick="downloadPassPngImageToDevice()" class="btn btn-dark w-100 py-2.5 mb-3" style="border-radius: 12px; font-weight: bold; font-size: 15px;">
                 💾 Save Pass to Device
             </button>
 
             <hr class="my-4 text-muted">
             
-            <!-- Quick Link Matrices Navigation Tree -->
             <div class="d-flex flex-column gap-2 text-center">
                 <button onclick="resetPassWizardForm()" class="btn btn-light btn-sm py-2 border fw-semibold" style="border-radius: 8px;">
                     ➕ Register New Visitor Pass
@@ -188,7 +177,6 @@
     </div>
 </div>
 
-<!-- 4. STAFF PASS FORM -->
 <div id="staffPassUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -203,7 +191,6 @@
     </div>
 </div>
 
-<!-- 5. RESIDENT MANIFEST VIEW ("MY GUESTS") -->
 <div id="myWindowUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
@@ -226,7 +213,6 @@
     </div>
 </div>
 
-<!-- DYNAMIC PASS POPUP RECOVERY LIGHTBOX MODAL -->
 <div id="passRecoveryModal" class="custom-modal-backdrop hidden">
     <div class="custom-modal-box text-center">
         <div class="secure-pass-frame shadow-none border-0 m-0 p-0">
@@ -240,17 +226,14 @@
     </div>
 </div>
 
-<!-- 6. GUARD HOUSE SCANNING UI GATEWAY -->
 <div id="scannerUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Close Scanner Terminal</div>
         <h4 class="fw-bold text-dark mb-1">Gate Entry Terminal</h4>
         <p class="text-muted small mb-3">Guard validation console for entry point monitoring.</p>
         
-        <!-- Status Notification Banner -->
         <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
 
-        <!-- Simulation Control Blocks -->
         <div class="p-3 bg-light rounded-4 mb-3 text-center border">
             <span class="text-muted d-block small mb-2 fw-bold">⚙️ Mock Scanning Pass Emulator Trigger:</span>
             <div class="mock-pill" onclick="simulateScan('INDIVIDUAL')">Individual Pass (R-)</div>
@@ -261,7 +244,6 @@
 
         <hr class="my-3 text-muted">
 
-        <!-- Input Processing Fields -->
         <div class="mb-2">
             <label class="form-label small fw-bold">Vehicle Plate Number</label>
             <input type="text" id="plateNumber" class="form-control" placeholder="RIDER / Plate No.">
@@ -278,7 +260,6 @@
             </select>
         </div>
 
-        <!-- Courier Fallback Group Wrapper -->
         <div class="p-3 bg-light rounded-4 mb-3 border">
             <span class="text-dark d-block small mb-2 fw-bold text-uppercase" style="letter-spacing:0.5px;">⚠️ Manual Courier Entry Fields</span>
             <div class="mb-2">
@@ -293,7 +274,6 @@
     </div>
 </div>
 
-<!-- 7. FEATURE UNDER CONSTRUCTION VIEW -->
 <div id="placeholderUI" class="container hidden">
     <div class="app-card text-center py-5">
         <span style="font-size: 48px;">🚧</span>
@@ -524,287 +504,4 @@
         ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
 
         const crossOriginImageInstance = new Image();
-        crossOriginImageInstance.crossOrigin = "anonymous";
-        crossOriginImageInstance.src = qrImg.src;
-
-        crossOriginImageInstance.onload = function() {
-            ctx.drawImage(crossOriginImageInstance, 75, 75, 250, 250);
-
-            ctx.fillStyle = "#007aff";
-            ctx.font = "bold 15px monospace";
-            ctx.fillText(activeGeneratedTrackingId, canvas.width / 2, 355);
-
-            ctx.fillStyle = "#1e293b";
-            ctx.font = "bold 23px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-            ctx.fillText(nameVal, canvas.width / 2, 405);
-
-            ctx.fillStyle = "#64748b";
-            ctx.font = "600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-            ctx.fillText(dateVal, canvas.width / 2, 435);
-
-            ctx.fillStyle = "#94a3b8";
-            ctx.font = "12px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-            ctx.fillText("Present this code at the checkpoint terminal entry.", canvas.width / 2, 485);
-
-            const dynamicDownloadTriggerNode = document.createElement("a");
-            dynamicDownloadTriggerNode.download = `${activeGeneratedTrackingId.replace('-', '_')}_Pass.png`;
-            dynamicDownloadTriggerNode.href = canvas.toDataURL("image/png");
-            document.body.appendChild(dynamicDownloadTriggerNode);
-            dynamicDownloadTriggerNode.click();
-            document.body.removeChild(dynamicDownloadTriggerNode);
-        };
-    }
-
-    function resetPassWizardForm() {
-        document.getElementById("regGuestName").value = "";
-        document.getElementById("regExpectedDate").value = "";
-        document.getElementById("regCustomLocation").value = "";
-        document.getElementById("regEventLocation").selectedIndex = 0;
-        document.getElementById("wizardCustomLocationWrapper").classList.add("hidden");
-        
-        toggleWizardPassType("Individual");
-        document.getElementById("passRegistrationReceiptContainer").classList.add("hidden");
-        document.getElementById("passRegistrationWizardForm").classList.remove("hidden");
-    }
-
-    function submitStaffForm() {
-        const name = document.getElementById('regStaffName').value;
-        if (!name) { alert("Please input staff worker profile listing name."); return; }
-
-        document.getElementById('submitStaffBtn').innerText = "Processing Pipeline...";
-        callBackend({ action: "registerStaffPass", email: currentUser.email, staffName: name }, (data) => {
-            document.getElementById('submitStaffBtn').innerText = "Authorize Staff Profile";
-            if(data.result === "success") {
-                alert("Staff member profile authorized successfully.");
-                document.getElementById('regStaffName').value = "";
-                showView('dashboardUI');
-            } else {
-                alert("Execution issue saving worker profile registration.");
-            }
-        });
-    }
-
-    function openScannerUI() {
-        window.isBigPartyPass = false;
-        window.isStaffPassMode = false;
-        window.isManualCourierFallback = false;
-        window.lastScannedId = "";
-        
-        document.getElementById('scannerStatusFlash').classList.add('hidden');
-        showView('scannerUI');
-    }
-
-    function simulateScan(mode) {
-        window.isBigPartyPass = false;
-        window.isStaffPassMode = false;
-        window.isManualCourierFallback = false;
-        const flash = document.getElementById('scannerStatusFlash');
-        
-        if (mode === 'INDIVIDUAL') {
-            window.lastScannedId = "R-NM84K";
-            flash.innerText = "Emulated Scan Event: Individual Guest Pass (R-NM84K) Captured! Guard plate entry requested.";
-        } else if (mode === 'BPP') {
-            window.isBigPartyPass = true;
-            window.lastScannedId = "E-9X2PL";
-            flash.innerText = "Emulated Scan Event: Big Party Pass Detected! Enter Surname.";
-        } else if (mode === 'STAFF') {
-            window.isStaffPassMode = true;
-            window.lastScannedId = "QR-STAFF-1029";
-            flash.innerText = "Emulated Scan Event: Household Staff Pass Captured! Verify Vehicle.";
-        } else if (mode === 'COURIER') {
-            window.isManualCourierFallback = true;
-            window.lastScannedId = "MANUAL_ENTRY";
-            flash.innerText = "Emulated Scan Event: Unregistered Rider Fallback Interface Prompted.";
-        }
-        flash.classList.remove('hidden');
-    }
-
-    function openMyWindowView() {
-        const localDate = new Date().toISOString().split('T')[0];
-        document.getElementById('manifestDate').value = localDate;
-        
-        showView('myWindowUI');
-        loadMyWindow();
-    }
-
-    // Modal view display re-trigger layer
-    function launchInteractivePassRecovery(qrId, displayDate, displayName) {
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
-        document.getElementById("recoverQrImage").src = qrApiUrl;
-        document.getElementById("recoverMetaName").innerText = displayName;
-        document.getElementById("recoverMetaDate").innerText = displayDate;
-        document.getElementById("recoverMetaId").innerText = qrId;
-        document.getElementById("passRecoveryModal").classList.remove("hidden");
-    }
-
-    function closePassRecoveryModal() {
-        document.getElementById("passRecoveryModal").classList.add("hidden");
-    }
-
-    function confirmArrival() {
-        const plate = document.getElementById('plateNumber').value.trim();
-        const gSurname = document.getElementById('scannedGuestSurname').value;
-        const mType = document.getElementById('movementTypeSelect').value;
-        const fBlock = document.getElementById('fallbackBlockInput').value;
-        const fCompany = document.getElementById('fallbackCompanyInput').value;
-        
-        if (window.lastScannedId.indexOf("R-") === 0 && !plate) {
-            alert("Security Protocol: Guard must log a visitor vehicle plate number or specify 'WALK-IN' parameter before finalizing individual entries.");
-            return;
-        }
-        if (window.isBigPartyPass && !gSurname) { alert("Please enter the guest's surname."); return; }
-        if (window.isStaffPassMode && mType === "Vehicle" && !plate) { alert("Please enter the vehicle plate number."); return; }
-        if (window.isManualCourierFallback && (!fBlock || !fCompany)) { alert("Please fill in Resident Address and Courier Company details."); return; }
-
-        document.getElementById('confirmEntryBtn').innerText = "Updating Guard Ledger...";
-        
-        let payload = {
-            action: "confirmArrival", 
-            qrId: window.lastScannedId, 
-            plate: plate || "RIDER",
-            guestSurname: gSurname,
-            movementType: mType,
-            isBppUI: window.isBigPartyPass ? "true" : "false"
-        };
-
-        if (window.isManualCourierFallback) {
-            payload.isManualCourier = "true";
-            payload.fallbackAddress = fBlock;
-            payload.fallbackCompany = fCompany;
-        }
-        
-        callBackend(payload, (data) => {
-            document.getElementById('confirmEntryBtn').innerText = "Confirm Entry";
-            if(data.result === "success") {
-                const statusFlash = document.getElementById('scannerStatusFlash');
-                
-                if (data.mode === "INDIVIDUAL_ARRIVED") statusFlash.innerText = "Access Granted: Individual Resident Pass Authorized and Marked Arrived!";
-                else if (data.mode === "EVENT_ARRIVED") statusFlash.innerText = "Access Granted: Event Multi-Entry Pass Authenticated and Cloned Log Saved!";
-                else if (data.mode === "STAFF_EXIT") statusFlash.innerText = "Staff Pass Verified: EXITED!";
-                else if (data.mode === "STAFF_ENTER") statusFlash.innerText = "Staff Pass Verified: ENTERED!";
-                else if (data.mode === "GUEST_BPP") statusFlash.innerText = "Party Guest entry logged!";
-                else if (data.mode === "DELIVERY_QR") statusFlash.innerText = "Delivery Token Validated!";
-                else if (data.mode === "MANUAL_DELIVERY") statusFlash.innerText = "Unregistered courier logged manually!";
-                else statusFlash.innerText = "Plate number validated!";
-                
-                statusFlash.classList.remove('hidden');
-                document.getElementById('plateNumber').value = "";
-                document.getElementById('scannedGuestSurname').value = "";
-                document.getElementById('fallbackBlockInput').value = "";
-                document.getElementById('fallbackCompanyInput').value = "";
-            } else {
-                alert(data.message || "An error occurred during verification processing.");
-                showView('dashboardUI');
-            }
-        });
-    }
-
-    function loadMyWindow() {
-        const selectedDate = document.getElementById('manifestDate').value;
-        const guestContainer = document.getElementById('myWindowGuestsList');
-        const deliveryContainer = document.getElementById('myWindowDeliveriesList');
-        const staffContainer = document.getElementById('myWindowStaffList');
-        
-        if (!currentUser) return;
-        
-        guestContainer.innerHTML = '<div class="text-muted text-center py-2 micro-text">Fetching entries...</div>';
-        deliveryContainer.innerHTML = '<div class="text-muted text-center py-2 micro-text">Fetching entries...</div>';
-        staffContainer.innerHTML = '<div class="text-muted text-center py-2 micro-text">Fetching entries...</div>';
-
-        callBackend({ 
-            action: "getMyWindowData", 
-            email: currentUser.email, 
-            date: selectedDate 
-        }, (data) => {
-            if (data.result !== "success") {
-                guestContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
-                deliveryContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
-                staffContainer.innerHTML = `<div class="text-danger text-center small py-2">Error connecting.</div>`;
-                return;
-            }
-
-            // Create clean visualization mapping options
-            const parsedDate = new Date(selectedDate);
-            const options = { month: 'short', day: 'numeric', year: 'numeric' };
-            const fallbackDisplayDate = isNaN(parsedDate) ? selectedDate : parsedDate.toLocaleDateString('en-US', options);
-
-            let guestRecords = data.records.filter(r => r.category === "GUEST" || r.category === "EVENT");
-            let deliveryRecords = data.records.filter(r => r.category === "DELIVERY");
-            let staffRecords = data.records.filter(r => r.category === "STAFF");
-
-            if (guestRecords.length === 0) {
-                guestContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No entries logged for this date.</div>';
-            } else {
-                let gHtml = '<div class="list-group list-group-flush">';
-                guestRecords.forEach(item => {
-                    let badgeClass = "bg-success";
-                    if (item.status === "ACTIVE" || item.status === "PENDING") badgeClass = "bg-warning text-dark";
-                    if (item.status === "QR EXPIRED") badgeClass = "bg-secondary text-white";
-                    
-                    let cleanName = item.name.replace("BPP / ", "").replace("Party Guest: ", "");
-                    let trackingQrId = item.type || "R-UNKNOWN"; 
-                    
-                    gHtml += `
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
-                            <div>
-                                <div class="fw-bold text-dark small d-inline-flex align-items-center">
-                                    ${cleanName}
-                                    <span class="inline-qr-trigger" onclick="launchInteractivePassRecovery('${trackingQrId}', '${fallbackDisplayDate}', '${cleanName}')" title="View Security Pass">📱</span>
-                                </div>
-                                <div class="xs-micro-text">${fallbackDisplayDate}</div>
-                            </div>
-                            <div><span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size:10px; border-radius:6px;">${item.status}</span></div>
-                        </div>
-                    `;
-                });
-                gHtml += '</div>';
-                guestContainer.innerHTML = gHtml;
-            }
-
-            if (deliveryRecords.length === 0) {
-                deliveryContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No active delivery entries.</div>';
-            } else {
-                let dHtml = '<div class="list-group list-group-flush">';
-                deliveryRecords.forEach(item => {
-                    let badgeClass = item.status === "PENDING" ? "bg-warning text-dark" : "bg-success";
-                    dHtml += `
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
-                            <div>
-                                <div class="fw-bold text-dark small">${item.name}</div>
-                                <div class="xs-micro-text">${fallbackDisplayDate}</div>
-                            </div>
-                            <div><span class="badge ${badgeClass} text-uppercase px-2 py-1" style="font-size:10px; border-radius:6px;">${item.status}</span></div>
-                        </div>
-                    `;
-                });
-                dHtml += '</div>';
-                deliveryContainer.innerHTML = dHtml;
-            }
-
-            if (staffRecords.length === 0) {
-                staffContainer.innerHTML = '<div class="text-muted text-center py-2 small bg-light rounded-3">No active staff leave logs for this date.</div>';
-            } else {
-                let sHtml = '<div class="list-group list-group-flush">';
-                staffRecords.forEach(item => {
-                    let badgeColor = "bg-warning text-dark"; 
-                    if (item.status === "EXITED") badgeColor = "bg-danger text-white"; 
-                    if (item.status === "ENTERED") badgeColor = "bg-success text-white"; 
-                    
-                    sHtml += `
-                        <div class="list-group-item d-flex justify-content-between align-items-center px-1 py-2 border-bottom-dashed" style="background:none;">
-                            <div>
-                                <div class="fw-bold text-dark small">${item.name}</div>
-                                <div class="text-muted xs-micro-text" style="font-size:11px;">${item.type}</div>
-                            </div>
-                            <div><span class="badge ${badgeColor} text-uppercase p-2" style="font-size:11px; font-weight:700; border-radius:6px;">${item.status}</span></div>
-                        </div>
-                    `;
-                });
-                sHtml += '</div>';
-                staffContainer.innerHTML = sHtml;
-            }
-        });
-    }
-</script>
-</body>
-</html>
+        crossOriginImageInstance.crossOrigin = "anonymous"; cross
