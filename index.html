@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>La Vista Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Core Live QR Camera Scanning Engine CDN -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         body { background-color: #f7f7f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .hidden { display: none !important; }
@@ -26,8 +28,8 @@
         .back-btn { font-size: 14px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; margin-bottom: 20px; color: #007aff; cursor: pointer; }
         .border-bottom-dashed { border-bottom: 1px dashed #e9ecef; }
         .xs-micro-text { font-size: 12px; color: #64748b; font-weight: 500; }
-        .status-flash-banner { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; }
-        .mock-pill { cursor: pointer; font-size: 12px; padding: 6px 12px; border-radius: 20px; border: 1px solid #dee2e6; background: #fff; margin: 3px; display: inline-block; }
+        .status-flash-banner { border-radius: 12px; padding: 12px; font-weight: 600; text-align: center; border: 1px solid transparent; }
+        .mock-pill { cursor: pointer; font-size: 11px; padding: 5px 10px; border-radius: 20px; border: 1px solid #dee2e6; background: #fff; margin: 2px; display: inline-block; }
         .mock-pill:hover { background: #f1f3f5; }
 
         /* Pass Generation Tab Switches */
@@ -43,10 +45,6 @@
         .secure-pass-name { font-size: 21px; font-weight: 700; color: #1e293b; margin-bottom: 4px; word-wrap: break-word; }
         .secure-pass-date { font-size: 14px; font-weight: 600; color: #64748b; }
         .secure-pass-id { font-size: 13px; font-weight: 700; color: #007aff; font-family: monospace; margin-top: 5px; }
-        
-        /* Interactive Recover Link Accent */
-        .inline-qr-trigger { color: #007aff; cursor: pointer; margin-left: 6px; font-size: 14px; transition: opacity 0.2s; }
-        .inline-qr-trigger:hover { opacity: 0.7; }
 
         /* Modal Overlay Blocks */
         .custom-modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 15px; }
@@ -194,7 +192,7 @@
 <div id="myWindowUI" class="container hidden">
     <div class="app-card">
         <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
-        <h4 class="fw-bold text-dark mb-1">My Window</h4>
+        <h4 class="fw-bold text-dark mb-1">MY GUESTS</h4>
         <p class="text-muted small mb-3">Real-time domestic oversight tracking manifest logs.</p>
         
         <div class="mb-4">
@@ -202,7 +200,7 @@
             <input type="date" id="manifestDate" class="form-control" onchange="loadMyWindow()" style="border-radius: 10px;">
         </div>
 
-        <h6 class="fw-bold text-primary mb-2">📋 Registered Guests</h6>
+        <h6 class="fw-bold text-primary mb-2">📋 Registered Visitors</h6>
         <div id="myWindowGuestsList" class="mb-4"></div>
 
         <h6 class="fw-bold text-warning mb-2">🛵 Logged Deliveries</h6>
@@ -228,26 +226,21 @@
 
 <div id="scannerUI" class="container hidden">
     <div class="app-card">
-        <div class="back-btn" onclick="showView('dashboardUI')">← Close Scanner Terminal</div>
+        <div class="back-btn" onclick="shutdownCameraStream(); showView('dashboardUI');">← Close Scanner Terminal</div>
         <h4 class="fw-bold text-dark mb-1">Gate Entry Terminal</h4>
         <p class="text-muted small mb-3">Guard validation console for entry point monitoring.</p>
         
         <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
 
-        <div class="p-3 bg-light rounded-4 mb-3 text-center border">
-            <span class="text-muted d-block small mb-2 fw-bold">⚙️ Live Pass Scanning Emulator Controls:</span>
-            <div class="mock-pill bg-primary text-white" onclick="simulateScan('INDIVIDUAL')">Scan Generated Pass (R-)</div>
-            <div class="mock-pill bg-warning text-dark" onclick="simulateScan('BPP')">Scan Event Pass (E-)</div>
-            <div class="mock-pill" onclick="simulateScan('STAFF')">Staff RFID Pass</div>
-            <div class="mock-pill" onclick="simulateScan('COURIER')">Courier Manual Route</div>
+        <!-- LIVE CAMERA VIEWFINDER BLOCK -->
+        <div id="cameraViewfinderContainer" class="mb-3 position-relative rounded-4 overflow-hidden border bg-dark" style="min-height: 240px; max-width: 100%;">
+            <div id="qr-camera-element" style="width: 100%;"></div>
         </div>
 
         <div class="mb-3">
             <label class="form-label small fw-bold text-primary">Loaded QR Token ID String Target</label>
-            <input type="text" id="scannedQrTokenInput" class="form-control text-center fw-bold bg-white" placeholder="Generate a pass first or type custom ID" onchange="simulatedQrId = this.value.toUpperCase().trim();">
+            <input type="text" id="scannedQrTokenInput" class="form-control text-center fw-bold bg-white" placeholder="Scan a physical QR pass code..." onchange="simulatedQrId = this.value.toUpperCase().trim();">
         </div>
-
-        <hr class="my-3 text-muted">
 
         <div class="mb-2">
             <label class="form-label small fw-bold">Vehicle Plate Number</label>
@@ -266,12 +259,19 @@
         </div>
 
         <div class="p-3 bg-light rounded-4 mb-3 border">
-            <span class="text-dark d-block small mb-2 fw-bold text-uppercase" style="letter-spacing:0.5px;">⚠️ Manual Courier Entry Fields</span>
+            <span class="text-dark d-block small mb-2 fw-bold text-uppercase" style="letter-spacing:0.5px; font-size:11px;">⚠️ Manual Courier / Bypass Controls</span>
             <div class="mb-2">
                 <input type="text" id="fallbackBlockInput" class="form-control form-control-sm" placeholder="Resident Address (e.g. Block 2 Lot 4)">
             </div>
-            <div>
+            <div class="mb-2">
                 <input type="text" id="fallbackCompanyInput" class="form-control form-control-sm" placeholder="Logistics Agency (e.g. Grab/Lalamove)">
+            </div>
+            <div class="text-center bg-white p-2 rounded border">
+                <span class="text-muted d-block micro-text mb-1" style="font-size:10px; font-weight:600;">Manual Fallback Emulators:</span>
+                <div class="mock-pill bg-primary text-white" onclick="simulateScan('INDIVIDUAL')">Mock (R-)</div>
+                <div class="mock-pill bg-warning text-dark" onclick="simulateScan('BPP')">Mock (E-)</div>
+                <div class="mock-pill" onclick="simulateScan('STAFF')">Mock Staff</div>
+                <div class="mock-pill" onclick="simulateScan('COURIER')">Courier Route</div>
             </div>
         </div>
 
@@ -293,8 +293,8 @@
     let currentUser = null; 
     let activePassWizardType = "Individual";
     let simulatedQrId = "";
+    let html5QrScannerInstance = null; // Camera handler variable
 
-    // Application boot routine tracking persistent session states
     window.onload = function() {
         const persistedUser = localStorage.getItem("lavista_authenticated_user");
         if (persistedUser) {
@@ -311,7 +311,6 @@
         }
     };
 
-    // Unified display views state router
     function showView(viewId) {
         const screens = ['loginUI', 'dashboardUI', 'guestRegistrationUI', 'staffPassUI', 'myWindowUI', 'scannerUI', 'placeholderUI'];
         screens.forEach(id => {
@@ -320,7 +319,6 @@
         document.getElementById(viewId).classList.remove('hidden');
     }
 
-    // JSONP Core Transport Infrastructure Layer
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
@@ -356,7 +354,6 @@
         showView('loginUI');
     }
 
-    // Forgot Password Trigger Logic
     function openForgotPasswordModal(event) {
         event.preventDefault();
         document.getElementById("forgotPasswordEmailInput").value = "";
@@ -377,7 +374,6 @@
         });
     }
 
-    // Toggle Registration Form View Inputs state logic
     function toggleWizardPassType(type) {
         activePassWizardType = type;
         const btnIndividual = document.getElementById("tabBtnIndividual");
@@ -414,7 +410,6 @@
         }
     }
 
-    // Upgraded registration dispatcher with receipt view cards and validation constraints
     function submitGuestForm() {
         const expectedDate = document.getElementById('regExpectedDate').value;
         if (!expectedDate) { alert("Please select a target execution date parameter."); return; }
@@ -452,7 +447,6 @@
             document.getElementById('submitGuestBtn').innerText = "Generate Entry Pass";
             
             if (data.result === "success") {
-                // Save token inside client-side testing cache to feed it into the scan module instantly
                 localStorage.setItem("last_generated_qr", data.qrId);
                 renderGeneratedPassReceiptCard(data.qrId, expectedDate, displayNameText);
             } else {
@@ -461,7 +455,6 @@
         });
     }
 
-    // Paint dynamic ticket parameters onto UI receipt target view fields
     function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
         const parsedDate = new Date(targetDateRaw);
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
@@ -478,7 +471,6 @@
         document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
     }
 
-    // Dynamic HTML5 canvas drawing engine to save images directly without screenshots
     function downloadPassPngImageToDevice() {
         const qrImg = document.getElementById("receiptQrImage");
         const nameVal = document.getElementById("receiptMetaName").innerText;
@@ -539,7 +531,6 @@
         document.getElementById("passRegistrationReceiptContainer").classList.add("hidden");
     }
 
-    // 2. AUTHORIZE HOUSEHOLD STAFF PIPELINE
     function submitStaffForm() {
         const staffName = document.getElementById('regStaffName').value.trim();
         if (!staffName) { alert("Please input staff name details."); return; }
@@ -601,8 +592,35 @@
                     
                     if (rec.category === "GUEST" || rec.category === "EVENT") {
                         hasGuests = true;
-                        item.innerHTML = `<div><strong class='text-dark'>${rec.name}</strong> <span class="text-muted d-block xs-micro-text">${rec.type}</span></div>
-                                          <span class="badge ${rec.status === 'ARRIVED' ? 'bg-success' : 'bg-primary'}">${rec.status}</span>`;
+                        
+                        // Parse tracking date entries smoothly
+                        const passDate = rec.date || rec.dateExpected || '';
+                        const parsedDate = new Date(passDate);
+                        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                        const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? passDate : parsedDate.toLocaleDateString('en-US', options);
+                        
+                        // Paint interactive layout with interactive image thumbnail
+                        item.innerHTML = `
+                            <div class="d-flex align-items-center gap-3">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&margin=4&data=${encodeURIComponent(rec.type)}" 
+                                     alt="QR" class="rounded border bg-light qr-window-thumbnail" 
+                                     style="width: 45px; height: 45px; cursor: pointer; object-fit: contain;" 
+                                     title="Click to view/resend registration pass token">
+                                <div>
+                                    <strong class='text-dark d-block'>${rec.name}</strong>
+                                    <span class="text-muted d-block xs-micro-text" style="font-size: 11px; margin-top: 1px;">ID: ${rec.type}</span>
+                                    <span class="text-primary d-block xs-micro-text" style="font-weight: 600; font-size: 11px;">📅 ${cleanDisplayDate || 'No Date Declared'}</span>
+                                </div>
+                            </div>
+                            <span class="badge ${rec.status === 'ARRIVED' ? 'bg-success' : 'bg-primary'}">${rec.status}</span>
+                        `;
+                        
+                        // Attach code-safe dynamic click listener to skip inline quote breaks
+                        const thumbImage = item.querySelector('.qr-window-thumbnail');
+                        thumbImage.addEventListener('click', () => {
+                            openPassRecoveryModal(rec.type, rec.name, passDate);
+                        });
+
                         guestsList.appendChild(item);
                     } else if (rec.category === "STAFF") {
                         hasStaff = true;
@@ -621,52 +639,86 @@
         });
     }
 
-    // 4. GUARD STATION SCANNER SIMULATION ENGINE
+    // 4. LIVE GUARD STATION HARDWARE SCANNER TERMINAL ENGINE
     function openScannerUI() {
         document.getElementById('plateNumber').value = "";
         document.getElementById('scannedGuestSurname').value = "";
         document.getElementById('fallbackBlockInput').value = "";
         document.getElementById('fallbackCompanyInput').value = "";
-        
-        // Auto-fetch the last generated ID string from storage so you don't have to guess or copy-paste
-        const liveCachedToken = localStorage.getItem("last_generated_qr") || "";
-        document.getElementById('scannedQrTokenInput').value = liveCachedToken;
-        simulatedQrId = liveCachedToken;
+        document.getElementById('scannedQrTokenInput').value = "";
+        simulatedQrId = "";
         
         const flash = document.getElementById('scannerStatusFlash');
-        if (liveCachedToken) {
-            flash.classList.remove('hidden');
-            flash.style.backgroundColor = "#e0f2fe";
-            flash.style.color = "#0369a1";
-            flash.style.borderColor = "#bae6fd";
-            flash.innerText = `📟 Detected Active Live Token: ${liveCachedToken}. Ready for automated testing entry verification.`;
-        } else {
-            flash.classList.add('hidden');
-        }
+        flash.classList.remove('hidden');
+        flash.className = "status-flash-banner mb-3 text-dark bg-light border";
+        flash.innerText = "🎬 Initializing community hardware stream camera modules...";
+        
         showView('scannerUI');
+
+        // Spin up hardware camera stream configuration instantly
+        setTimeout(() => {
+            try {
+                if(html5QrScannerInstance) { shutdownCameraStream(); }
+                
+                html5QrScannerInstance = new Html5Qrcode("qr-camera-element");
+                html5QrScannerInstance.start(
+                    { facingMode: "environment" }, // Prioritize back scanner lenses
+                    { fps: 12, qrbox: { width: 220, height: 220 } },
+                    (decodedText) => {
+                        // Success Handler Callback
+                        document.getElementById('scannedQrTokenInput').value = decodedText;
+                        simulatedQrId = decodedText;
+                        
+                        flash.className = "status-flash-banner mb-3 bg-success text-white border-0";
+                        flash.innerText = `✅ Token Detected: ${decodedText}. Processing verification manifest...`;
+                        
+                        // Auto-process entry verification directly 
+                        confirmArrival();
+                    },
+                    () => { /* Silent tracking frame skip pass loops */ }
+                ).then(() => {
+                    flash.className = "status-flash-banner mb-3 bg-primary text-white border-0";
+                    flash.innerText = "📟 Camera Viewfinder Live. Align pass inside boundary targets.";
+                }).catch(err => {
+                    console.error("Camera feed fallback issue:", err);
+                    flash.className = "status-flash-banner mb-3 bg-danger text-white border-0";
+                    flash.innerText = "🎥 Video stream blocked. Verify app camera permissions or use bypass emulator inputs below.";
+                });
+            } catch(e) {
+                console.error("Scanner exception thrown:", e);
+            }
+        }, 300);
+    }
+
+    function shutdownCameraStream() {
+        if (html5QrScannerInstance && html5QrScannerInstance.isScanning) {
+            html5QrScannerInstance.stop().then(() => {
+                html5QrScannerInstance.clear();
+                html5QrScannerInstance = null;
+            }).catch(e => console.error("Error shutting down camera module:", e));
+        }
     }
 
     function simulateScan(type) {
+        shutdownCameraStream();
         const flash = document.getElementById('scannerStatusFlash');
         flash.classList.remove('hidden');
-        flash.style.backgroundColor = "#e0f2fe";
-        flash.style.color = "#0369a1";
-        flash.style.borderColor = "#bae6fd";
+        flash.className = "status-flash-banner mb-3 bg-info text-dark border-0";
         
         const liveCachedToken = localStorage.getItem("last_generated_qr");
         
         if (type === 'INDIVIDUAL') {
             simulatedQrId = (liveCachedToken && liveCachedToken.indexOf("R-") === 0) ? liveCachedToken : "R-SAMPLE";
-            flash.innerText = `📟 Pass Decoded: Individual Visitor Code (${simulatedQrId}). Ready for gate assignment logging.`;
+            flash.innerText = `📟 Emulator Override: Individual Visitor Code (${simulatedQrId}).`;
         } else if (type === 'BPP') {
             simulatedQrId = (liveCachedToken && liveCachedToken.indexOf("E-") === 0) ? liveCachedToken : "E-SAMPLE";
-            flash.innerText = `📟 Pass Decoded: Group Event Master Pass (${simulatedQrId}). Verify surname before processing.`;
+            flash.innerText = `📟 Emulator Override: Event Master Pass (${simulatedQrId}).`;
         } else if (type === 'STAFF') {
             simulatedQrId = "STAFF_PASS";
-            flash.innerText = "📟 RFID Target: Automated Domestic Labor Tag recognized.";
+            flash.innerText = "📟 Emulator Override: RFID Domestic Labor Tag recognized.";
         } else if (type === 'COURIER') {
             simulatedQrId = "MANUAL";
-            flash.innerText = "⚠️ Manual Bypass Route Configured. Input Block/Lot designations.";
+            flash.innerText = "⚠️ Emulator Override: Manual Bypass Route Configured.";
         }
         document.getElementById('scannedQrTokenInput').value = simulatedQrId;
     }
@@ -697,28 +749,39 @@
         }
         
         flash.classList.remove('hidden');
-        flash.style.backgroundColor = "#fff3cd";
-        flash.style.color = "#664d03";
-        flash.style.borderColor = "#ffecb5";
+        flash.className = "status-flash-banner mb-3 bg-warning text-dark border-0";
         flash.innerText = "Verifying backend authorizations data pipelines...";
         
         callBackend(payload, (data) => {
             if (data.result === "success") {
-                flash.style.backgroundColor = "#d1e7dd";
-                flash.style.color = "#0f5132";
-                flash.style.borderColor = "#badbcc";
+                flash.className = "status-flash-banner mb-3 bg-success text-white border-0";
                 flash.innerText = "✅ ACCESS GRANTED: Security manifest tracking parameters committed successfully.";
                 if(simulatedQrId !== "MANUAL") {
                     simulatedQrId = "";
                     document.getElementById('scannedQrTokenInput').value = "";
                 }
+                // Revive camera viewfinder loop if user wants to keep running tests
+                setTimeout(() => { if(html5QrScannerInstance && !html5QrScannerInstance.isScanning) { openScannerUI(); } }, 2500);
             } else {
-                flash.style.backgroundColor = "#f8d7da";
-                flash.style.color = "#842029";
-                flash.style.borderColor = "#f5c2c7";
+                flash.className = "status-flash-banner mb-3 bg-danger text-white border-0";
                 flash.innerText = "❌ ACCESS DENIED: " + (data.reason || data.message || "Invalid Security Token");
             }
         });
+    }
+
+    function openPassRecoveryModal(qrId, name, dateRaw) {
+        const parsedDate = new Date(dateRaw);
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        const cleanDisplayDate = (isNaN(parsedDate) || !dateRaw) ? dateRaw : parsedDate.toLocaleDateString('en-US', options);
+
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
+        
+        document.getElementById("recoverQrImage").src = qrApiUrl;
+        document.getElementById("recoverMetaName").innerText = name;
+        document.getElementById("recoverMetaDate").innerText = cleanDisplayDate || "No Date Assigned";
+        document.getElementById("recoverMetaId").innerText = qrId;
+        
+        document.getElementById('passRecoveryModal').classList.remove('hidden');
     }
 
     function closePassRecoveryModal() {
