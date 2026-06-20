@@ -235,11 +235,16 @@
         <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
 
         <div class="p-3 bg-light rounded-4 mb-3 text-center border">
-            <span class="text-muted d-block small mb-2 fw-bold">⚙️ Mock Scanning Pass Emulator Trigger:</span>
-            <div class="mock-pill" onclick="simulateScan('INDIVIDUAL')">Individual Pass (R-)</div>
-            <div class="mock-pill" onclick="simulateScan('BPP')">Event Pass (E-)</div>
-            <div class="mock-pill" onclick="simulateScan('STAFF')">Staff Pass Vehicle</div>
-            <div class="mock-pill" onclick="simulateScan('COURIER')">Courier Manual Fallback</div>
+            <span class="text-muted d-block small mb-2 fw-bold">⚙️ Live Pass Scanning Emulator Controls:</span>
+            <div class="mock-pill bg-primary text-white" onclick="simulateScan('INDIVIDUAL')">Scan Generated Pass (R-)</div>
+            <div class="mock-pill bg-warning text-dark" onclick="simulateScan('BPP')">Scan Event Pass (E-)</div>
+            <div class="mock-pill" onclick="simulateScan('STAFF')">Staff RFID Pass</div>
+            <div class="mock-pill" onclick="simulateScan('COURIER')">Courier Manual Route</div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label small fw-bold text-primary">Loaded QR Token ID String Target</label>
+            <input type="text" id="scannedQrTokenInput" class="form-control text-center fw-bold bg-white" placeholder="Generate a pass first or type custom ID" onchange="simulatedQrId = this.value.toUpperCase().trim();">
         </div>
 
         <hr class="my-3 text-muted">
@@ -287,7 +292,7 @@
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
     let currentUser = null; 
     let activePassWizardType = "Individual";
-    let activeGeneratedTrackingId = "";
+    let simulatedQrId = "";
 
     // Application boot routine tracking persistent session states
     window.onload = function() {
@@ -366,9 +371,7 @@
         const targetEmail = document.getElementById("forgotPasswordEmailInput").value.trim();
         if (!targetEmail) { alert("Please provide a valid email address."); return; }
 
-        // Pipeline notification trigger
         callBackend({ action: "forgotPassword", email: targetEmail }, (data) => {
-            // Emulated notification for verification transparency 
             alert(`Password modification email dispatched successfully to ${targetEmail}!`);
             closeForgotPasswordModal();
         });
@@ -449,6 +452,8 @@
             document.getElementById('submitGuestBtn').innerText = "Generate Entry Pass";
             
             if (data.result === "success") {
+                // Save token inside client-side testing cache to feed it into the scan module instantly
+                localStorage.setItem("last_generated_qr", data.qrId);
                 renderGeneratedPassReceiptCard(data.qrId, expectedDate, displayNameText);
             } else {
                 alert("Execution issue logging visitor registration: " + (data.message || "Unknown error"));
@@ -458,14 +463,10 @@
 
     // Paint dynamic ticket parameters onto UI receipt target view fields
     function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
-        activeGeneratedTrackingId = qrId;
-        
-        // Formulate friendly local date string
         const parsedDate = new Date(targetDateRaw);
         const options = { month: 'short', day: 'numeric', year: 'numeric' };
         const cleanDisplayDate = isNaN(parsedDate) ? targetDateRaw : parsedDate.toLocaleDateString('en-US', options);
 
-        // Mount third-party high-density QR asset string endpoint
         const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
         
         document.getElementById("receiptQrImage").src = qrApiUrl;
@@ -473,7 +474,6 @@
         document.getElementById("receiptMetaDate").innerText = cleanDisplayDate;
         document.getElementById("receiptMetaId").innerText = qrId;
 
-        // Toggle visibility to view card state frame
         document.getElementById("passRegistrationWizardForm").classList.add("hidden");
         document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
     }
@@ -483,6 +483,7 @@
         const qrImg = document.getElementById("receiptQrImage");
         const nameVal = document.getElementById("receiptMetaName").innerText;
         const dateVal = document.getElementById("receiptMetaDate").innerText;
+        const tokenVal = document.getElementById("receiptMetaId").innerText;
 
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
@@ -503,7 +504,6 @@
         ctx.letterSpacing = "1px";
         ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
 
-        // Dynamic HTML5 canvas drawing engine to save images directly without screenshots
         const crossOriginImageInstance = new Image();
         crossOriginImageInstance.crossOrigin = "anonymous"; 
         
@@ -520,10 +520,10 @@
             
             ctx.fillStyle = "#007aff";
             ctx.font = "bold 14px monospace";
-            ctx.fillText(activeGeneratedTrackingId, canvas.width / 2, 445);
+            ctx.fillText(tokenVal, canvas.width / 2, 445);
             
             const link = document.createElement("a");
-            link.download = `LaVista_Pass_${activeGeneratedTrackingId}.png`;
+            link.download = `LaVista_Pass_${tokenVal}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
         };
@@ -612,7 +612,7 @@
                     }
                 });
                 
-                if (!hasGuests) guestsList.innerHTML = "<div class='text-muted small text-center py-3 bg-light rounded-3 border border-dashed'>No guest authorizations found for this tracking parameters.</div>";
+                if (!hasGuests) guestsList.innerHTML = "<div class='text-muted small text-center py-3 bg-light rounded-3 border border-dashed'>No guest authorizations found for this tracking parameter.</div>";
                 if (!hasStaff) staffList.innerHTML = "<div class='text-muted small text-center py-3 bg-light rounded-3 border border-dashed'>No home staff accounts verified.</div>";
                 deliveriesList.innerHTML = "<div class='text-muted small text-center py-3 bg-light rounded-3 border border-dashed'>No external logistics activities logged.</div>";
             } else {
@@ -622,17 +622,27 @@
     }
 
     // 4. GUARD STATION SCANNER SIMULATION ENGINE
-    let simulatedQrId = "";
-    
     function openScannerUI() {
-        simulatedQrId = "";
         document.getElementById('plateNumber').value = "";
         document.getElementById('scannedGuestSurname').value = "";
         document.getElementById('fallbackBlockInput').value = "";
         document.getElementById('fallbackCompanyInput').value = "";
         
+        // Auto-fetch the last generated ID string from storage so you don't have to guess or copy-paste
+        const liveCachedToken = localStorage.getItem("last_generated_qr") || "";
+        document.getElementById('scannedQrTokenInput').value = liveCachedToken;
+        simulatedQrId = liveCachedToken;
+        
         const flash = document.getElementById('scannerStatusFlash');
-        flash.classList.add('hidden');
+        if (liveCachedToken) {
+            flash.classList.remove('hidden');
+            flash.style.backgroundColor = "#e0f2fe";
+            flash.style.color = "#0369a1";
+            flash.style.borderColor = "#bae6fd";
+            flash.innerText = `📟 Detected Active Live Token: ${liveCachedToken}. Ready for automated testing entry verification.`;
+        } else {
+            flash.classList.add('hidden');
+        }
         showView('scannerUI');
     }
 
@@ -643,12 +653,14 @@
         flash.style.color = "#0369a1";
         flash.style.borderColor = "#bae6fd";
         
+        const liveCachedToken = localStorage.getItem("last_generated_qr");
+        
         if (type === 'INDIVIDUAL') {
-            simulatedQrId = "R-SAMPLE";
-            flash.innerText = "📟 Pass Decoded: Individual Visitor Code (R-SAMPLE). Ready for gate assignment logging.";
+            simulatedQrId = (liveCachedToken && liveCachedToken.indexOf("R-") === 0) ? liveCachedToken : "R-SAMPLE";
+            flash.innerText = `📟 Pass Decoded: Individual Visitor Code (${simulatedQrId}). Ready for gate assignment logging.`;
         } else if (type === 'BPP') {
-            simulatedQrId = "E-SAMPLE";
-            flash.innerText = "📟 Pass Decoded: Group Event Master Pass (E-SAMPLE). Verify surname before processing.";
+            simulatedQrId = (liveCachedToken && liveCachedToken.indexOf("E-") === 0) ? liveCachedToken : "E-SAMPLE";
+            flash.innerText = `📟 Pass Decoded: Group Event Master Pass (${simulatedQrId}). Verify surname before processing.`;
         } else if (type === 'STAFF') {
             simulatedQrId = "STAFF_PASS";
             flash.innerText = "📟 RFID Target: Automated Domestic Labor Tag recognized.";
@@ -656,6 +668,7 @@
             simulatedQrId = "MANUAL";
             flash.innerText = "⚠️ Manual Bypass Route Configured. Input Block/Lot designations.";
         }
+        document.getElementById('scannedQrTokenInput').value = simulatedQrId;
     }
 
     function confirmArrival() {
@@ -674,7 +687,7 @@
             payload.guestName = company;
             payload.plate = plate || "DELIVERY RIDER";
         } else {
-            if (!simulatedQrId) { alert("Please simulate an entry token target tracking type execution first."); return; }
+            if (!simulatedQrId) { alert("Please input or scan an entry token target tracking type execution first."); return; }
             payload.isManualLog = "false";
             payload.qrId = simulatedQrId;
             payload.plate = plate || "PASSENGER VEHICLE";
@@ -684,6 +697,9 @@
         }
         
         flash.classList.remove('hidden');
+        flash.style.backgroundColor = "#fff3cd";
+        flash.style.color = "#664d03";
+        flash.style.borderColor = "#ffecb5";
         flash.innerText = "Verifying backend authorizations data pipelines...";
         
         callBackend(payload, (data) => {
@@ -692,7 +708,10 @@
                 flash.style.color = "#0f5132";
                 flash.style.borderColor = "#badbcc";
                 flash.innerText = "✅ ACCESS GRANTED: Security manifest tracking parameters committed successfully.";
-                if(simulatedQrId !== "MANUAL") simulatedQrId = ""; 
+                if(simulatedQrId !== "MANUAL") {
+                    simulatedQrId = "";
+                    document.getElementById('scannedQrTokenInput').value = "";
+                }
             } else {
                 flash.style.backgroundColor = "#f8d7da";
                 flash.style.color = "#842029";
