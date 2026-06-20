@@ -587,7 +587,7 @@
                         const options = { month: 'short', day: 'numeric', year: 'numeric' };
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? passDate : parsedDate.toLocaleDateString('en-US', options);
                         
-                        const tokenKey = rec.qrId || rec.id || '';
+                        const tokenKey = rec.type || rec.qrId || rec.id || '';
                         console.log("Raw record data from backend:", rec); // 👈 ADD THIS FOR DEBUGGING
                         const safeName = rec.name.replace(/'/g, "\\'");
                         
