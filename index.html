@@ -581,21 +581,27 @@
                     item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
                     
                     if (rec.category === "GUEST" || rec.category === "EVENT") {
-                        hasGuests = true;
-                        const passDate = rec.date || rec.dateExpected || '';
-                        const parsedDate = new Date(passDate);
-                        const options = { month: 'short', day: 'numeric', year: 'numeric' };
-                        const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? passDate : parsedDate.toLocaleDateString('en-US', options);
-                        
-                        item.innerHTML = `
-                            <div>
-                                <div class='fw-bold text-dark'>${rec.name}</div>
-                                <div class='text-muted micro-text' style='font-size:11px;'>ID: ${rec.type} &bull; ${cleanDisplayDate}</div>
-                            </div>
-                            <span class='badge ${rec.status === "ARRIVED" ? "bg-success" : "bg-primary"}'>${rec.status}</span>
-                        `;
-                        guestsList.appendChild(item);
-                    } else if (rec.category === "STAFF") {
+    hasGuests = true;
+    const passDate = rec.date || rec.dateExpected || '';
+    const parsedDate = new Date(passDate);
+    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+    const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? passDate : parsedDate.toLocaleDateString('en-US', options);
+    
+    // Updated innerHTML to include an inline SVG QR icon next to the name
+    item.innerHTML = `
+        <div>
+            <div class='fw-bold text-dark d-flex align-items-center'>
+                <span>${rec.name}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-qr-code text-muted ms-1.5" viewBox="0 0 16 16" style="margin-left: 6px; opacity: 0.7;">
+                    <path d="M2 2h2v2H2zM1 1v4h4V1zm1 7h2v2H2zM1 7v4h4V7zm7-5h2v2H8zM7 1v4h4V1zm0 7h1v1H7zm2 0h1v1H9zm0 2h1v1H9zm-1 1h1v1H8zm-1 1h1v1H7zm1 1h2v-1H8zm2 0h1v1h-1zM6 11h1v1H6zm1-1h1v1H7zM4 12H3v1h1zm1-4H3v1h2zm-1 7H1v-4h4zm-3-3h2v2H2zm11-6h2v2h-2zm-1-1v4h4V1zm1 7h2v2h-2zm-1-1v4h4V7zm-3 4h1v1H10zm0 2h1v1h-1zm1-1h1v1h-1zm1 1h1v1h-1zm-4-1h2v-1H8zm2-1h1v-1h-1zm-2 2h1v1H8zm1-5h1v1H9zm1-1h1v1h-1z"/>
+                </svg>
+            </div>
+            <div class='text-muted micro-text' style='font-size:11px;'>ID: ${rec.type} &bull; ${cleanDisplayDate}</div>
+        </div>
+        <span class='badge ${rec.status === "ARRIVED" ? "bg-success" : "bg-primary"}'>${rec.status}</span>
+    `;
+    guestsList.appendChild(item);
+} else if (rec.category === "STAFF") {
                         hasStaff = true;
                         item.innerHTML = `
                             <div><div class='fw-bold text-dark'>${rec.name}</div><div class='text-muted micro-text' style='font-size:11px;'>${rec.type}</div></div>
