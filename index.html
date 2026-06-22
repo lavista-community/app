@@ -680,8 +680,16 @@
 
     function openScannerUI() {
         showView('scannerUI');
-        resetScannerUIState();
+        // Clear UI states
+        document.getElementById('scannerStatusFlash').classList.add('hidden');
+        document.getElementById('cameraViewfinderContainer').classList.remove('hidden');
+        document.getElementById('manualOverrideLinkWrapper').classList.remove('hidden');
+        document.getElementById('individualFieldsWrapper').classList.add('hidden');
+        document.getElementById('eventFieldsWrapper').classList.add('hidden');
+        document.getElementById('manualFieldsWrapper').classList.add('hidden');
+        document.getElementById('confirmEntryBtn').classList.add('hidden');
 
+        // Fetch directory for manual lookups
         callBackend({ action: "getDirectoryMetadata" }, (data) => {
             if (data.result === "success") {
                 residentDirectoryData = normalizeDirectoryData(data.directory);
@@ -689,66 +697,23 @@
             }
         });
 
-        if (html5QrScannerInstance === null) {
+        // Initialize and Start Scanner
+        if (!html5QrScannerInstance) {
             html5QrScannerInstance = new Html5Qrcode("qr-camera-element");
         }
         
-        const scanConfig = { fps: 12, qrbox: { width: 260, height: 260 } };
         html5QrScannerInstance.start(
             { facingMode: "environment" },
-            scanConfig,
+            { fps: 10, qrbox: { width: 250, height: 250 } },
             onScannerCaptureSuccess,
-            onScannerCaptureFailure
-        ).catch(err => console.error("Camera access issue detected: ", err));
+            (err) => { /* Ignore minor frame capture errors */ }
+        ).catch(err => console.error("Camera access issue:", err));
     }
 
     function shutdownCameraStream() {
         if (html5QrScannerInstance && html5QrScannerInstance.isScanning) {
-            html5QrScannerInstance.stop().catch(err => console.error("Camera stop process anomaly: ", err));
+            html5QrScannerInstance.stop().catch(err => console.error("Camera stop error:", err));
         }
-    }
-
-    // NORMALIZATION UTILITY: Harmonizes layout shape differences and column headers dynamically
-    function normalizeDirectoryData(raw) {
-        const normalized = {};
-        if (!raw) return normalized;
-
-        function getPropValue(obj, keysToFind) {
-            const keys = Object.keys(obj);
-            for (let target of keysToFind) {
-                const matchedKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(target.toLowerCase().replace(/[^a-z0-9]/g, '')));
-                if (matchedKey) return obj[matchedKey];
-            }
-            return "";
-        }
-
-        const dataArray = Array.isArray(raw) ? raw : Object.values(raw).flat();
-
-        dataArray.forEach(row => {
-            let addressStr = getPropValue(row, ['address', 'addr']);
-            if (!addressStr) return;
-            addressStr = addressStr.toString().trim();
-
-            if (!normalized[addressStr]) {
-                normalized[addressStr] = [];
-            }
-
-            const surnameVal = getPropValue(row, ['surname', 'resident', 'last name']);
-            const firstNameVal = getPropValue(row, ['first name', 'firstname']);
-            const contactNum = getPropValue(row, ['mobile', 'phone', 'contact', 'landline']);
-            const screeningVal = getPropValue(row, ['screening']);
-
-            normalized[addressStr].push({
-                surname: surnameVal || "",
-                firstName: firstNameVal || "",
-                address: addressStr,
-                contact1: contactNum || "",
-                phone: contactNum || "",
-                screening: screeningVal || ""
-            });
-        });
-
-        return normalized;
     }
 
     function onScannerCaptureSuccess(decodedText) {
@@ -760,63 +725,49 @@
         document.getElementById('manualOverrideLinkWrapper').classList.add('hidden');
 
         const banner = document.getElementById('scannerStatusFlash');
-        banner.className = "status-flash-banner mb-3 bg-secondary text-white py-3 fs-4 text-center fw-bold";
-        banner.innerText = "VERIFYING PASS STATUS...";
+        banner.className = "status-flash-banner mb-3 bg-secondary text-white py-2 fs-5 text-center fw-bold";
+        banner.innerText = "VERIFYING...";
         banner.classList.remove('hidden');
 
         callBackend({ action: "verifyToken", qrId: scannedQrId }, (data) => {
             if (data.result === "used" || data.result === "ALREADY_ARRIVED") {
-                initializeInvalidGatePassView("⚠️ PASS ALREADY ARRIVED");
+                initializeInvalidGatePassView("⚠️ ALREADY ARRIVED");
             } else if (data.result === "invalid") {
-                initializeInvalidGatePassView("⚠️ QR INVALID / NOT FOUND");
+                initializeInvalidGatePassView("⚠️ INVALID / NOT FOUND");
+            } else if (scannedQrId.startsWith("R-")) {
+                processIndividualGatePass(scannedQrId);
+            } else if (scannedQrId.startsWith("E-")) {
+                initializeEventGatePassView();
             } else {
-                if (scannedQrId.indexOf("R-") === 0) {
-                    processIndividualGatePass(scannedQrId);
-                } else if (scannedQrId.indexOf("E-") === 0) {
-                    initializeEventGatePassView();
-                } else {
-                    initializeInvalidGatePassView("QR INVALID. FOR MANUAL LOGGING");
-                }
+                initializeInvalidGatePassView("UNRECOGNIZED FORMAT");
             }
         });
     }
 
-    function onScannerCaptureFailure(error) {
-        // Continuous scan loop fallback
-    }
-
     function processIndividualGatePass(qrId) {
         currentPassType = "INDIVIDUAL";
-        savedBannerText = "ENTRY ALLOWED";
-
         const banner = document.getElementById('scannerStatusFlash');
-        banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
-        banner.innerText = savedBannerText;
-        banner.classList.remove('hidden');
-
+        banner.className = "status-flash-banner mb-3 bg-success text-white py-2 fs-5 text-center fw-bold";
+        banner.innerText = "ENTRY ALLOWED (INDIVIDUAL)";
+        
         document.getElementById('individualFieldsWrapper').classList.remove('hidden');
-
-        const confirmBtn = document.getElementById('confirmEntryBtn');
-        confirmBtn.className = "btn btn-success w-100 py-2.5 fs-5";
-        confirmBtn.innerText = "Confirm Entry";
-        confirmBtn.classList.remove('hidden');
+        const btn = document.getElementById('confirmEntryBtn');
+        btn.innerText = "Confirm Entry";
+        btn.className = "btn btn-success w-100 py-2";
+        btn.classList.remove('hidden');
     }
 
     function initializeEventGatePassView() {
         currentPassType = "EVENT";
-        savedBannerText = "ENTRY ALLOWED";
-        
         const banner = document.getElementById('scannerStatusFlash');
-        banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
-        banner.innerText = savedBannerText;
-        banner.classList.remove('hidden');
-
-        document.getElementById('eventFieldsWrapper').classList.remove('hidden');
+        banner.className = "status-flash-banner mb-3 bg-warning text-dark py-2 fs-5 text-center fw-bold";
+        banner.innerText = "EVENT PASS DETECTED";
         
-        const confirmBtn = document.getElementById('confirmEntryBtn');
-        confirmBtn.className = "btn btn-success w-100 py-2.5 fs-5";
-        confirmBtn.innerText = "Confirm Event Entry";
-        confirmBtn.classList.remove('hidden');
+        document.getElementById('eventFieldsWrapper').classList.remove('hidden');
+        const btn = document.getElementById('confirmEntryBtn');
+        btn.innerText = "Confirm Event Entry";
+        btn.className = "btn btn-warning text-white w-100 py-2";
+        btn.classList.remove('hidden');
     }
 
     function initializeInvalidGatePassView(messageText) {
