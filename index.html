@@ -146,3 +146,831 @@
         </div>
 
         <div id="passRegistrationReceiptContainer" class="hidden animate-pass-receipt">
+            <div class="secure-pass-frame">
+                <div class="secure-pass-header">La Vista Security Pass</div>
+                <img id="receiptQrImage" src="" alt="Gate Token" class="secure-pass-qr">
+                <div id="receiptMetaName" class="secure-pass-name"></div>
+                <div id="receiptMetaDate" class="secure-pass-date"></div>
+                <div id="receiptMetaId" class="secure-pass-id"></div>
+            </div>
+
+            <button type="button" onclick="downloadPassPngImageToDevice()" class="btn btn-dark w-100 py-2.5 mb-3" style="border-radius: 12px; font-weight: bold; font-size: 15px;">
+                💾 Save Pass to Device
+            </button>
+            <hr class="my-4 text-muted">
+            <div class="d-flex flex-column gap-2 text-center">
+                <button onclick="resetPassWizardForm()" class="btn btn-light btn-sm py-2 border fw-semibold" style="border-radius: 8px;">
+                    ➕ Register New Visitor Pass
+                </button>
+                <button onclick="openMyWindowView()" class="btn btn-sm text-primary fw-bold border-0 bg-transparent mt-1">
+                    💻 Proceed to MY GUESTS Manifest
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="staffPassUI" class="container hidden">
+    <div class="app-card">
+        <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
+        <h4 class="fw-bold text-dark mb-1">Staff Pass Registration</h4>
+        <p class="text-muted small mb-4">Log authorized household workers or personnel listings.</p>
+        <div class="mb-4">
+            <label class="form-label small fw-bold">Staff Member/Helper Name</label>
+            <input type="text" id="regStaffName" class="form-control" placeholder="e.g. Maria Santos" style="border-radius: 10px;">
+        </div>
+        <button id="submitStaffBtn" onclick="submitStaffForm()" class="btn btn-primary w-100 py-2" style="border-radius: 12px;">Authorize Staff Profile</button>
+    </div>
+</div>
+
+<div id="myWindowUI" class="container hidden">
+    <div class="app-card">
+        <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
+        <h4 class="fw-bold text-dark mb-1">MY GUESTS</h4>
+        <p class="text-muted small mb-3">Real-time domestic oversight tracking manifest logs.</p>
+        <div class="mb-4">
+            <label class="form-label small fw-bold">Select Filter Tracking Date</label>
+            <input type="date" id="manifestDate" class="form-control" onchange="loadMyWindow()" style="border-radius: 10px;">
+        </div>
+        <h6 class="fw-bold text-primary mb-2">📋 Registered Visitors</h6>
+        <div id="myWindowGuestsList" class="mb-4"></div>
+        <h6 class="fw-bold text-warning mb-2">🛵 Logged Deliveries</h6>
+        <div id="myWindowDeliveriesList" class="mb-4"></div>
+        <h6 class="fw-bold text-danger mb-2">🚪 Active Staff Logs</h6>
+        <div id="myWindowStaffList" class="mb-2"></div>
+    </div>
+</div>
+
+<div id="passRecoveryModal" class="custom-modal-backdrop hidden">
+    <div class="custom-modal-box text-center">
+        <div class="secure-pass-frame shadow-none border-0 m-0 p-0">
+            <div class="secure-pass-header">La Vista Security Pass</div>
+            <img id="recoverQrImage" src="" alt="Gate Token" class="secure-pass-qr">
+            <div id="recoverMetaName" class="secure-pass-name"></div>
+            <div id="recoverMetaDate" class="secure-pass-date"></div>
+            <div id="recoverMetaId" class="secure-pass-id"></div>
+        </div>
+        <button onclick="closePassRecoveryModal()" class="btn btn-dark w-100 py-2 mt-3" style="border-radius: 12px; font-weight: 600;">Close Pass</button>
+    </div>
+</div>
+
+<div id="scannerUI" class="container hidden">
+    <div class="app-card">
+        <h4 class="fw-bold text-dark mb-1">Gate Entry Terminal</h4>
+        <p class="text-muted small mb-3">Guard validation console for entry point monitoring.</p>
+        
+        <div id="scannerStatusFlash" class="status-flash-banner mb-3 hidden"></div>
+
+        <div id="cameraViewfinderContainer" class="mb-3 position-relative rounded-4 overflow-hidden border bg-dark" style="min-height: 240px; max-width: 100%;">
+            <div id="qr-camera-element" style="width: 100%;"></div>
+        </div>
+
+        <div class="mb-3 text-center">
+            <span class="xs-micro-text fw-bold">TOKEN READOUT: </span>
+            <span id="scannedQrTokenDisplay" class="fw-bold text-dark monospace font-monospace">NONE</span>
+        </div>
+
+        <div id="individualFieldsWrapper" class="hidden mb-3">
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Plate No.</label>
+                <input type="text" id="individualPlateInput" class="form-control" placeholder="e.g. NDD 1234">
+            </div>
+        </div>
+
+        <div id="eventFieldsWrapper" class="hidden mb-3">
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Guest Name</label>
+                <input type="text" id="eventGuestNameInput" class="form-control">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Plate No.</label>
+                <input type="text" id="eventPlateInput" class="form-control">
+            </div>
+        </div>
+
+        <div id="manualFieldsWrapper" class="hidden mb-3">
+            <div class="mb-2 position-relative">
+                <label class="form-label small fw-bold">Address of Resident</label>
+                <input type="text" id="manualAddressInput" class="form-control" list="addressDatalist" oninput="handleManualAddressInput()">
+                <datalist id="addressDatalist"></datalist>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Name of Resident</label>
+                <select id="manualResidentSelect" class="form-select" onchange="handleResidentSelectionChange()">
+                    <option value="">-- Select Resident Name --</option>
+                </select>
+            </div>
+            <div id="manualCustomNameWrapper" class="mb-2 hidden">
+                <label class="form-label small fw-bold text-danger">Type Manual Resident Name</label>
+                <input type="text" id="manualCustomNameInput" class="form-control">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Guest Name</label>
+                <input type="text" id="manualGuestNameInput" class="form-control">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Plate No.</label>
+                <input type="text" id="manualPlateInput" class="form-control">
+            </div>
+        </div>
+
+        <button id="confirmEntryBtn" onclick="executeLogSubmission()" class="btn btn-dark w-100 py-2 hidden" style="border-radius: 12px; font-weight:600;"></button>
+        
+        <div id="manualOverrideLinkWrapper" class="text-center mt-3 mb-2">
+            <a href="#" onclick="triggerPureManualOverride(event)" class="text-decoration-none small text-muted fw-bold">No QR Code? Process Manual Log</a>
+        </div>
+
+        <div class="text-center mt-3 pt-2 border-top">
+            <a onclick="shutdownCameraStream(); showView('dashboardUI');" class="text-decoration-none fw-bold small text-primary cursor-pointer" style="cursor: pointer;">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div id="placeholderUI" class="container hidden">
+    <div class="app-card text-center py-5">
+        <span style="font-size: 48px;">🚧</span>
+        <h4 class="fw-bold mt-3 mb-1">Feature Coming Soon</h4>
+        <p class="text-muted small mb-4">This module is currently under engineering implementation details inside AppSheet frameworks.</p>
+        <button onclick="showView('dashboardUI')" class="btn btn-primary px-4" style="border-radius: 10px;">Return Home</button>
+    </div>
+</div>
+
+<script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRt3lWEX3mFPYgN8Dia5zfw2z3q2HIyVTOGgQ0-ASbZd0KKEnd9Au9pnPgtx0wwbId/exec"; 
+    let currentUser = null; 
+    let activePassWizardType = "Individual";
+    let html5QrScannerInstance = null;
+    
+    // Core state containers for terminal scanner environment
+    let scannedQrId = "";
+    let currentPassType = ""; // "INDIVIDUAL", "EVENT", "INVALID"
+    let residentDirectoryData = {}; // Pulled safely from directory metadata hook
+
+    window.onload = function() {
+        const persistedUser = localStorage.getItem("lavista_authenticated_user");
+        if (persistedUser) {
+            try {
+                currentUser = JSON.parse(persistedUser);
+                document.getElementById('welcomeMsg').innerText = "Hello, " + currentUser.firstName;
+                showView('dashboardUI');
+            } catch (e) {
+                localStorage.removeItem("lavista_authenticated_user");
+                showView('loginUI');
+            }
+        } else {
+            showView('loginUI');
+        }
+    };
+
+    function showView(viewId) {
+        const screens = ['loginUI', 'dashboardUI', 'guestRegistrationUI', 'staffPassUI', 'myWindowUI', 'scannerUI', 'placeholderUI'];
+        screens.forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    // JSONP communication framework setup
+    function callBackend(params, callback) {
+        const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
+        const script = document.createElement('script');
+        window.loadData = (data) => { 
+            document.body.removeChild(script); 
+            callback(data); 
+        };
+        script.src = url;
+        document.body.appendChild(script);
+    }
+
+    function attemptLogin() {
+        const email = document.getElementById('emailInput').value;
+        const password = document.getElementById('passwordInput').value;
+        callBackend({ action: "login", email: email, password: password }, (data) => {
+            if (data.result === "success") {
+                currentUser = data.user; 
+                localStorage.setItem("lavista_authenticated_user", JSON.stringify(data.user));
+                document.getElementById('welcomeMsg').innerText = "Hello, " + data.user.firstName;
+                showView('dashboardUI');
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+
+    function logoutResidentSession() {
+        localStorage.removeItem("lavista_authenticated_user");
+        currentUser = null;
+        document.getElementById('emailInput').value = "";
+        document.getElementById('passwordInput').value = "";
+        showView('loginUI');
+    }
+
+    function openForgotPasswordModal(event) {
+        event.preventDefault();
+        document.getElementById("forgotPasswordEmailInput").value = "";
+        document.getElementById("forgotPasswordModal").classList.remove("hidden");
+    }
+
+    function closeForgotPasswordModal() {
+        document.getElementById("forgotPasswordModal").classList.add("hidden");
+    }
+
+    function submitForgotPassword() {
+        const targetEmail = document.getElementById("forgotPasswordEmailInput").value.trim();
+        if (!targetEmail) { alert("Please provide a valid email address."); return; }
+        callBackend({ action: "forgotPassword", email: targetEmail }, (data) => {
+            alert(`Password modification email dispatched successfully to ${targetEmail}!`);
+            closeForgotPasswordModal();
+        });
+    }
+
+    function toggleWizardPassType(type) {
+        activePassWizardType = type;
+        const btnIndividual = document.getElementById("tabBtnIndividual");
+        const btnEvent = document.getElementById("tabBtnEvent");
+        const indFields = document.getElementById("wizardIndividualFieldsBlock");
+        const evtFields = document.getElementById("wizardEventFieldsBlock");
+        const dateLabel = document.getElementById("wizardDateInputLabel");
+        const submitBtn = document.getElementById("submitGuestBtn");
+
+        if (type === "Individual") {
+            btnIndividual.className = "toggle-tab-btn active-individual";
+            btnEvent.className = "toggle-tab-btn";
+            indFields.classList.remove("hidden");
+            evtFields.classList.add("hidden");
+            dateLabel.innerText = "Expected Date of Arrival";
+            submitBtn.className = "btn btn-primary w-100 py-2";
+        } else {
+            btnIndividual.className = "toggle-tab-btn";
+            btnEvent.className = "toggle-tab-btn active-event";
+            indFields.classList.add("hidden");
+            evtFields.className = "mb-3"; // Visible status trigger
+            evtFields.classList.remove("hidden");
+            dateLabel.innerText = "Scheduled Event Date";
+            submitBtn.className = "btn btn-warning text-white w-100 py-2";
+        }
+    }
+
+    function toggleWizardCustomLocation() {
+        const selectVal = document.getElementById("regEventLocation").value;
+        const wrapper = document.getElementById("wizardCustomLocationWrapper");
+        if (selectVal === "Other Area Explicit") {
+            wrapper.classList.remove("hidden");
+        } else {
+            wrapper.classList.add("hidden");
+        }
+    }
+
+    function submitGuestForm() {
+        const expectedDate = document.getElementById('regExpectedDate').value;
+        if (!expectedDate) { alert("Please select a target execution date parameter."); return; }
+
+        let payload = {
+            action: "registerGuest",
+            email: currentUser.email,
+            passType: activePassWizardType,
+            dateExpected: expectedDate
+        };
+
+        let displayNameText = "";
+        if (activePassWizardType === "Individual") {
+            const name = document.getElementById('regGuestName').value.trim();
+            if (!name) { alert("Please input guest profile name details."); return; }
+            payload.guestName = name;
+            displayNameText = name;
+        } else {
+            const locSelect = document.getElementById('regEventLocation').value;
+            const customLoc = document.getElementById('regCustomLocation').value.trim();
+            if (locSelect === "Other Area Explicit" && !customLoc) {
+                alert("Please explicitly define the custom event location venue details.");
+                return;
+            }
+            payload.locationDetails = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
+            displayNameText = "Event Pass";
+        }
+
+        document.getElementById('submitGuestBtn').innerText = "Processing Pipeline...";
+        document.getElementById('submitGuestBtn').disabled = true;
+
+        callBackend(payload, (data) => {
+            document.getElementById('submitGuestBtn').disabled = false;
+            document.getElementById('submitGuestBtn').innerText = "Generate Entry Pass";
+            if (data.result === "success") {
+                localStorage.setItem("last_generated_qr", data.qrId);
+                renderGeneratedPassReceiptCard(data.qrId, expectedDate, displayNameText);
+            } else {
+                alert("Execution issue logging visitor registration: " + (data.message || "Unknown error"));
+            }
+        });
+    }
+
+    function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
+        const parsedDate = new Date(targetDateRaw);
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        const cleanDisplayDate = isNaN(parsedDate) ? targetDateRaw : parsedDate.toLocaleDateString('en-US', options);
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
+        
+        document.getElementById("receiptQrImage").src = qrApiUrl;
+        document.getElementById("receiptMetaName").innerText = targetName;
+        document.getElementById("receiptMetaDate").innerText = cleanDisplayDate;
+        document.getElementById("receiptMetaId").innerText = qrId;
+        document.getElementById("passRegistrationWizardForm").classList.add("hidden");
+        document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
+    }
+
+    function downloadPassPngImageToDevice() {
+        const qrImg = document.getElementById("receiptQrImage");
+        const nameVal = document.getElementById("receiptMetaName").innerText;
+        const dateVal = document.getElementById("receiptMetaDate").innerText;
+        const tokenVal = document.getElementById("receiptMetaId").innerText;
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = 400;
+        canvas.height = 520;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#e2e8f0";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.letterSpacing = "1px";
+        ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
+
+        const crossOriginImageInstance = new Image();
+        crossOriginImageInstance.crossOrigin = "anonymous"; 
+        crossOriginImageInstance.onload = function() {
+            ctx.drawImage(crossOriginImageInstance, 75, 90, 250, 250);
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.fillText(nameVal, canvas.width / 2, 380);
+            ctx.fillStyle = "#64748b";
+            ctx.font = "600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            ctx.fillText(dateVal, canvas.width / 2, 415);
+            ctx.fillStyle = "#007aff";
+            ctx.font = "bold 14px monospace";
+            ctx.fillText(tokenVal, canvas.width / 2, 445);
+            
+            const link = document.createElement("a");
+            link.download = `LaVista_Pass_${tokenVal}.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+        };
+        crossOriginImageInstance.src = qrImg.src;
+    }
+
+    function resetPassWizardForm() {
+        document.getElementById('regGuestName').value = "";
+        document.getElementById('regExpectedDate').value = "";
+        document.getElementById('regCustomLocation').value = "";
+        document.getElementById('regEventLocation').selectedIndex = 0;
+        document.getElementById("passRegistrationWizardForm").classList.remove("hidden");
+        document.getElementById("passRegistrationReceiptContainer").classList.add("hidden");
+    }
+
+    function submitStaffForm() {
+        const staffName = document.getElementById('regStaffName').value.trim();
+        if (!staffName) { alert("Please input staff name details."); return; }
+        
+        document.getElementById('submitStaffBtn').innerText = "Processing Pipeline...";
+        document.getElementById('submitStaffBtn').disabled = true;
+        
+        callBackend({
+            action: "registerStaffPass",
+            email: currentUser.email,
+            staffName: staffName
+        }, (data) => {
+            document.getElementById('submitStaffBtn').disabled = false;
+            document.getElementById('submitStaffBtn').innerText = "Authorize Staff Profile";
+            if (data.result === "success") {
+                alert("Staff workers registry updated successfully!");
+                document.getElementById('regStaffName').value = "";
+                showView('dashboardUI');
+            } else {
+                alert("Error: " + data.message);
+            }
+        });
+    }
+
+    function openMyWindowView() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('manifestDate').value = today;
+        showView('myWindowUI');
+        loadMyWindow();
+    }
+
+    function loadMyWindow() {
+        const selectedDate = document.getElementById('manifestDate').value;
+        const guestsList = document.getElementById('myWindowGuestsList');
+        const deliveriesList = document.getElementById('myWindowDeliveriesList');
+        const staffList = document.getElementById('myWindowStaffList');
+        
+        guestsList.innerHTML = "<div class='text-muted small p-2'>Loading manifest framework logs...</div>";
+        deliveriesList.innerHTML = "<div class='text-muted small p-2'>Loading logs...</div>";
+        staffList.innerHTML = "<div class='text-muted small p-2'>Loading staff...</div>";
+        
+        callBackend({
+            action: "getMyWindowData",
+            email: currentUser.email,
+            date: selectedDate
+        }, (data) => {
+            if (data.result === "success") {
+                guestsList.innerHTML = "";
+                deliveriesList.innerHTML = "";
+                staffList.innerHTML = "";
+                
+                let hasGuests = false;
+                let hasStaff = false;
+                
+                data.records.forEach(rec => {
+                    const item = document.createElement('div');
+                    item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
+                    
+                    if (rec.category === "GUEST" || rec.category === "EVENT") {
+                        hasGuests = true;
+                        const passDate = rec.date || rec.dateExpected || '';
+                        const parsedDate = new Date(passDate);
+                        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                        const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? passDate : parsedDate.toLocaleDateString('en-US', options);
+                        
+                        const tokenKey = rec.qrId || rec.type || '';
+                        console.log("Raw record data from backend:", rec);
+                        const safeName = rec.name.replace(/'/g, "\\'");
+                        
+                        item.innerHTML = `
+                            <div onclick="openPassRecoveryModal('${tokenKey}', '${safeName}', '${cleanDisplayDate}')" style="cursor: pointer;">
+                                <div class='fw-bold text-primary d-flex align-items-center' style='text-decoration: underline; text-underline-offset: 3px;'>
+                                    <span>${rec.name}</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-qr-code text-primary ms-1.5" viewBox="0 0 16 16" style="margin-left: 6px; opacity: 0.85;">
+                                        <path d="M2 2h2v2H2V2Z M6 0v6H0V0h6ZM5 1H1v4h4V1ZM4 12H2v2h2v-2Z M6 8v6H0V8h6V8Zm-1 1H1v4h4V9ZM16 0v6h-6V0h6Zm-1 1h-4v4h4V1Z M9 9h1v1H9V9Zm1 0h1v1h-1V9Zm-1 1h1v1H9v-1Zm1 0h1v1h-1v-1Zm-2 1h1v1H8v-1Zm1 0h1v1h-1v-1Zm-1 1h1v1H8v-1Zm1 0h1v1h-1v-1Zm2-3h1v1h-1V8Zm1 0h1v1h-1V8Zm-1 1h1v1h-1V9Zm1 0h1v1h-1V9Zm1 3h1v1h-1v-1Zm0-1h1v1h-1v-1Zm-1 0h1v1h-1v-1Zm-2-2h1v1H9V8Zm1 0h1v1h-1V8Z"/>
+                                    </svg>
+                                </div>
+                                <div class='text-muted micro-text' style='font-size: 11px; margin-top: 2px;'>Click to view pass</div>
+                            </div>
+                            <span class='badge ${rec.status === "ARRIVED" ? "bg-success" : "bg-primary"}'>${rec.status}</span>
+                        `;
+                        guestsList.appendChild(item);
+                    } else if (rec.category === "STAFF") {
+                        hasStaff = true;
+                        item.innerHTML = `
+                            <div><div class='fw-bold text-dark'>${rec.name}</div><div class='text-muted micro-text' style='font-size:11px;'>${rec.type}</div></div>
+                            <span class='badge bg-secondary'>${rec.status}</span>
+                        `;
+                        staffList.appendChild(item);
+                    }
+                });
+                
+                if (!hasGuests) guestsList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No visitor records found.</div>";
+                if (!hasStaff) staffList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No staff registry listed.</div>";
+                deliveriesList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No domestic delivery packages captured.</div>";
+            } else {
+                alert("Error handling view update: " + data.message);
+            }
+        });
+    }
+
+    function openPassRecoveryModal(qrId, name, date) {
+        if (!qrId) {
+            alert("No token identifier associated with this entry record.");
+            return;
+        }
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
+        document.getElementById("recoverQrImage").src = qrApiUrl;
+        document.getElementById("recoverMetaName").innerText = name;
+        document.getElementById("recoverMetaDate").innerText = date;
+        document.getElementById("recoverMetaId").innerText = qrId;
+        document.getElementById("passRecoveryModal").classList.remove("hidden");
+    }
+
+    function closePassRecoveryModal() {
+        document.getElementById("passRecoveryModal").classList.add("hidden");
+        document.getElementById("recoverQrImage").src = "";
+    }
+    
+    function resetScannerUIState() {
+        scannedQrId = "";
+        currentPassType = "";
+        
+        const banner = document.getElementById('scannerStatusFlash');
+        banner.className = "status-flash-banner mb-3 hidden";
+        banner.innerText = "";
+        
+        document.getElementById('scannedQrTokenDisplay').innerText = "NONE";
+        document.getElementById('individualFieldsWrapper').classList.add('hidden');
+        document.getElementById('eventFieldsWrapper').classList.add('hidden');
+        document.getElementById('manualFieldsWrapper').classList.add('hidden');
+        document.getElementById('confirmEntryBtn').classList.add('hidden');
+        document.getElementById('manualOverrideLinkWrapper').classList.remove('hidden');
+        document.getElementById('cameraViewfinderContainer').classList.remove('hidden');
+        
+        document.getElementById('individualPlateInput').value = "";
+        document.getElementById('eventGuestNameInput').value = "";
+        document.getElementById('eventPlateInput').value = "";
+        document.getElementById('manualAddressInput').value = "";
+        document.getElementById('manualResidentSelect').innerHTML = '<option value="">-- Select Resident Name --</option>';
+        document.getElementById('manualCustomNameWrapper').classList.add('hidden');
+        document.getElementById('manualCustomNameInput').value = "";
+        document.getElementById('manualGuestNameInput').value = "";
+        document.getElementById('manualPlateInput').value = "";
+    }
+
+    function openScannerUI() {
+        showView('scannerUI');
+        resetScannerUIState();
+
+        callBackend({ action: "getDirectoryMetadata" }, (data) => {
+            if (data.result === "success") {
+                residentDirectoryData = data.directory;
+                buildAddressDatalistSuggestions();
+            }
+        });
+
+        if (html5QrScannerInstance === null) {
+            html5QrScannerInstance = new Html5Qrcode("qr-camera-element");
+        }
+        
+        const scanConfig = { fps: 12, qrbox: { width: 260, height: 260 } };
+        html5QrScannerInstance.start(
+            { facingMode: "environment" },
+            scanConfig,
+            onScannerCaptureSuccess,
+            onScannerCaptureFailure
+        ).catch(err => console.error("Camera access issue detected: ", err));
+    }
+
+    function shutdownCameraStream() {
+        if (html5QrScannerInstance && html5QrScannerInstance.isScanning) {
+            html5QrScannerInstance.stop().catch(err => console.error("Camera stop process anomaly: ", err));
+        }
+    }
+
+    function onScannerCaptureSuccess(decodedText) {
+        scannedQrId = decodedText.toUpperCase().trim();
+        document.getElementById('scannedQrTokenDisplay').innerText = scannedQrId;
+        
+        shutdownCameraStream();
+        document.getElementById('cameraViewfinderContainer').classList.add('hidden');
+        document.getElementById('manualOverrideLinkWrapper').classList.add('hidden');
+
+        // Flash immediate network check status banner
+        const banner = document.getElementById('scannerStatusFlash');
+        banner.className = "status-flash-banner mb-3 bg-secondary text-white py-3 fs-4 text-center fw-bold";
+        banner.innerText = "VERIFYING PASS STATUS...";
+        banner.classList.remove('hidden');
+
+        // Async execution token check verification route
+        callBackend({ action: "verifyToken", qrId: scannedQrId }, (data) => {
+            if (data.result === "used" || data.result === "ALREADY_ARRIVED") {
+                initializeInvalidGatePassView("⚠️ PASS ALREADY ARRIVED");
+            } else if (data.result === "invalid") {
+                initializeInvalidGatePassView("⚠️ QR INVALID / NOT FOUND");
+            } else {
+                if (scannedQrId.indexOf("R-") === 0) {
+                    processIndividualGatePass(scannedQrId);
+                } else if (scannedQrId.indexOf("E-") === 0) {
+                    initializeEventGatePassView();
+                } else {
+                    initializeInvalidGatePassView("QR INVALID. FOR MANUAL LOGGING");
+                }
+            }
+        });
+    }
+
+    function onScannerCaptureFailure(error) {
+        // Continuous scan loop fallback
+    }
+
+    function processIndividualGatePass(qrId) {
+        currentPassType = "INDIVIDUAL";
+
+        const banner = document.getElementById('scannerStatusFlash');
+        banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
+        banner.innerText = "ENTRY ALLOWED";
+        banner.classList.remove('hidden');
+
+        document.getElementById('individualFieldsWrapper').classList.remove('hidden');
+
+        const confirmBtn = document.getElementById('confirmEntryBtn');
+        confirmBtn.className = "btn btn-success w-100 py-2.5 fs-5";
+        confirmBtn.innerText = "Confirm Entry";
+        confirmBtn.classList.remove('hidden');
+    }
+
+    function initializeEventGatePassView() {
+        currentPassType = "EVENT";
+        
+        const banner = document.getElementById('scannerStatusFlash');
+        banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
+        banner.innerText = "ENTRY ALLOWED";
+        banner.classList.remove('hidden');
+
+        document.getElementById('eventFieldsWrapper').classList.remove('hidden');
+        
+        const confirmBtn = document.getElementById('confirmEntryBtn');
+        confirmBtn.className = "btn btn-success w-100 py-2.5 fs-5";
+        confirmBtn.innerText = "Confirm Event Entry";
+        confirmBtn.classList.remove('hidden');
+    }
+
+    function initializeInvalidGatePassView(messageText) {
+        currentPassType = "INVALID";
+        
+        const displayMsg = messageText || "QR INVALID. FOR MANUAL LOGGING";
+        const banner = document.getElementById('scannerStatusFlash');
+        banner.className = "status-flash-banner mb-3 bg-danger text-white py-3 fs-5 text-center fw-bold";
+        banner.innerText = displayMsg;
+        banner.classList.remove('hidden');
+
+        document.getElementById('manualFieldsWrapper').classList.remove('hidden');
+        
+        const confirmBtn = document.getElementById('confirmEntryBtn');
+        confirmBtn.className = "btn btn-danger w-100 py-2.5 fs-5";
+        confirmBtn.innerText = "Confirm Entry";
+        confirmBtn.classList.remove('hidden');
+    }
+
+    function triggerPureManualOverride(event) {
+        if(event) event.preventDefault();
+        scannedQrId = "MANUAL";
+        document.getElementById('scannedQrTokenDisplay').innerText = "MANUAL LOGGING OVERRIDE";
+        
+        shutdownCameraStream();
+        document.getElementById('cameraViewfinderContainer').classList.add('hidden');
+        document.getElementById('manualOverrideLinkWrapper').classList.add('hidden');
+        
+        initializeInvalidGatePassView("MANUAL LOGGING MODE");
+    }
+
+    function buildAddressDatalistSuggestions() {
+        const dl = document.getElementById('addressDatalist');
+        dl.innerHTML = "";
+        Object.keys(residentDirectoryData).forEach(addressKey => {
+            const opt = document.createElement('option');
+            opt.value = addressKey;
+            dl.appendChild(opt);
+        });
+    }
+
+    function handleManualAddressInput() {
+        const enteredVal = document.getElementById('manualAddressInput').value.trim();
+        const resSelect = document.getElementById('manualResidentSelect');
+        
+        resSelect.innerHTML = '<option value="">-- Select Resident Name --</option>';
+        document.getElementById('manualCustomNameWrapper').classList.add('hidden');
+
+        const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase() === enteredVal.toLowerCase());
+        if (realKey) {
+            const residentArray = residentDirectoryData[realKey];
+            residentArray.forEach((res, index) => {
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.innerText = `${res.surname}, ${res.firstName}`;
+                resSelect.appendChild(opt);
+            });
+            const optOthers = document.createElement('option');
+            optOthers.value = "OTHERS";
+            optOthers.innerText = "Others";
+            resSelect.appendChild(optOthers);
+        }
+        evaluateLiveScreeningDirectives();
+    }
+
+    function handleResidentSelectionChange() {
+        const selectVal = document.getElementById('manualResidentSelect').value;
+        if (selectVal === "OTHERS") {
+            document.getElementById('manualCustomNameWrapper').classList.remove('hidden');
+        } else {
+            document.getElementById('manualCustomNameWrapper').classList.add('hidden');
+        }
+        evaluateLiveScreeningDirectives();
+    }
+
+    function evaluateLiveScreeningDirectives() {
+        const enteredVal = document.getElementById('manualAddressInput').value.trim();
+        const selectVal = document.getElementById('manualResidentSelect').value;
+        const banner = document.getElementById('scannerStatusFlash');
+        const confirmBtn = document.getElementById('confirmEntryBtn');
+
+        const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase() === enteredVal.toLowerCase());
+        if (!realKey || !selectVal) {
+            banner.className = "status-flash-banner mb-3 bg-danger text-white py-3 fs-5 text-center fw-bold";
+            banner.innerText = "QR INVALID. FOR MANUAL LOGGING";
+            confirmBtn.className = "btn btn-danger w-100 py-2.5 fs-5";
+            confirmBtn.innerText = "Confirm Entry";
+            return;
+        }
+
+        const residents = residentDirectoryData[realKey];
+        let alertScreeningRequired = false;
+        let mappedTargetPhone = "";
+
+        if (selectVal === "OTHERS") {
+            const holdsYesFlag = residents.some(r => r.screening === "YES");
+            if (holdsYesFlag) {
+                alertScreeningRequired = true;
+                const activeNumbers = residents.map(r => r.contact1).filter(num => num && num.trim() !== "");
+                mappedTargetPhone = activeNumbers.length > 0 ? activeNumbers[0] : "No registered phone found";
+            }
+        } else {
+            const activeProfile = residents[parseInt(selectVal)];
+            if (activeProfile.screening === "YES") {
+                alertScreeningRequired = true;
+                mappedTargetPhone = activeProfile.contact1 || "No registered phone found";
+            }
+        }
+
+        if (alertScreeningRequired) {
+            banner.className = "status-flash-banner mb-3 bg-warning text-dark py-2 small text-center";
+            banner.innerHTML = `⚠️ <strong>VERIFICATION REQUIRED</strong><br>Call Resident: ${mappedTargetPhone}`;
+            confirmBtn.className = "btn btn-warning text-dark w-100 py-2.5 fw-bold fs-5";
+            confirmBtn.innerText = "Confirmed with Resident";
+        } else {
+            banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
+            banner.innerText = "ENTRY ALLOWED";
+            confirmBtn.className = "btn btn-success w-100 py-2.5 fs-5";
+            confirmBtn.innerText = "Confirm Entry";
+        }
+    }
+
+    function executeLogSubmission() {
+        let submissionPayload = { action: "confirmArrival" };
+
+        if (currentPassType === "INDIVIDUAL") {
+            const plateNo = document.getElementById('individualPlateInput').value.trim();
+            submissionPayload.qrId = scannedQrId;
+            submissionPayload.isManualLog = "false";
+            submissionPayload.plate = plateNo;
+
+        } else if (currentPassType === "EVENT") {
+            const guestName = document.getElementById('eventGuestNameInput').value.trim();
+            const plateNo = document.getElementById('eventPlateInput').value.trim();
+            if (!guestName) { alert("Please input Guest Name detail parameters."); return; }
+
+            submissionPayload.qrId = scannedQrId;
+            submissionPayload.isManualLog = "false";
+            submissionPayload.guestName = guestName;
+            submissionPayload.plate = plateNo;
+
+        } else if (currentPassType === "INVALID") {
+            const addr = document.getElementById('manualAddressInput').value.trim();
+            const selectVal = document.getElementById('manualResidentSelect').value;
+            const guestName = document.getElementById('manualGuestNameInput').value.trim();
+            const plateNo = document.getElementById('manualPlateInput').value.trim();
+
+            if (!addr || !selectVal || !guestName) {
+                alert("Please satisfy required items: Address, Resident Selection, and Guest Name.");
+                return;
+            }
+
+            submissionPayload.isManualLog = "true";
+            submissionPayload.address = addr;
+            submissionPayload.guestName = guestName;
+            submissionPayload.plate = plateNo;
+
+            const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase() === addr.toLowerCase());
+            const residents = residentDirectoryData[realKey];
+
+            if (selectVal === "OTHERS") {
+                const manualName = document.getElementById('manualCustomNameInput').value.trim();
+                submissionPayload.residentSurname = manualName || "Others";
+                submissionPayload.residentFirstName = "";
+            } else {
+                const specificResident = residents[parseInt(selectVal)];
+                submissionPayload.residentSurname = specificResident.surname;
+                submissionPayload.residentFirstName = specificResident.firstName;
+            }
+        } else {
+            return; 
+        }
+
+        const actionBtn = document.getElementById('confirmEntryBtn');
+        actionBtn.innerText = "Processing Sheet Updates...";
+        actionBtn.disabled = true;
+
+        callBackend(submissionPayload, (data) => {
+            actionBtn.disabled = false;
+            if (data.result === "success") {
+                const banner = document.getElementById('scannerStatusFlash');
+                banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-4 text-center fw-bold";
+                banner.innerText = "ENTRY LOGGED SUCCESSFULLY";
+                
+                document.getElementById('individualFieldsWrapper').classList.add('hidden');
+                document.getElementById('eventFieldsWrapper').classList.add('hidden');
+                document.getElementById('manualFieldsWrapper').classList.add('hidden');
+                actionBtn.classList.add('hidden');
+            } else {
+                alert("Transaction anomaly processing registration entry: " + data.message);
+                if (currentPassType === "INVALID") {
+                    evaluateLiveScreeningDirectives();
+                } else {
+                    actionBtn.innerText = "Confirm Entry";
+                }
+            }
+        });
+    }
+</script>
+</body>
+</html>
