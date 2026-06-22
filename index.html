@@ -230,6 +230,14 @@
             <span id="scannedQrTokenDisplay" class="fw-bold text-dark monospace font-monospace">NONE</span>
         </div>
 
+        <!-- Individual Pass Verification Layout Fields -->
+        <div id="individualFieldsWrapper" class="hidden mb-3">
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Plate No.</label>
+                <input type="text" id="individualPlateInput" class="form-control" placeholder="e.g. NDD 1234">
+            </div>
+        </div>
+
         <div id="eventFieldsWrapper" class="hidden mb-3">
             <div class="mb-2">
                 <label class="form-label small fw-bold">Guest Name</label>
@@ -651,12 +659,14 @@
         banner.innerText = "";
         
         document.getElementById('scannedQrTokenDisplay').innerText = "NONE";
+        document.getElementById('individualFieldsWrapper').classList.add('hidden');
         document.getElementById('eventFieldsWrapper').classList.add('hidden');
         document.getElementById('manualFieldsWrapper').classList.add('hidden');
         document.getElementById('confirmEntryBtn').classList.add('hidden');
         document.getElementById('manualOverrideLinkWrapper').classList.remove('hidden');
         document.getElementById('cameraViewfinderContainer').classList.remove('hidden');
         
+        document.getElementById('individualPlateInput').value = "";
         document.getElementById('eventGuestNameInput').value = "";
         document.getElementById('eventPlateInput').value = "";
         document.getElementById('manualAddressInput').value = "";
@@ -719,19 +729,19 @@
     }
 
     function processIndividualGatePass(qrId) {
+        currentPassType = "INDIVIDUAL";
+
         const banner = document.getElementById('scannerStatusFlash');
-        banner.className = "status-flash-banner mb-3 bg-info text-white py-2";
-        banner.innerText = "AUTHENTICATING TOKEN...";
+        banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
+        banner.innerText = "ENTRY ALLOWED";
         banner.classList.remove('hidden');
 
-        callBackend({ action: "confirmArrival", qrId: qrId, isManualLog: "false" }, (data) => {
-            if (data.result === "success") {
-                banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
-                banner.innerText = "ENTRY ALLOWED";
-            } else {
-                initializeInvalidGatePassView();
-            }
-        });
+        document.getElementById('individualFieldsWrapper').classList.remove('hidden');
+
+        const confirmBtn = document.getElementById('confirmEntryBtn');
+        confirmBtn.className = "btn btn-success w-100 py-2.5 fs-5";
+        confirmBtn.innerText = "Confirm Entry";
+        confirmBtn.classList.remove('hidden');
     }
 
     function initializeEventGatePassView() {
@@ -872,7 +882,13 @@
     function executeLogSubmission() {
         let submissionPayload = { action: "confirmArrival" };
 
-        if (currentPassType === "EVENT") {
+        if (currentPassType === "INDIVIDUAL") {
+            const plateNo = document.getElementById('individualPlateInput').value.trim();
+            submissionPayload.qrId = scannedQrId;
+            submissionPayload.isManualLog = "false";
+            submissionPayload.plate = plateNo;
+
+        } else if (currentPassType === "EVENT") {
             const guestName = document.getElementById('eventGuestNameInput').value.trim();
             const plateNo = document.getElementById('eventPlateInput').value.trim();
             if (!guestName) { alert("Please input Guest Name detail parameters."); return; }
@@ -925,12 +941,17 @@
                 banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-4 text-center fw-bold";
                 banner.innerText = "ENTRY LOGGED SUCCESSFULLY";
                 
+                document.getElementById('individualFieldsWrapper').classList.add('hidden');
                 document.getElementById('eventFieldsWrapper').classList.add('hidden');
                 document.getElementById('manualFieldsWrapper').classList.add('hidden');
                 actionBtn.classList.add('hidden');
             } else {
                 alert("Transaction anomaly processing registration entry: " + data.message);
-                evaluateLiveScreeningDirectives();
+                if (currentPassType === "INVALID") {
+                    evaluateLiveScreeningDirectives();
+                } else {
+                    actionBtn.innerText = "Confirm Entry";
+                }
             }
         });
     }
