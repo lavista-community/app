@@ -715,13 +715,28 @@
         document.getElementById('cameraViewfinderContainer').classList.add('hidden');
         document.getElementById('manualOverrideLinkWrapper').classList.add('hidden');
 
-        if (scannedQrId.indexOf("R-") === 0) {
-            processIndividualGatePass(scannedQrId);
-        } else if (scannedQrId.indexOf("E-") === 0) {
-            initializeEventGatePassView();
-        } else {
-            initializeInvalidGatePassView();
-        }
+        // Flash immediate network check status banner
+        const banner = document.getElementById('scannerStatusFlash');
+        banner.className = "status-flash-banner mb-3 bg-secondary text-white py-3 fs-4 text-center fw-bold";
+        banner.innerText = "VERIFYING PASS STATUS...";
+        banner.classList.remove('hidden');
+
+        // Async execution token check verification route
+        callBackend({ action: "verifyToken", qrId: scannedQrId }, (data) => {
+            if (data.result === "used") {
+                initializeInvalidGatePassView("⚠️ PASS ALREADY ARRIVED");
+            } else if (data.result === "invalid") {
+                initializeInvalidGatePassView("⚠️ QR INVALID / NOT FOUND");
+            } else {
+                if (scannedQrId.indexOf("R-") === 0) {
+                    processIndividualGatePass(scannedQrId);
+                } else if (scannedQrId.indexOf("E-") === 0) {
+                    initializeEventGatePassView();
+                } else {
+                    initializeInvalidGatePassView("QR INVALID. FOR MANUAL LOGGING");
+                }
+            }
+        });
     }
 
     function onScannerCaptureFailure(error) {
@@ -760,12 +775,13 @@
         confirmBtn.classList.remove('hidden');
     }
 
-    function initializeInvalidGatePassView() {
+    function initializeInvalidGatePassView(messageText) {
         currentPassType = "INVALID";
         
+        const displayMsg = messageText || "QR INVALID. FOR MANUAL LOGGING";
         const banner = document.getElementById('scannerStatusFlash');
         banner.className = "status-flash-banner mb-3 bg-danger text-white py-3 fs-5 text-center fw-bold";
-        banner.innerText = "QR INVALID. FOR MANUAL LOGGING";
+        banner.innerText = displayMsg;
         banner.classList.remove('hidden');
 
         document.getElementById('manualFieldsWrapper').classList.remove('hidden');
@@ -785,7 +801,7 @@
         document.getElementById('cameraViewfinderContainer').classList.add('hidden');
         document.getElementById('manualOverrideLinkWrapper').classList.add('hidden');
         
-        initializeInvalidGatePassView();
+        initializeInvalidGatePassView("MANUAL LOGGING MODE");
     }
 
     function buildAddressDatalistSuggestions() {
