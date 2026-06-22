@@ -230,6 +230,7 @@
             <span id="scannedQrTokenDisplay" class="fw-bold text-dark monospace font-monospace">NONE</span>
         </div>
 
+        <!-- Individual Pass Verification Layout Fields -->
         <div id="individualFieldsWrapper" class="hidden mb-3">
             <div class="mb-2">
                 <label class="form-label small fw-bold">Plate No.</label>
@@ -304,7 +305,8 @@
     // Core state containers for terminal scanner environment
     let scannedQrId = "";
     let currentPassType = ""; // "INDIVIDUAL", "EVENT", "INVALID"
-    let residentDirectoryData = {}; // Pulled safely from directory metadata hook
+    let residentDirectoryData = {}; // Structured clean key-value dictionary map
+    let savedBannerText = ""; // Preserves scanning response context status
 
     window.onload = function() {
         const persistedUser = localStorage.getItem("lavista_authenticated_user");
@@ -330,7 +332,6 @@
         document.getElementById(viewId).classList.remove('hidden');
     }
 
-    // JSONP communication framework setup
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
@@ -404,7 +405,7 @@
             btnIndividual.className = "toggle-tab-btn";
             btnEvent.className = "toggle-tab-btn active-event";
             indFields.classList.add("hidden");
-            evtFields.className = "mb-3"; // Visible status trigger
+            evtFields.className = "mb-3"; 
             evtFields.classList.remove("hidden");
             dateLabel.innerText = "Scheduled Event Date";
             submitBtn.className = "btn btn-warning text-white w-100 py-2";
@@ -597,7 +598,6 @@
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? passDate : parsedDate.toLocaleDateString('en-US', options);
                         
                         const tokenKey = rec.qrId || rec.type || '';
-                        console.log("Raw record data from backend:", rec);
                         const safeName = rec.name.replace(/'/g, "\\'");
                         
                         item.innerHTML = `
@@ -653,6 +653,7 @@
     function resetScannerUIState() {
         scannedQrId = "";
         currentPassType = "";
+        savedBannerText = "";
         
         const banner = document.getElementById('scannerStatusFlash');
         banner.className = "status-flash-banner mb-3 hidden";
@@ -683,7 +684,7 @@
 
         callBackend({ action: "getDirectoryMetadata" }, (data) => {
             if (data.result === "success") {
-                residentDirectoryData = data.directory;
+                residentDirectoryData = normalizeDirectoryData(data.directory);
                 buildAddressDatalistSuggestions();
             }
         });
@@ -707,6 +708,49 @@
         }
     }
 
+    // NORMALIZATION UTILITY: Harmonizes layout shape differences and column headers dynamically
+    function normalizeDirectoryData(raw) {
+        const normalized = {};
+        if (!raw) return normalized;
+
+        function getPropValue(obj, keysToFind) {
+            const keys = Object.keys(obj);
+            for (let target of keysToFind) {
+                const matchedKey = keys.find(k => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(target.toLowerCase().replace(/[^a-z0-9]/g, '')));
+                if (matchedKey) return obj[matchedKey];
+            }
+            return "";
+        }
+
+        const dataArray = Array.isArray(raw) ? raw : Object.values(raw).flat();
+
+        dataArray.forEach(row => {
+            let addressStr = getPropValue(row, ['address', 'addr']);
+            if (!addressStr) return;
+            addressStr = addressStr.toString().trim();
+
+            if (!normalized[addressStr]) {
+                normalized[addressStr] = [];
+            }
+
+            const surnameVal = getPropValue(row, ['surname', 'resident', 'last name']);
+            const firstNameVal = getPropValue(row, ['first name', 'firstname']);
+            const contactNum = getPropValue(row, ['mobile', 'phone', 'contact', 'landline']);
+            const screeningVal = getPropValue(row, ['screening']);
+
+            normalized[addressStr].push({
+                surname: surnameVal || "",
+                firstName: firstNameVal || "",
+                address: addressStr,
+                contact1: contactNum || "",
+                phone: contactNum || "",
+                screening: screeningVal || ""
+            });
+        });
+
+        return normalized;
+    }
+
     function onScannerCaptureSuccess(decodedText) {
         scannedQrId = decodedText.toUpperCase().trim();
         document.getElementById('scannedQrTokenDisplay').innerText = scannedQrId;
@@ -715,13 +759,11 @@
         document.getElementById('cameraViewfinderContainer').classList.add('hidden');
         document.getElementById('manualOverrideLinkWrapper').classList.add('hidden');
 
-        // Flash immediate network check status banner
         const banner = document.getElementById('scannerStatusFlash');
         banner.className = "status-flash-banner mb-3 bg-secondary text-white py-3 fs-4 text-center fw-bold";
         banner.innerText = "VERIFYING PASS STATUS...";
         banner.classList.remove('hidden');
 
-        // Async execution token check verification route
         callBackend({ action: "verifyToken", qrId: scannedQrId }, (data) => {
             if (data.result === "used" || data.result === "ALREADY_ARRIVED") {
                 initializeInvalidGatePassView("⚠️ PASS ALREADY ARRIVED");
@@ -745,10 +787,11 @@
 
     function processIndividualGatePass(qrId) {
         currentPassType = "INDIVIDUAL";
+        savedBannerText = "ENTRY ALLOWED";
 
         const banner = document.getElementById('scannerStatusFlash');
         banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
-        banner.innerText = "ENTRY ALLOWED";
+        banner.innerText = savedBannerText;
         banner.classList.remove('hidden');
 
         document.getElementById('individualFieldsWrapper').classList.remove('hidden');
@@ -761,10 +804,11 @@
 
     function initializeEventGatePassView() {
         currentPassType = "EVENT";
+        savedBannerText = "ENTRY ALLOWED";
         
         const banner = document.getElementById('scannerStatusFlash');
         banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-3 text-center fw-bold";
-        banner.innerText = "ENTRY ALLOWED";
+        banner.innerText = savedBannerText;
         banner.classList.remove('hidden');
 
         document.getElementById('eventFieldsWrapper').classList.remove('hidden');
@@ -777,11 +821,11 @@
 
     function initializeInvalidGatePassView(messageText) {
         currentPassType = "INVALID";
+        savedBannerText = messageText || "QR INVALID. FOR MANUAL LOGGING";
         
-        const displayMsg = messageText || "QR INVALID. FOR MANUAL LOGGING";
         const banner = document.getElementById('scannerStatusFlash');
         banner.className = "status-flash-banner mb-3 bg-danger text-white py-3 fs-5 text-center fw-bold";
-        banner.innerText = displayMsg;
+        banner.innerText = savedBannerText;
         banner.classList.remove('hidden');
 
         document.getElementById('manualFieldsWrapper').classList.remove('hidden');
@@ -815,26 +859,34 @@
     }
 
     function handleManualAddressInput() {
-        const enteredVal = document.getElementById('manualAddressInput').value.trim();
+        const enteredVal = document.getElementById('manualAddressInput').value.trim().toLowerCase();
         const resSelect = document.getElementById('manualResidentSelect');
         
         resSelect.innerHTML = '<option value="">-- Select Resident Name --</option>';
         document.getElementById('manualCustomNameWrapper').classList.add('hidden');
 
-        const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase() === enteredVal.toLowerCase());
-        if (realKey) {
-            const residentArray = residentDirectoryData[realKey];
-            residentArray.forEach((res, index) => {
-                const opt = document.createElement('option');
-                opt.value = index;
-                opt.innerText = `${res.surname}, ${res.firstName}`;
-                resSelect.appendChild(opt);
-            });
-            const optOthers = document.createElement('option');
-            optOthers.value = "OTHERS";
-            optOthers.innerText = "Others";
-            resSelect.appendChild(optOthers);
+        if (!enteredVal) {
+            evaluateLiveScreeningDirectives();
+            return;
         }
+
+        Object.keys(residentDirectoryData).forEach(addressKey => {
+            if (addressKey.toLowerCase().includes(enteredVal)) {
+                const residents = residentDirectoryData[addressKey];
+                residents.forEach((res, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = `${addressKey}|${index}`;
+                    opt.innerText = `${res.surname}, ${res.firstName} (${addressKey})`;
+                    resSelect.appendChild(opt);
+                });
+            }
+        });
+        
+        const optOthers = document.createElement('option');
+        optOthers.value = "OTHERS";
+        optOthers.innerText = "Others / Unlisted Resident";
+        resSelect.appendChild(optOthers);
+        
         evaluateLiveScreeningDirectives();
     }
 
@@ -849,36 +901,42 @@
     }
 
     function evaluateLiveScreeningDirectives() {
-        const enteredVal = document.getElementById('manualAddressInput').value.trim();
         const selectVal = document.getElementById('manualResidentSelect').value;
         const banner = document.getElementById('scannerStatusFlash');
         const confirmBtn = document.getElementById('confirmEntryBtn');
 
-        const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase() === enteredVal.toLowerCase());
-        if (!realKey || !selectVal) {
+        if (!selectVal) {
             banner.className = "status-flash-banner mb-3 bg-danger text-white py-3 fs-5 text-center fw-bold";
-            banner.innerText = "QR INVALID. FOR MANUAL LOGGING";
+            banner.innerText = savedBannerText;
             confirmBtn.className = "btn btn-danger w-100 py-2.5 fs-5";
             confirmBtn.innerText = "Confirm Entry";
             return;
         }
 
-        const residents = residentDirectoryData[realKey];
         let alertScreeningRequired = false;
         let mappedTargetPhone = "";
 
         if (selectVal === "OTHERS") {
-            const holdsYesFlag = residents.some(r => r.screening === "YES");
-            if (holdsYesFlag) {
-                alertScreeningRequired = true;
-                const activeNumbers = residents.map(r => r.contact1).filter(num => num && num.trim() !== "");
-                mappedTargetPhone = activeNumbers.length > 0 ? activeNumbers[0] : "No registered phone found";
+            const enteredVal = document.getElementById('manualAddressInput').value.trim().toLowerCase();
+            const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase().includes(enteredVal));
+            if (realKey) {
+                const residents = residentDirectoryData[realKey];
+                const holdsYesFlag = residents.some(r => r.screening && r.screening.toString().toUpperCase().trim() === "YES");
+                if (holdsYesFlag) {
+                    alertScreeningRequired = true;
+                    const activeNumbers = residents.map(r => r.contact1).filter(num => num && num.trim() !== "");
+                    mappedTargetPhone = activeNumbers.length > 0 ? activeNumbers[0] : "No registered phone found";
+                }
             }
         } else {
-            const activeProfile = residents[parseInt(selectVal)];
-            if (activeProfile.screening === "YES") {
-                alertScreeningRequired = true;
-                mappedTargetPhone = activeProfile.contact1 || "No registered phone found";
+            const [addressKey, indexStr] = selectVal.split('|');
+            const index = parseInt(indexStr);
+            if (residentDirectoryData[addressKey] && residentDirectoryData[addressKey][index]) {
+                const activeProfile = residentDirectoryData[addressKey][index];
+                if (activeProfile.screening && activeProfile.screening.toString().toUpperCase().trim() === "YES") {
+                    alertScreeningRequired = true;
+                    mappedTargetPhone = activeProfile.contact1 || "No registered phone found";
+                }
             }
         }
 
@@ -915,30 +973,31 @@
             submissionPayload.plate = plateNo;
 
         } else if (currentPassType === "INVALID") {
-            const addr = document.getElementById('manualAddressInput').value.trim();
+            const addrInput = document.getElementById('manualAddressInput').value.trim();
             const selectVal = document.getElementById('manualResidentSelect').value;
             const guestName = document.getElementById('manualGuestNameInput').value.trim();
             const plateNo = document.getElementById('manualPlateInput').value.trim();
 
-            if (!addr || !selectVal || !guestName) {
-                alert("Please satisfy required items: Address, Resident Selection, and Guest Name.");
+            if (!selectVal || !guestName) {
+                alert("Please satisfy required items: Resident Selection and Guest Name.");
                 return;
             }
 
             submissionPayload.isManualLog = "true";
-            submissionPayload.address = addr;
             submissionPayload.guestName = guestName;
             submissionPayload.plate = plateNo;
 
-            const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase() === addr.toLowerCase());
-            const residents = residentDirectoryData[realKey];
-
             if (selectVal === "OTHERS") {
                 const manualName = document.getElementById('manualCustomNameInput').value.trim();
+                submissionPayload.address = addrInput;
                 submissionPayload.residentSurname = manualName || "Others";
                 submissionPayload.residentFirstName = "";
             } else {
-                const specificResident = residents[parseInt(selectVal)];
+                const [addressKey, indexStr] = selectVal.split('|');
+                const index = parseInt(indexStr);
+                const specificResident = residentDirectoryData[addressKey][index];
+                
+                submissionPayload.address = addressKey; 
                 submissionPayload.residentSurname = specificResident.surname;
                 submissionPayload.residentFirstName = specificResident.firstName;
             }
