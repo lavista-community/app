@@ -93,7 +93,7 @@
         <div class="menu-tile" onclick="showView('placeholderUI')">📢<br><span class="mt-1">Announcements</span></div>
         <div class="menu-tile" onclick="showView('placeholderUI')">📅<br><span class="mt-1">Calendar</span></div>
         <div class="menu-tile" onclick="showView('placeholderUI')">🏀<br><span class="mt-1">Courts</span></div>
-        <div class="menu-tile" onclick="showView('guestRegistrationUI')">✅<br><span class="mt-1">Guest Registration</span></div>
+        <div class="menu-tile" onclick="resetPassWizardForm(); showView('guestRegistrationUI')">✅<br><span class="mt-1">Guest Registration</span></div>
         <div class="menu-tile" onclick="showView('placeholderUI')">🛵<br><span class="mt-1">Deliveries</span></div>
         <div class="menu-tile" onclick="showView('staffPassUI')">🚪<br><span class="mt-1">Staff Pass</span></div>
         <div class="menu-tile" onclick="openMyWindowView()">💻<br><span class="mt-1">MY GUESTS</span></div>
@@ -103,7 +103,7 @@
 
 <div id="guestRegistrationUI" class="container hidden">
     <div class="app-card">
-        <div class="back-btn" onclick="showView('dashboardUI')">← Back to Dashboard</div>
+        <div class="back-btn" onclick="resetPassWizardForm(); showView('dashboardUI')">← Back to Dashboard</div>
         
         <div id="passRegistrationWizardForm">
             <h4 class="fw-bold text-dark mb-1">Guest Registration</h4>
@@ -323,6 +323,7 @@
         document.getElementById(viewId).classList.remove('hidden');
     }
 
+    // JSONP communication framework setup
     function callBackend(params, callback) {
         const url = APPS_SCRIPT_URL + "?callback=loadData&" + new URLSearchParams(params).toString();
         const script = document.createElement('script');
@@ -588,7 +589,7 @@
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? passDate : parsedDate.toLocaleDateString('en-US', options);
                         
                         const tokenKey = rec.qrId || rec.type || '';
-                        console.log("Raw record data from backend:", rec); // 👈 ADD THIS FOR DEBUGGING
+                        console.log("Raw record data from backend:", rec);
                         const safeName = rec.name.replace(/'/g, "\\'");
                         
                         item.innerHTML = `
@@ -623,7 +624,6 @@
         });
     }
 
-    // Modal Control Logic Functions
     function openPassRecoveryModal(qrId, name, date) {
         if (!qrId) {
             alert("No token identifier associated with this entry record.");
@@ -641,10 +641,6 @@
         document.getElementById("passRecoveryModal").classList.add("hidden");
         document.getElementById("recoverQrImage").src = "";
     }
-
-    // 📱 ==========================================================
-    // Core Gate Scanning & Dynamic UI Validation Engine Rules
-    // ==========================================================
     
     function resetScannerUIState() {
         scannedQrId = "";
@@ -661,7 +657,6 @@
         document.getElementById('manualOverrideLinkWrapper').classList.remove('hidden');
         document.getElementById('cameraViewfinderContainer').classList.remove('hidden');
         
-        // Reset fields inputs
         document.getElementById('eventGuestNameInput').value = "";
         document.getElementById('eventPlateInput').value = "";
         document.getElementById('manualAddressInput').value = "";
@@ -676,7 +671,6 @@
         showView('scannerUI');
         resetScannerUIState();
 
-        // 1. Instantly capture structural directory metadata payload
         callBackend({ action: "getDirectoryMetadata" }, (data) => {
             if (data.result === "success") {
                 residentDirectoryData = data.directory;
@@ -684,7 +678,6 @@
             }
         });
 
-        // 2. Fire up video camera feed instantly
         if (html5QrScannerInstance === null) {
             html5QrScannerInstance = new Html5Qrcode("qr-camera-element");
         }
@@ -708,12 +701,10 @@
         scannedQrId = decodedText.toUpperCase().trim();
         document.getElementById('scannedQrTokenDisplay').innerText = scannedQrId;
         
-        // RULE TRIGGER: Shut down viewfinder stream immediately on capture
         shutdownCameraStream();
         document.getElementById('cameraViewfinderContainer').classList.add('hidden');
         document.getElementById('manualOverrideLinkWrapper').classList.add('hidden');
 
-        // ROUTE LOGIC CHECKING
         if (scannedQrId.indexOf("R-") === 0) {
             processIndividualGatePass(scannedQrId);
         } else if (scannedQrId.indexOf("E-") === 0) {
@@ -724,10 +715,9 @@
     }
 
     function onScannerCaptureFailure(error) {
-        // Continuous search loop - silent execution bypass
+        // Continuous scan loop fallback
     }
 
-    // STATE A: VALID INDIVIDUAL PASS SYSTEM FLOW (R-)
     function processIndividualGatePass(qrId) {
         const banner = document.getElementById('scannerStatusFlash');
         banner.className = "status-flash-banner mb-3 bg-info text-white py-2";
@@ -744,7 +734,6 @@
         });
     }
 
-    // STATE B: VALID EVENT PASS SYSTEM FLOW (E-)
     function initializeEventGatePassView() {
         currentPassType = "EVENT";
         
@@ -761,7 +750,6 @@
         confirmBtn.classList.remove('hidden');
     }
 
-    // STATE C: INVALID OR EXPIRED TOKEN ENCOUNTERED
     function initializeInvalidGatePassView() {
         currentPassType = "INVALID";
         
@@ -778,7 +766,6 @@
         confirmBtn.classList.remove('hidden');
     }
 
-    // STATE D: PURE OVERRIDE FOR COMPLETELY MISSING PHYSICAL TOKENS
     function triggerPureManualOverride(event) {
         if(event) event.preventDefault();
         scannedQrId = "MANUAL";
@@ -791,7 +778,6 @@
         initializeInvalidGatePassView();
     }
 
-    // PREDICTIVE AUTOCOMPLETE DICTIONARY ARCHITECTURE
     function buildAddressDatalistSuggestions() {
         const dl = document.getElementById('addressDatalist');
         dl.innerHTML = "";
@@ -809,7 +795,6 @@
         resSelect.innerHTML = '<option value="">-- Select Resident Name --</option>';
         document.getElementById('manualCustomNameWrapper').classList.add('hidden');
 
-        // Case-insensitive key mapping index locator
         const realKey = Object.keys(residentDirectoryData).find(k => k.toLowerCase() === enteredVal.toLowerCase());
         if (realKey) {
             const residentArray = residentDirectoryData[realKey];
@@ -837,7 +822,6 @@
         evaluateLiveScreeningDirectives();
     }
 
-    // COMPLEX SCREENING OVERRIDE LOGIC PIPELINE
     function evaluateLiveScreeningDirectives() {
         const enteredVal = document.getElementById('manualAddressInput').value.trim();
         const selectVal = document.getElementById('manualResidentSelect').value;
@@ -858,7 +842,6 @@
         let mappedTargetPhone = "";
 
         if (selectVal === "OTHERS") {
-            // RULE RULE: "At least one row is Yes" check fallback across entire address segment
             const holdsYesFlag = residents.some(r => r.screening === "YES");
             if (holdsYesFlag) {
                 alertScreeningRequired = true;
@@ -866,13 +849,11 @@
                 mappedTargetPhone = activeNumbers.length > 0 ? activeNumbers[0] : "No registered phone found";
             }
         } else {
-            // RULE RULE: Specific profile match mapping
             const activeProfile = residents[parseInt(selectVal)];
             if (activeProfile.screening === "YES") {
                 alertScreeningRequired = true;
                 mappedTargetPhone = activeProfile.contact1 || "No registered phone found";
             }
-            // "No" profiles trigger ENTRY ALLOWED instantly bypassing any sibling flags
         }
 
         if (alertScreeningRequired) {
@@ -888,7 +869,6 @@
         }
     }
 
-    // COMBINED EXECUTION SAVE ROUTE SUBMISSION
     function executeLogSubmission() {
         let submissionPayload = { action: "confirmArrival" };
 
@@ -945,7 +925,6 @@
                 banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-4 text-center fw-bold";
                 banner.innerText = "ENTRY LOGGED SUCCESSFULLY";
                 
-                // Tear down input cards leaving clean notification interface
                 document.getElementById('eventFieldsWrapper').classList.add('hidden');
                 document.getElementById('manualFieldsWrapper').classList.add('hidden');
                 actionBtn.classList.add('hidden');
