@@ -954,82 +954,95 @@
     }
 
     function executeLogSubmission() {
-        let submissionPayload = { action: "confirmArrival" };
+    let submissionPayload = { action: "confirmArrival" };
 
-        if (currentPassType === "INDIVIDUAL") {
-            const plateNo = document.getElementById('individualPlateInput').value.trim();
-            submissionPayload.qrId = scannedQrId;
-            submissionPayload.isManualLog = "false";
-            submissionPayload.plate = plateNo;
+    if (currentPassType === "INDIVIDUAL") {
+        const plateNo = document.getElementById('individualPlateInput').value.trim();
+        submissionPayload.qrId = scannedQrId;
+        submissionPayload.isManualLog = "false";
+        submissionPayload.plate = plateNo;
 
-        } else if (currentPassType === "EVENT") {
-            const guestName = document.getElementById('eventGuestNameInput').value.trim();
-            const plateNo = document.getElementById('eventPlateInput').value.trim();
-            if (!guestName) { alert("Please input Guest Name detail parameters."); return; }
+    } else if (currentPassType === "EVENT") {
+        const guestName = document.getElementById('eventGuestNameInput').value.trim();
+        const plateNo = document.getElementById('eventPlateInput').value.trim();
+        if (!guestName) { alert("Please input Guest Name detail parameters."); return; }
 
-            submissionPayload.qrId = scannedQrId;
-            submissionPayload.isManualLog = "false";
-            submissionPayload.guestName = guestName;
-            submissionPayload.plate = plateNo;
+        submissionPayload.qrId = scannedQrId;
+        submissionPayload.isManualLog = "false";
+        submissionPayload.guestName = guestName;
+        submissionPayload.plate = plateNo;
 
-        } else if (currentPassType === "INVALID") {
-            const addrInput = document.getElementById('manualAddressInput').value.trim();
-            const selectVal = document.getElementById('manualResidentSelect').value;
-            const guestName = document.getElementById('manualGuestNameInput').value.trim();
-            const plateNo = document.getElementById('manualPlateInput').value.trim();
+    } else if (currentPassType === "INVALID") {
+        const addrInput = document.getElementById('manualAddressInput').value.trim();
+        const selectVal = document.getElementById('manualResidentSelect').value;
+        const guestName = document.getElementById('manualGuestNameInput').value.trim();
+        const plateNo = document.getElementById('manualPlateInput').value.trim();
 
-            if (!selectVal || !guestName) {
-                alert("Please satisfy required items: Resident Selection and Guest Name.");
-                return;
-            }
-
-            submissionPayload.isManualLog = "true";
-            submissionPayload.guestName = guestName;
-            submissionPayload.plate = plateNo;
-
-            if (selectVal === "OTHERS") {
-                const manualName = document.getElementById('manualCustomNameInput').value.trim();
-                submissionPayload.address = addrInput;
-                submissionPayload.residentSurname = manualName || "Others";
-                submissionPayload.residentFirstName = "";
-            } else {
-                const [addressKey, indexStr] = selectVal.split('|');
-                const index = parseInt(indexStr);
-                const specificResident = residentDirectoryData[addressKey][index];
-                
-                submissionPayload.address = addressKey; 
-                submissionPayload.residentSurname = specificResident.surname;
-                submissionPayload.residentFirstName = specificResident.firstName;
-            }
-        } else {
-            return; 
+        if (!selectVal || !guestName) {
+            alert("Please satisfy required items: Resident Selection and Guest Name.");
+            return;
         }
 
-        const actionBtn = document.getElementById('confirmEntryBtn');
-        actionBtn.innerText = "Processing Sheet Updates...";
-        actionBtn.disabled = true;
+        submissionPayload.isManualLog = "true";
+        submissionPayload.guestName = guestName;
+        submissionPayload.plate = plateNo;
 
-        callBackend(submissionPayload, (data) => {
-            actionBtn.disabled = false;
-            if (data.result === "success") {
-                const banner = document.getElementById('scannerStatusFlash');
-                banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-4 text-center fw-bold";
-                banner.innerText = "ENTRY LOGGED SUCCESSFULLY";
-                
-                document.getElementById('individualFieldsWrapper').classList.add('hidden');
-                document.getElementById('eventFieldsWrapper').classList.add('hidden');
-                document.getElementById('manualFieldsWrapper').classList.add('hidden');
-                actionBtn.classList.add('hidden');
-            } else {
-                alert("Transaction anomaly processing registration entry: " + data.message);
-                if (currentPassType === "INVALID") {
-                    evaluateLiveScreeningDirectives();
-                } else {
-                    actionBtn.innerText = "Confirm Entry";
-                }
-            }
-        });
+        if (selectVal === "OTHERS") {
+            const manualName = document.getElementById('manualCustomNameInput').value.trim();
+            submissionPayload.address = addrInput;
+            submissionPayload.residentSurname = manualName || "Others";
+            submissionPayload.residentFirstName = "";
+        } else {
+            const [addressKey, indexStr] = selectVal.split('|');
+            const index = parseInt(indexStr);
+            const specificResident = residentDirectoryData[addressKey][index];
+            
+            submissionPayload.address = addressKey; 
+            submissionPayload.residentSurname = specificResident.surname;
+            submissionPayload.residentFirstName = specificResident.firstName;
+        }
+    } else {
+        return; 
     }
-</script>
-</body>
-</html>
+
+    const actionBtn = document.getElementById('confirmEntryBtn');
+    const originalText = actionBtn.innerText || "Confirm Entry";
+    actionBtn.innerText = "Processing Sheet Updates...";
+    actionBtn.disabled = true;
+
+    // Failsafe: Re-enable the interface if the backend doesn't respond within 8 seconds
+    const networkTimeoutFailsafe = setTimeout(() => {
+        if (actionBtn.disabled) {
+            actionBtn.disabled = false;
+            actionBtn.innerText = originalText;
+            alert("The update request timed out or encountered an unhandled backend exception. Please try confirming again.");
+            if (currentPassType === "INVALID") {
+                evaluateLiveScreeningDirectives();
+            }
+        }
+    }, 8000);
+
+    callBackend(submissionPayload, (data) => {
+        clearTimeout(networkTimeoutFailsafe);
+        actionBtn.disabled = false;
+        
+        if (data && data.result === "success") {
+            const banner = document.getElementById('scannerStatusFlash');
+            banner.className = "status-flash-banner mb-3 bg-success text-white py-3 fs-4 text-center fw-bold";
+            banner.innerText = "ENTRY LOGGED SUCCESSFULLY";
+            
+            document.getElementById('individualFieldsWrapper').classList.add('hidden');
+            document.getElementById('eventFieldsWrapper').classList.add('hidden');
+            document.getElementById('manualFieldsWrapper').classList.add('hidden');
+            actionBtn.classList.add('hidden');
+        } else {
+            const errorMsg = data && data.message ? data.message : "No descriptive response payload returned from backend script.";
+            alert("Transaction anomaly processing registration entry: " + errorMsg);
+            if (currentPassType === "INVALID") {
+                evaluateLiveScreeningDirectives();
+            } else {
+                actionBtn.innerText = originalText;
+            }
+        }
+    });
+}
