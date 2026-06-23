@@ -599,17 +599,17 @@
                         const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? String(passDate) : parsedDate.toLocaleDateString('en-US', dateOptions);
 
-                        // Logic: If Event, show "Event Pass" and use GUEST NAME as address
+                        // Logic: If Event, show "Event Pass" and use ADDRESS (Column D)
                         const isEvent = (rec.category === "EVENT");
                         const displayName = isEvent ? "Event Pass" : String(rec.title || rec["GUEST NAME"] || rec.guestName || rec.name || 'Unnamed Guest');
-                        const subText = isEvent ? (rec["GUEST NAME"] || 'No Address') : (rec.subText || 'Click to view pass');
+                        const subText = isEvent ? (rec["ADDRESS"] || 'No Address') : (rec.subText || 'Click to view pass');
 
                         item.innerHTML = `
                             <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date, this.dataset.address)" 
                                  data-qr-id="${rec.qrId || ''}" 
                                  data-name="${displayName}" 
                                  data-date="${cleanDisplayDate}" 
-                                 data-address="${isEvent ? (rec["GUEST NAME"] || '') : ''}"
+                                 data-address="${isEvent ? (rec["ADDRESS"] || '') : ''}"
                                  style="cursor: pointer;">
                                 <div class='fw-bold text-primary'>${displayName}</div>
                                 <div class='text-muted micro-text' style='font-size: 11px;'>${subText}</div>
