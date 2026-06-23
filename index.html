@@ -565,11 +565,11 @@
     const guestsList = document.getElementById('myWindowGuestsList');
     const deliveriesList = document.getElementById('myWindowDeliveriesList');
     const staffList = document.getElementById('myWindowStaffList');
-
+    
     guestsList.innerHTML = "<div class='text-muted small p-2'>Loading manifest framework logs...</div>";
     deliveriesList.innerHTML = "<div class='text-muted small p-2'>Loading logs...</div>";
     staffList.innerHTML = "<div class='text-muted small p-2'>Loading staff...</div>";
-
+    
     callBackend({
         action: "getMyWindowData",
         email: currentUser.email,
@@ -583,26 +583,24 @@
             let hasGuests = false;
             let hasStaff = false;
 
-            if (data.records && data.records.length > 0) {
+            if (data.records) {
                 data.records.forEach(rec => {
-                    // Debugging line: remove this after confirming it works
-                    console.log("Keys in record:", Object.keys(rec));
+                    // This will help us debug if other fields are missing
+                    console.log("Processing record:", rec); 
 
                     const item = document.createElement('div');
                     item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
 
-                    // Access keys using bracket notation to match your Sheet headers exactly
-                    const category = rec.category || "";
-                    
-                    if (category === "GUEST" || category === "EVENT") {
+                    if (rec.category === "GUEST" || rec.category === "EVENT") {
                         hasGuests = true;
-                        const passDate = rec.date || rec["DATE"] || rec.dateExpected || '';
+                        const passDate = rec.date || rec.dateExpected || '';
                         const parsedDate = new Date(passDate);
                         const options = { month: 'short', day: 'numeric', year: 'numeric' };
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? String(passDate) : parsedDate.toLocaleDateString('en-US', options);
-
-                        const tokenKey = String(rec.qrId || rec["ID"] || rec.type || '');
-                        const displayName = String(rec.guestName || rec["GUEST NAME"] || rec.name || 'Unnamed Guest');
+                        
+                        const tokenKey = String(rec.qrId || rec.type || '');
+                        // FIXED: Look for 'GUEST NAME' with the space from your spreadsheet
+                        const displayName = String(rec["GUEST NAME"] || rec.guestName || rec.name || 'Unnamed Guest');
 
                         item.innerHTML = `
                             <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date)" 
@@ -622,9 +620,10 @@
                         `;
                         guestsList.appendChild(item);
 
-                    } else if (category === "STAFF") {
+                    } else if (rec.category === "STAFF") {
                         hasStaff = true;
-                        const staffName = String(rec.staffName || rec["FIRST NAME"] || rec.name || 'Unlisted Staff');
+                        // You may want to check for "FIRST NAME" here too
+                        const staffName = String(rec.staffName || rec.name || 'Unlisted Staff');
                         const staffType = String(rec.type || 'Staff');
                         const staffStatus = String(rec.status || 'PENDING');
 
