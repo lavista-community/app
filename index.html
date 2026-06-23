@@ -570,73 +570,72 @@
         deliveriesList.innerHTML = "<div class='text-muted small p-2'>Loading logs...</div>";
         staffList.innerHTML = "<div class='text-muted small p-2'>Loading staff...</div>";
         
-        callBackend({
-            action: "getMyWindowData",
-            email: currentUser.email,
-            date: selectedDate
-        }, (data) => {
-            if (data.result === "success") {
-                guestsList.innerHTML = "";
-                deliveriesList.innerHTML = "";
-                staffList.innerHTML = "";
+       callBackend({
+    action: "getMyWindowData",
+    email: currentUser.email,
+    date: selectedDate
+}, (data) => {
+    if (data.result === "success") {
+        guestsList.innerHTML = "";
+        deliveriesList.innerHTML = "";
+        staffList.innerHTML = "";
+
+        let hasGuests = false;
+        let hasStaff = false;
+
+        data.records.forEach(rec => {
+            const item = document.createElement('div');
+            item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
+
+            if (rec.category === "GUEST" || rec.category === "EVENT") {
+                hasGuests = true;
+                const passDate = rec.date || rec.dateExpected || '';
+                const parsedDate = new Date(passDate);
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? String(passDate) : parsedDate.toLocaleDateString('en-US', options);
                 
-                let hasGuests = false;
-                let hasStaff = false;
-                
-                data.records.forEach(rec => {
-                    const item = document.createElement('div');
-                    item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
-                    
-                    if (rec.category === "GUEST" || rec.category === "EVENT") {
-                        hasGuests = true;
-                        const passDate = rec.date || rec.dateExpected || '';
-                        const parsedDate = new Date(passDate);
-                        const options = { month: 'short', day: 'numeric', year: 'numeric' };
-                        const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? String(passDate) : parsedDate.toLocaleDateString('en-US', options);
-                        
-                        const tokenKey = String(rec.qrId || rec.type || '');
-                        const displayName = String(rec.name || '');
-                        
-                        item.innerHTML = `
-                            <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date)" 
-                                 data-qr-id="${tokenKey}" 
-                                 data-name="${displayName.replace(/"/g, '&quot;')}" 
-                                 data-date="${cleanDisplayDate}" 
-                                 style="cursor: pointer;">
-                                <div class='fw-bold text-primary d-flex align-items-center' style='text-decoration: underline; text-underline-offset: 3px;'>
-                                    <span>${displayName}</span>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-qr-code text-primary ms-1.5" viewBox="0 0 16 16" style="margin-left: 6px; opacity: 0.85;">
-                                        <path d="M2 2h2v2H2V2Z M6 0v6H0V0h6ZM5 1H1v4h4V1ZM4 12H2v2h2v-2Z M6 8v6H0V8h6V8Zm-1 1H1v4h4V9ZM16 0v6h-6V0h6Zm-1 1h-4v4h4V1Z M9 9h1v1H9V9Zm1 0h1v1h-1V9Zm-1 1h1v1H9v-1Zm1 0h1v1h-1v-1Zm-2 1h1v1H8v-1Zm1 0h1v1h-1v-1Zm-1 1h1v1H8v-1Zm1 0h1v1h-1v-1Zm2-3h1v1h-1V8Zm1 0h1v1h-1V8Zm-1 1h1v1h-1V9Zm1 0h1v1h-1V9Zm1 3h1v1h-1v-1Zm0-1h1v1h-1v-1Zm-1 0h1v1h-1v-1Zm-2-2h1v1H9V8Zm1 0h1v1h-1V8Z"/>
-                                    </svg>
-                                </div>
-                                <div class='text-muted micro-text' style='font-size: 11px; margin-top: 2px;'>Click to view pass</div>
-                            </div>
-                            <span class='badge ${String(rec.status) === "ARRIVED" ? "bg-success" : "bg-primary"}'>${String(rec.status || 'PENDING')}</span>
-                        `;
-                        guestsList.appendChild(item);
-                    } else if (rec.category === "STAFF") {
-                        hasStaff = true;
-                        const staffName = String(rec.name || 'Unlisted Staff');
-                        const staffType = String(rec.type || 'Staff');
-                        const staffStatus = String(rec.status || 'PENDING');
-                        
-                        item.innerHTML = `
-                            <div><div class='fw-bold text-dark'>${staffName}</div><div class='text-muted micro-text' style='font-size:11px;'>${staffType}</div></div>
-                            <span class='badge bg-secondary'>${staffStatus}</span>
-                        `;
-                        staffList.appendChild(item);
-                    }
-                });
-                
-                if (!hasGuests) guestsList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No visitor records found.</div>";
-                if (!hasStaff) staffList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No staff registry listed.</div>";
-                deliveriesList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No domestic delivery packages captured.</div>";
-            } else {
-                alert("Error handling view update: " + data.message);
+                const tokenKey = String(rec.qrId || rec.type || '');
+                const displayName = String(rec.guestName || rec.name || '');
+
+                item.innerHTML = `
+                    <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date)" 
+                         data-qr-id="${tokenKey}" 
+                         data-name="${displayName.replace(/"/g, '&quot;')}" 
+                         data-date="${cleanDisplayDate}" 
+                         style="cursor: pointer;">
+                        <div class='fw-bold text-primary d-flex align-items-center' style='text-decoration: underline; text-underline-offset: 3px;'>
+                            <span>${displayName}</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" class="bi bi-qr-code text-primary ms-1.5" viewBox="0 0 16 16" style="margin-left: 6px; opacity: 0.85;">
+                                <path d="M2 2h2v2H2V2Z M6 0v6H0V0h6ZM5 1H1v4h4V1ZM4 12H2v2h2v-2Z M6 8v6H0V8h6V8Zm-1 1H1v4h4V9ZM16 0v6h-6V0h6Zm-1 1h-4v4h4V1Z M9 9h1v1H9V9Zm1 0h1v1h-1V9Zm-1 1h1v1H9v-1Zm1 0h1v1h-1v-1Zm-2 1h1v1H8v-1Zm1 0h1v1h-1v-1Zm-1 1h1v1H8v-1Zm1 0h1v1h-1v-1Zm2-3h1v1h-1V8Zm1 0h1v1h-1V8Zm-1 1h1v1h-1V9Zm1 0h1v1h-1V9Zm1 3h1v1h-1v-1Zm0-1h1v1h-1v-1Zm-1 0h1v1h-1v-1Zm-2-2h1v1H9V8Zm1 0h1v1h-1V8Z"/>
+                            </svg>
+                        </div>
+                        <div class='text-muted micro-text' style='font-size: 11px; margin-top: 2px;'>Click to view pass</div>
+                    </div>
+                    <span class='badge ${String(rec.status) === "ARRIVED" ? "bg-success" : "bg-primary"}'>${String(rec.status || 'PENDING')}</span>
+                `;
+                guestsList.appendChild(item);
+
+            } else if (rec.category === "STAFF") {
+                hasStaff = true;
+                const staffName = String(rec.staffName || rec.name || 'Unlisted Staff');
+                const staffType = String(rec.type || 'Staff');
+                const staffStatus = String(rec.status || 'PENDING');
+
+                item.innerHTML = `
+                    <div><div class='fw-bold text-dark'>${staffName}</div><div class='text-muted micro-text' style='font-size:11px;'>${staffType}</div></div>
+                    <span class='badge bg-secondary'>${staffStatus}</span>
+                `;
+                staffList.appendChild(item);
             }
         });
-    }
 
+        if (!hasGuests) guestsList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No visitor records found.</div>";
+        if (!hasStaff) staffList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No staff registry listed.</div>";
+        deliveriesList.innerHTML = "<div class='text-muted small p-2 bg-light rounded border text-center'>No domestic delivery packages captured.</div>";
+    } else {
+        alert("Error handling view update: " + data.message);
+    }
+});
     function openPassRecoveryModal(qrId, name, date) {
         if (!qrId) {
             alert("No token identifier associated with this entry record.");
