@@ -585,9 +585,6 @@
 
             if (data.records) {
                 data.records.forEach(rec => {
-                    // This will help us debug if other fields are missing
-                    console.log("Processing record:", rec); 
-
                     const item = document.createElement('div');
                     item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
 
@@ -599,8 +596,9 @@
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? String(passDate) : parsedDate.toLocaleDateString('en-US', options);
                         
                         const tokenKey = String(rec.qrId || rec.type || '');
-                        // FIXED: Look for 'GUEST NAME' with the space from your spreadsheet
-                        const displayName = String(rec["GUEST NAME"] || rec.guestName || rec.name || 'Unnamed Guest');
+                        
+                        // FIXED: Look for 'title' first, as shown in your console logs
+                        const displayName = String(rec.title || rec["GUEST NAME"] || rec.guestName || rec.name || 'Unnamed Guest');
 
                         item.innerHTML = `
                             <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date)" 
@@ -622,8 +620,7 @@
 
                     } else if (rec.category === "STAFF") {
                         hasStaff = true;
-                        // You may want to check for "FIRST NAME" here too
-                        const staffName = String(rec.staffName || rec.name || 'Unlisted Staff');
+                        const staffName = String(rec.title || rec.staffName || rec.name || 'Unlisted Staff');
                         const staffType = String(rec.type || 'Staff');
                         const staffStatus = String(rec.status || 'PENDING');
 
