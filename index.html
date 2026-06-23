@@ -586,7 +586,7 @@
             if (data.records && data.records.length > 0) {
                 data.records.forEach(rec => {
                     // Debugging line: remove this after confirming it works
-                    console.log("Processing record:", rec);
+                    console.log("Keys in record:", Object.keys(rec));
 
                     const item = document.createElement('div');
                     item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
