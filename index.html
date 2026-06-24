@@ -596,9 +596,10 @@
 
             if (data.records) {
                 data.records.forEach(rec => {
+                    
                     const item = document.createElement('div');
                     item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
-
+                    console.log('Processing record:', rec);
                     if (rec.category === "GUEST" || rec.category === "EVENT") {
                         hasGuests = true;
                         // Date Formatting
