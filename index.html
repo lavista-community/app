@@ -663,15 +663,20 @@
 
     // 1. Generate the QR
     document.getElementById("recoverQrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
-    
+
     // 2. Set the labels
-    document.getElementById("recoverMetaAddress").innerText = address;
+    // We use the 'name' here now instead of the address
+    document.getElementById("recoverMetaAddress").innerText = name; 
+    
+    // Optional: If you want the address to show below the name, 
+    // you could uncomment the line below (requires adding an element to your HTML)
+    // document.getElementById("recoverMetaSubAddress").innerText = address;
+
     document.getElementById("recoverMetaDate").innerText = date;
     document.getElementById("recoverMetaId").innerText = qrId;
-    
+
     document.getElementById("passRecoveryModal").classList.remove("hidden");
 }
-
     function closePassRecoveryModal() {
         document.getElementById("passRecoveryModal").classList.add("hidden");
         document.getElementById("recoverQrImage").src = "";
