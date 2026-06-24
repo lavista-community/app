@@ -587,7 +587,6 @@
         email: currentUser.email,
         date: selectedDate
     }, (data) => {
-        console.log('API Response Data:', data);
         if (data.result === "success") {
             guestsList.innerHTML = "";
             deliveriesList.innerHTML = "";
@@ -600,9 +599,7 @@
                 data.records.forEach(rec => {
                     
                     const item = document.createElement('div');
-                    console.log('DEBUG: Created item:', item);
                     item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
-                    console.log('Processing record:', rec);
                     if (rec.category === "GUEST" || rec.category === "EVENT") {
                         hasGuests = true;
                         // Date Formatting
