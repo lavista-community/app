@@ -473,13 +473,17 @@
         });
     }
 
-        function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
-            const parsedDate = new Date(targetDateRaw);
-            // Update the date formatting to include the weekday
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const cleanDisplayDate = isNaN(parsedDate) ? targetDateRaw : parsedDate.toLocaleDateString('en-US', options);
-            
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrid)}`;
+        function renderGeneratedPassReceiptCard(qrid, targetDateRaw, targetName) {
+    console.log("Rendering pass for:", qrid); // Debugging line to see it working
+    const parsedDate = new Date(targetDateRaw);
+    const cleanDisplayDate = parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    
+    // This is the line that renders the QR code
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrid)}`;
+    
+    // ... (keep the rest of your existing code inside this function exactly as it is) ...
+    // Make sure your modal/image elements are updated with 'qrApiUrl'
+}
         
             document.getElementById("receiptQrImage").src = qrApiUrl;
             
