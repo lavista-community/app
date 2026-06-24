@@ -476,30 +476,30 @@
         function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
             const parsedDate = new Date(targetDateRaw);
             // Update the date formatting to include the weekday
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const cleanDisplayDate = isNaN(parsedDate) ? targetDateRaw : parsedDate.toLocaleDateString('en-US', options);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const cleanDisplayDate = isNaN(parsedDate) ? targetDateRaw : parsedDate.toLocaleDateString('en-US', options);
+            
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrid)}`;
         
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrid)}`;
+            document.getElementById("receiptQrImage").src = qrApiUrl;
+            
+            // Update the title to use the targetName passed into this function
+            document.getElementById("receiptMetaName").innerText = targetName;
+            
+            // Update the date to use the formatted cleanDisplayDate
+            document.getElementById("receiptMetaData").innerText = cleanDisplayDate;
+                document.getElementById("receiptMetaId").innerText = qrId;
+                document.getElementById("passRegistrationWizardForm").classList.add("hidden");
+                document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
+            }
     
-        document.getElementById("receiptQrImage").src = qrApiUrl;
-        
-        // Update the title to use the targetName passed into this function
-        document.getElementById("receiptMetaName").innerText = targetName;
-        
-        // Update the date to use the formatted cleanDisplayDate
-        document.getElementById("receiptMetaData").innerText = cleanDisplayDate;
-            document.getElementById("receiptMetaId").innerText = qrId;
-            document.getElementById("passRegistrationWizardForm").classList.add("hidden");
-            document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
-        }
-
-    function downloadPassPngImageToDevice() {
-        const qrImg = document.getElementById("receiptQrImage");
-        const nameVal = document.getElementById("receiptMetaName").innerText;
-        const dateVal = document.getElementById("receiptMetaDate").innerText;
-        const tokenVal = document.getElementById("receiptMetaId").innerText;
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+        function downloadPassPngImageToDevice() {
+            const qrImg = document.getElementById("receiptQrImage");
+            const nameVal = document.getElementById("receiptMetaName").innerText;
+            const dateVal = document.getElementById("receiptMetaDate").innerText;
+            const tokenVal = document.getElementById("receiptMetaId").innerText;
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
 
         canvas.width = 400;
         canvas.height = 520;
