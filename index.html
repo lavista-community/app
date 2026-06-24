@@ -455,7 +455,7 @@
                 return;
             }
             payload.eventAddress = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
-            displayNameText = "Event Pass";
+            displayNametext = payload.eventAddress;
         }
 
         document.getElementById('submitGuestBtn').innerText = "Processing Pipeline...";
@@ -473,19 +473,25 @@
         });
     }
 
-    function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
-        const parsedDate = new Date(targetDateRaw);
-        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        function renderGeneratedPassReceiptCard(qrId, targetDateRaw, targetName) {
+            const parsedDate = new Date(targetDateRaw);
+            // Update the date formatting to include the weekday
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         const cleanDisplayDate = isNaN(parsedDate) ? targetDateRaw : parsedDate.toLocaleDateString('en-US', options);
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
         
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrid)}`;
+    
         document.getElementById("receiptQrImage").src = qrApiUrl;
+        
+        // Update the title to use the targetName passed into this function
         document.getElementById("receiptMetaName").innerText = targetName;
-        document.getElementById("receiptMetaDate").innerText = cleanDisplayDate;
-        document.getElementById("receiptMetaId").innerText = qrId;
-        document.getElementById("passRegistrationWizardForm").classList.add("hidden");
-        document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
-    }
+        
+        // Update the date to use the formatted cleanDisplayDate
+        document.getElementById("receiptMetaData").innerText = cleanDisplayDate;
+            document.getElementById("receiptMetaId").innerText = qrId;
+            document.getElementById("passRegistrationWizardForm").classList.add("hidden");
+            document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
+        }
 
     function downloadPassPngImageToDevice() {
         const qrImg = document.getElementById("receiptQrImage");
