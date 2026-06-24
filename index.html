@@ -614,18 +614,12 @@
                         // This line now grabs Column E (rec["GUEST NAME"]) for Events instead of the Address
                         const subText = isEvent ? (rec["GUEST NAME"] || rec.name || 'No Location') : (rec.subText || 'Click to view pass');
 
-                        item.innerHTML = `
-                            <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date, this.dataset.address)" 
-                                 data-qr-id="${rec.qrId || ''}" 
-                                 data-name="${displayName}" 
-                                 data-date="${cleanDisplayDate}" 
-                                 data-address="${isEvent ? (rec["ADDRESS"] || '') : ''}"
-                                 style="cursor: pointer;">
-                                <div class='fw-bold text-primary'>${displayName}</div>
-                                <div class='text-muted micro-text' style='font-size: 11px;'>${subText}</div>
-                            </div>
-                            <span class='badge ${String(rec.status) === "ARRIVED" ? "bg-success" : "bg-primary"}'>${String(rec.status || 'PENDING')}</span>
-                        `;
+                        <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date, this.dataset.address)"
+                        data-qr-id="${rec.qrId || ''}"
+                        data-name="${displayName}"
+                        data-date="${cleanDisplayDate}"
+                        data-address="${isEvent ? rec["GUEST NAME"] : rec["ADDRESS"]}"
+                        style="cursor: pointer;">
                         guestsList.appendChild(item);
 
                     } else if (rec.category === "STAFF") {
