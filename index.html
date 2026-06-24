@@ -608,13 +608,11 @@
                         const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? String(passDate) : parsedDate.toLocaleDateString('en-US', dateOptions);
 
-                        // Logic: If Event, show "Event Pass" and use GUEST NAME (Column E)
-                        const isEvent = (rec.category === "EVENT");
-                        const displayName = isEvent ? "Event Pass" : String(rec.title || rec["GUEST NAME"] || rec.guestName || rec.name || 'Unnamed Guest');
+                        // Logic: If Event, show "Event Pass" and use GUEST NAME
+                        const isEvent = (rec.category && rec.category.toString().toUpperCase() === "EVENT");
+                        const displayName = isEvent ? "Event Pass" : (rec.title || rec.name || "Guest");
+                        const displayAddress = isEvent ? (rec["GUEST NAME"] || "No Location") : (rec["ADDRESS"] || "No Address");
                         
-                        // This line now grabs Column E (rec["GUEST NAME"]) for Events instead of the Address
-                        const subText = isEvent ? (rec["GUEST NAME"] || rec.name || 'No Location') : (rec.subText || 'Click to view pass');
-
                         // Determine badge color class based on status
                         const badgeClass = rec.status === 'ARRIVED' ? 'bg-success text-white' : 
                                            rec.status === 'ACTIVE' ? 'bg-primary text-white' : 
@@ -625,11 +623,11 @@
                                 data-qr-id="${rec.qrId || ''}"
                                 data-name="${displayName}"
                                 data-date="${cleanDisplayDate}"
-                                data-address="${isEvent ? rec["GUEST NAME"] : rec["ADDRESS"]}"
+                                data-address="${displayAddress}"
                                 style="cursor: pointer; flex-grow: 1;">
                                 
                                 <div class="fw-bold">${displayName}</div>
-                                <div class="text-muted small">${subText}</div>
+                                <div class="text-muted small">${isEvent ? (rec["GUEST NAME"] || "No Location") : (rec.subText || 'Click to view pass')}</div>
                             </div>
                             
                             <div>
