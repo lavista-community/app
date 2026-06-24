@@ -623,7 +623,7 @@
                                 data-qr-id="${rec.qrId || ''}"
                                 data-name="${displayName}"
                                 data-date="${cleanDisplayDate}"
-                                data-address="${displayAddress}"
+                                data-address="${rec["GUEST NAME"] || rec["ADDRESS"] || 'No Data'}"
                                 style="cursor: pointer; flex-grow: 1;">
                                 
                                 <div class="fw-bold">${displayName}</div>
@@ -664,11 +664,11 @@
     // 1. Generate the QR
     document.getElementById("recoverQrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
 
-    // 2. Set the labels in your required order:
-    // This places Column E (the venue/guest name) immediately under the QR
+    // 2. Set the labels
+    // This now strictly pulls Column E data passed from the updated data-address above
     document.getElementById("recoverMetaAddress").innerText = address; 
     
-    // This places the Day and Date under the address
+    // Day and date
     document.getElementById("recoverMetaDate").innerText = date;
     
     // Hidden ID field
