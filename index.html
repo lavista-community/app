@@ -474,53 +474,58 @@
     }
 
         function renderGeneratedPassReceiptCard(qrid, targetDateRaw, targetName) {
-    console.log("Rendering pass for:", qrid); // Debugging line to see it working
+    console.log("Rendering pass for:", qrid);
     const parsedDate = new Date(targetDateRaw);
     const cleanDisplayDate = parsedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    
-    // This is the line that renders the QR code
+
     const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrid)}`;
-    
-    // ... (keep the rest of your existing code inside this function exactly as it is) ...
-    // Make sure your modal/image elements are updated with 'qrApiUrl'
+
+    document.getElementById("receiptQrImage").src = qrApiUrl;
+    document.getElementById("receiptMetaName").innerText = targetName;
+    document.getElementById("receiptMetaData").innerText = cleanDisplayDate;
+    document.getElementById("receiptMetaId").innerText = qrid;
+    document.getElementById("passRegistrationWizardForm").classList.add("hidden");
+    document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
 }
-        
-            document.getElementById("receiptQrImage").src = qrApiUrl;
-            
-            // Update the title to use the targetName passed into this function
-            document.getElementById("receiptMetaName").innerText = targetName;
-            
-            // Update the date to use the formatted cleanDisplayDate
-            document.getElementById("receiptMetaData").innerText = cleanDisplayDate;
-                document.getElementById("receiptMetaId").innerText = qrId;
-                document.getElementById("passRegistrationWizardForm").classList.add("hidden");
-                document.getElementById("passRegistrationReceiptContainer").classList.remove("hidden");
-            }
-    
-        function downloadPassPngImageToDevice() {
-            const qrImg = document.getElementById("receiptQrImage");
-            const nameVal = document.getElementById("receiptMetaName").innerText;
-            const dateVal = document.getElementById("receiptMetaDate").innerText;
-            const tokenVal = document.getElementById("receiptMetaId").innerText;
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
 
-        canvas.width = 400;
-        canvas.height = 520;
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "#e2e8f0";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
+function downloadPassPngImageToDevice() {
+    const qrImg = document.getElementById("receiptQrImage");
+    const nameVal = document.getElementById("receiptMetaName").innerText;
+    const dateVal = document.getElementById("receiptMetaData").innerText;
+    const tokenVal = document.getElementById("receiptMetaId").innerText;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-        ctx.fillStyle = "#94a3b8";
-        ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-        ctx.textAlign = "center";
-        ctx.letterSpacing = "1px";
-        ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
+    canvas.width = 400;
+    canvas.height = 520;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(15, 15, canvas.width - 30, canvas.height - 30);
 
-        const crossOriginImageInstance = new Image();
-        crossOriginImageInstance.crossOrigin = "anonymous"; 
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.textAlign = "center";
+    ctx.letterSpacing = "1px";
+    ctx.fillText("LA VISTA SECURITY PASS", canvas.width / 2, 50);
+
+    const crossOriginImageInstance = new Image();
+    crossOriginImageInstance.crossOrigin = "anonymous";
+    crossOriginImageInstance.onload = function() {
+        ctx.drawImage(crossOriginImageInstance, 75, 90, 250, 250);
+        ctx.fillStyle = "#1e293b";
+        ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.fillText(nameVal, canvas.width / 2, 380);
+        ctx.fillStyle = "#64748b";
+        ctx.font = "600 15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+        ctx.fillText(dateVal, canvas.width / 2, 415);
+        ctx.fillStyle = "#007aff";
+        ctx.font = "bold 14px monospace";
+        ctx.fillText(tokenVal, canvas.width / 2, 445);
+    };
+    crossOriginImageInstance.src = qrImg.src;
+}
         crossOriginImageInstance.onload = function() {
             ctx.drawImage(crossOriginImageInstance, 75, 90, 250, 250);
             ctx.fillStyle = "#1e293b";
