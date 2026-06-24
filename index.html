@@ -205,17 +205,25 @@
     <div class="custom-modal-box text-center">
         <div class="secure-pass-frame shadow-none border-0 m-0 p-0">
             <div class="secure-pass-header">La Vista Security Pass</div>
+            
+            <!-- 1. QR Code -->
             <img id="recoverQrImage" src="" alt="Gate Token" class="secure-pass-qr">
-            <div id="recoverMetaName" class="secure-pass-name"></div>
-            <div id="recoverMetaDate" class="secure-pass-date"></div>
-            <!-- Address field -->
-            <div id="recoverMetaAddress" class="secure-pass-address" style="font-size: 14px; color: #475569; font-weight: 500; margin-top: 4px;"></div>
-            <div id="recoverMetaId" class="secure-pass-id"></div>
+            
+            <!-- 2. Event Address (Guest Name) -->
+            <div id="recoverMetaAddress" style="font-size: 16px; font-weight: bold; margin-top: 10px;"></div>
+            
+            <!-- 3. Day and Date -->
+            <div id="recoverMetaDate" class="secure-pass-date" style="font-size: 14px; color: #666;"></div>
+            
+            <!-- Hidden ID -->
+            <div id="recoverMetaId" class="secure-pass-id" style="display:none;"></div>
         </div>
         
-        <!-- You need this button to close the modal! -->
-        <button onclick="closePassRecoveryModal()" class="btn btn-dark w-100 py-2 mt-3" style="border-radius: 12px; font-weight: 600;">Close Pass</button>
+        <!-- Close button -->
+        <button onclick="closePassRecoveryModal()" class="btn btn-dark w-100 py-2 mt-3" style="border-radius: 12px;">Close Pass</button>
     </div>
+</div>
+    
 </div>
 <div id="scannerUI" class="container hidden">
     <div class="app-card">
@@ -651,16 +659,9 @@
     document.getElementById("recoverQrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
     
     // 2. Set the labels
-    document.getElementById("recoverMetaName").innerText = name; // This says "Event Pass"
+    document.getElementById("recoverMetaAddress").innerText = address;
     document.getElementById("recoverMetaDate").innerText = date;
     document.getElementById("recoverMetaId").innerText = qrId;
-    
-    // 3. The "Event Address" Logic (Simplified)
-    const addrEl = document.getElementById("recoverMetaAddress");
-    if (addrEl) {
-        // If it's an event, it shows the address. If not, it stays blank.
-        addrEl.innerText = (name === "Event Pass") ? address : "";
-    }
     
     document.getElementById("passRecoveryModal").classList.remove("hidden");
 }
