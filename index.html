@@ -586,6 +586,7 @@
         email: currentUser.email,
         date: selectedDate
     }, (data) => {
+        console.log('API Response Data:', data);
         if (data.result === "success") {
             guestsList.innerHTML = "";
             deliveriesList.innerHTML = "";
