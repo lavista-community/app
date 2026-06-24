@@ -615,22 +615,27 @@
                         // This line now grabs Column E (rec["GUEST NAME"]) for Events instead of the Address
                         const subText = isEvent ? (rec["GUEST NAME"] || rec.name || 'No Location') : (rec.subText || 'Click to view pass');
 
-                        item.innerHTML = `
-                        <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date, this.dataset.address)"
-                            data-qr-id="${rec.qrId || ''}"
-                            data-name="${displayName}"
-                            data-date="${cleanDisplayDate}"
-                            data-address="${isEvent ? rec["GUEST NAME"] : rec["ADDRESS"]}"
-                            style="cursor: pointer; flex-grow: 1;">
-                            
-                            <div class="fw-bold">${displayName}</div>
-                            <div class="text-muted small">${subText}</div>
-                        </div>
+                        // Determine badge color class based on status
+                        const badgeClass = rec.status === 'ARRIVED' ? 'bg-success text-white' : 
+                                           rec.status === 'ACTIVE' ? 'bg-primary text-white' : 
+                                           'bg-light text-dark border';
                         
-                        <div>
-                            <span class="badge bg-light text-dark border">${rec.status || 'Verified'}</span>
-                        </div>
-                    `;
+                        item.innerHTML = `
+                            <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date, this.dataset.address)"
+                                data-qr-id="${rec.qrId || ''}"
+                                data-name="${displayName}"
+                                data-date="${cleanDisplayDate}"
+                                data-address="${isEvent ? rec["GUEST NAME"] : rec["ADDRESS"]}"
+                                style="cursor: pointer; flex-grow: 1;">
+                                
+                                <div class="fw-bold">${displayName}</div>
+                                <div class="text-muted small">${subText}</div>
+                            </div>
+                            
+                            <div>
+                                <span class="badge ${badgeClass}">${rec.status || 'Verified'}</span>
+                            </div>
+                        `;
                     guestsList.appendChild(item);
                     } else if (rec.category === "STAFF") {
                         hasStaff = true;
