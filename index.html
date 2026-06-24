@@ -574,6 +574,7 @@
    function loadMyWindow() {
     const selectedDate = document.getElementById('manifestDate').value;
     const guestsList = document.getElementById('myWindowGuestsList');
+    console.log('DEBUG: guestsList element:', guestsList);   
     const deliveriesList = document.getElementById('myWindowDeliveriesList');
     const staffList = document.getElementById('myWindowStaffList');
     
@@ -599,6 +600,7 @@
                 data.records.forEach(rec => {
                     
                     const item = document.createElement('div');
+                    console.log('DEBUG: Created item:', item);
                     item.className = "p-3 mb-2 bg-white rounded-3 small border d-flex justify-content-between align-items-center shadow-sm";
                     console.log('Processing record:', rec);
                     if (rec.category === "GUEST" || rec.category === "EVENT") {
