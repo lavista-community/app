@@ -664,15 +664,14 @@
     // 1. Generate the QR
     document.getElementById("recoverQrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&margin=10&data=${encodeURIComponent(qrId)}`;
 
-    // 2. Set the labels
-    // We use the 'name' here now instead of the address
-    document.getElementById("recoverMetaAddress").innerText = name; 
+    // 2. Set the labels in your required order:
+    // This places Column E (the venue/guest name) immediately under the QR
+    document.getElementById("recoverMetaAddress").innerText = address; 
     
-    // Optional: If you want the address to show below the name, 
-    // you could uncomment the line below (requires adding an element to your HTML)
-    // document.getElementById("recoverMetaSubAddress").innerText = address;
-
+    // This places the Day and Date under the address
     document.getElementById("recoverMetaDate").innerText = date;
+    
+    // Hidden ID field
     document.getElementById("recoverMetaId").innerText = qrId;
 
     document.getElementById("passRecoveryModal").classList.remove("hidden");
