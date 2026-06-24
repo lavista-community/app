@@ -599,10 +599,12 @@
                         const dateOptions = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
                         const cleanDisplayDate = (isNaN(parsedDate) || !passDate) ? String(passDate) : parsedDate.toLocaleDateString('en-US', dateOptions);
 
-                        // Logic: If Event, show "Event Pass" and use ADDRESS (Column D)
+                        // Logic: If Event, show "Event Pass" and use GUEST NAME (Column E)
                         const isEvent = (rec.category === "EVENT");
                         const displayName = isEvent ? "Event Pass" : String(rec.title || rec["GUEST NAME"] || rec.guestName || rec.name || 'Unnamed Guest');
-                        const subText = isEvent ? (rec["ADDRESS"] || 'No Address') : (rec.subText || 'Click to view pass');
+                        
+                        // This line now grabs Column E (rec["GUEST NAME"]) for Events instead of the Address
+                        const subText = isEvent ? (rec["GUEST NAME"] || rec.name || 'No Location') : (rec.subText || 'Click to view pass');
 
                         item.innerHTML = `
                             <div onclick="openPassRecoveryModal(this.dataset.qrId, this.dataset.name, this.dataset.date, this.dataset.address)" 
