@@ -446,7 +446,7 @@
                 alert("Please explicitly define the custom event location venue details.");
                 return;
             }
-            payload.locationDetails = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
+            payload.eventAddress = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
             displayNameText = "Event Pass";
         }
 
