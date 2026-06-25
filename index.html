@@ -321,6 +321,12 @@
             document.getElementById(id).classList.add('hidden');
         });
         document.getElementById(viewId).classList.remove('hidden');
+
+        // 🔥 FIX: Reset the form and tabs whenever the Guest Registration view is opened
+        if (viewId === 'guestRegistrationUI') {
+            resetPassWizardForm();
+            toggleWizardPassType('Individual'); 
+        }
     }
 
     function callBackend(params, callback) {
