@@ -419,32 +419,37 @@
     }
 
     function submitGuestForm() {
-        const expectedDate = document.getElementById('regExpectedDate').value;
-        if (!expectedDate) { alert("Please select a target execution date parameter."); return; }
+    const expectedDate = document.getElementById('regExpectedDate').value;
+    if (!expectedDate) { alert("Please select a target execution date parameter."); return; }
 
-        let payload = {
-            action: "registerGuest",
-            email: currentUser.email,
-            passType: activePassWizardType,
-            dateExpected: expectedDate
-        };
+    let payload = {
+        action: "registerGuest",
+        email: currentUser.email,
+        passType: activePassWizardType,
+        dateExpected: expectedDate
+    };
 
-        let displayNameText = "";
-        if (activePassWizardType === "Individual") {
-            const name = document.getElementById('regGuestName').value.trim();
-            if (!name) { alert("Please input guest profile name details."); return; }
-            payload.guestName = name;
-            displayNameText = name;
-        } else {
-            const locSelect = document.getElementById('regEventLocation').value;
-            const customLoc = document.getElementById('regCustomLocation').value.trim();
-            if (locSelect === "Other Area Explicit" && !customLoc) {
-                alert("Please explicitly define the custom event location venue details.");
-                return;
-            }
-            payload.locationDetails = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
-            displayNameText = "Event Pass";
+    let displayNameText = "";
+    if (activePassWizardType === "Individual") {
+        const name = document.getElementById('regGuestName').value.trim();
+        if (!name) { alert("Please input guest profile name details."); return; }
+        payload.guestName = name;
+        displayNameText = name;
+    } else {
+        const locSelect = document.getElementById('regEventLocation').value;
+        const customLoc = document.getElementById('regCustomLocation').value.trim();
+        if (locSelect === "Other Area Explicit" && !customLoc) {
+            alert("Please explicitly define the custom event location venue details.");
+            return;
         }
+        payload.locationDetails = (locSelect === "Other Area Explicit") ? customLoc : locSelect;
+        
+        // 🔥 FIX: Copy the event location details over to the guestName property 
+        // so it automatically lands in Column E (GUEST NAME) on your Google Sheet.
+        payload.guestName = payload.locationDetails; 
+        
+        displayNameText = "Event Pass";
+    }
 
         document.getElementById('submitGuestBtn').innerText = "Processing Pipeline...";
         document.getElementById('submitGuestBtn').disabled = true;
